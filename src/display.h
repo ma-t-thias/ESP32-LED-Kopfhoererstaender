@@ -10,6 +10,8 @@ struct NetInfo {
   bool setupAp = false;  // Einrichtungs-WLAN aktiv
   String ip;             // im Einrichtungsmodus die AP-Adresse
   String ssid;
+  String detail;   // z. B. Grund des letzten WLAN-Abbruchs
+  String detail2;  // Grund des letzten Neustarts
 };
 
 bool begin();

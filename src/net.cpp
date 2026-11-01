@@ -5,6 +5,7 @@
 #include <ESPmDNS.h>
 #include <WebServer.h>
 #include <WiFi.h>
+#include <esp_system.h>
 
 #include "config.h"
 #include "effects.h"
@@ -26,6 +27,31 @@ bool setupAp = false;
 bool servicesStarted = false;
 uint32_t connectStart = 0;
 uint32_t restartAt = 0;
+uint32_t connectedSince = 0;      // 0 = gerade nicht verbunden
+volatile uint8_t lastDisconnectReason = 0;
+uint16_t disconnectCount = 0;
+String resetReason;
+
+const char *resetReasonName(esp_reset_reason_t r) {
+  switch (r) {
+    case ESP_RST_POWERON: return "Einschalten";
+    case ESP_RST_SW: return "Software";
+    case ESP_RST_PANIC: return "Absturz";
+    case ESP_RST_INT_WDT:
+    case ESP_RST_TASK_WDT:
+    case ESP_RST_WDT: return "Watchdog";
+    case ESP_RST_BROWNOUT: return "Unterspannung";
+    case ESP_RST_DEEPSLEEP: return "Tiefschlaf";
+    case ESP_RST_USB: return "USB";
+    default: return "unbekannt";
+  }
+}
+
+void onWifiEvent(arduino_event_id_t event, arduino_event_info_t info) {
+  if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+    lastDisconnectReason = info.wifi_sta_disconnected.reason;
+  }
+}
 
 // ---------- Hilfsfunktionen ----------
 String hex(const CRGB &c) {
@@ -70,6 +96,7 @@ String stateJson() {
   j += ",\"ma\":" + String(s.maxMilliamps);
   j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
   j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
+  j += ",\"argbBlocked\":" + String(argb::blocked() ? "true" : "false");
   bool aura = s.argbEnabled && argb::active();
   bool live = aura || (s.syncEnabled && realtime::active());
   String src = aura ? "Mainboard-ARGB, " + String(argb::detectedLeds()) + " LEDs" : String(realtime::source());
@@ -90,6 +117,8 @@ String infoJson() {
   j += ",\"ssid\":\"" + jsonEscape(staSsid) + "\"";
   j += ",\"ip\":\"" + WiFi.localIP().toString() + "\"";
   j += ",\"rssi\":" + String(WiFi.status() == WL_CONNECTED ? WiFi.RSSI() : 0);
+  j += ",\"reset\":\"" + resetReason + "\",\"drops\":" + String(disconnectCount);
+  j += ",\"dropReason\":\"" + String(WiFi.disconnectReasonName((wifi_err_reason_t)lastDisconnectReason)) + "\"";
   j += "}";
   return j;
 }
@@ -113,8 +142,9 @@ void startSetupAp() {
 void stopSetupAp() {
   if (!setupAp) return;
   dns.stop();
-  WiFi.softAPdisconnect(true);
-  WiFi.mode(WIFI_STA);
+  // Nur den AP-Teil abschalten; ein Moduswechsel kann die bestehende STA-Verbindung trennen.
+  WiFi.softAPdisconnect(false);
+  WiFi.enableAP(false);
   setupAp = false;
   Serial.println("Einrichtungs-WLAN beendet");
 }
@@ -242,11 +272,18 @@ void begin(LedState &state, ChangeHandler onChange) {
   st = &state;
   changed = onChange;
 
+  resetReason = resetReasonName(esp_reset_reason());
+  Serial.printf("Startgrund: %s\n", resetReason.c_str());
+
   String pass;
   hasCredentials = settings::loadWifi(staSsid, pass);
+  WiFi.onEvent(onWifiEvent);
   WiFi.setHostname(HOSTNAME);
   if (hasCredentials) {
     WiFi.mode(WIFI_STA);
+    // Wie bei WLED: kein WLAN-Stromsparen. Mit Modem-Sleep brechen bei manchen Routern
+    // Verbindungen ab, und UDP-Pakete (PC-Sync) kommen verzoegert an.
+    WiFi.setSleep(false);
     WiFi.setAutoReconnect(true);
     WiFi.begin(staSsid.c_str(), pass.c_str());
     connectStart = millis();
@@ -278,11 +315,22 @@ void begin(LedState &state, ChangeHandler onChange) {
 void loop() {
   bool connected = WiFi.status() == WL_CONNECTED;
 
+  if (connected && connectedSince == 0) {
+    connectedSince = millis();
+    Serial.printf("Verbunden mit \"%s\", IP %s, Signal %d dBm, Kanal %d\n", staSsid.c_str(),
+                  WiFi.localIP().toString().c_str(), WiFi.RSSI(), WiFi.channel());
+  } else if (!connected && connectedSince != 0) {
+    connectedSince = 0;
+    disconnectCount++;
+    Serial.printf("WLAN getrennt (Grund %u: %s), Abbruch Nr. %u\n", lastDisconnectReason,
+                  WiFi.disconnectReasonName((wifi_err_reason_t)lastDisconnectReason), disconnectCount);
+  }
+
   if (connected) {
-    if (!servicesStarted) Serial.printf("Verbunden, IP %s\n", WiFi.localIP().toString().c_str());
     startServices();
-    // Einrichtungs-WLAN abschalten, sobald die Verbindung steht und niemand mehr darin ist
-    if (setupAp && WiFi.softAPgetStationNum() == 0) stopSetupAp();
+    // Einrichtungs-WLAN erst abschalten, wenn die Verbindung 10 s stabil steht
+    // und niemand mehr damit verbunden ist
+    if (setupAp && millis() - connectedSince > 10000 && WiFi.softAPgetStationNum() == 0) stopSetupAp();
   } else if (hasCredentials && !setupAp && !servicesStarted && millis() - connectStart > WIFI_CONNECT_TIMEOUT_MS) {
     // Erster Verbindungsversuch nach dem Start fehlgeschlagen -> Einrichtung anbieten
     startSetupAp();
@@ -301,6 +349,10 @@ display::NetInfo info() {
   i.setupAp = setupAp && !i.connected;
   i.ssid = i.setupAp ? String(SETUP_AP_SSID) : staSsid;
   i.ip = i.setupAp ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
+  if (!i.connected && lastDisconnectReason)
+    i.detail = "Abbruch " + String(disconnectCount) + ": " +
+               WiFi.disconnectReasonName((wifi_err_reason_t)lastDisconnectReason);
+  i.detail2 = "Start: " + resetReason;
   return i;
 }
 
