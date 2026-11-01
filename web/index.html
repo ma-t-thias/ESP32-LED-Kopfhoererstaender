@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LED-Ständer">
+<title>LED-Kopfhörerständer Steuerung</title>
+<style>
+/* Glas-Karten über einem Lichtschein in den aktuellen LED-Farben: die Seite
+   wirkt, als läge sie auf dem leuchtenden Ständer. Gruppierte Listen,
+   große Überschrift, Schalter und Segmente wie in den Systemeinstellungen. */
+:root{
+  --bg:#f2f2f7; --glass:rgba(255,255,255,.66); --glass-hi:rgba(255,255,255,.9);
+  --fg:#1c1c1e; --muted:#6e6e73; --sep:rgba(60,60,67,.16); --fill:rgba(120,120,128,.14);
+  --green:#34c759; --acc:#ff7800; --on-acc:#fff; --g1:#ff7800; --g2:#0050ff;
+  --shadow:0 1px 1px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.07),0 24px 60px rgba(0,0,0,.06);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  --r:22px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#000; --glass:rgba(30,30,32,.62); --glass-hi:rgba(255,255,255,.08);
+  --fg:#f5f5f7; --muted:#98989f; --sep:rgba(84,84,88,.55); --fill:rgba(118,118,128,.24);
+  --green:#30d158; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#000; --glass:rgba(30,30,32,.62); --glass-hi:rgba(255,255,255,.08);
+  --fg:#f5f5f7; --muted:#98989f; --sep:rgba(84,84,88,.55); --fill:rgba(118,118,128,.24);
+  --green:#30d158; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font:16px/1.4 var(--font);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--acc) 60%,transparent);outline-offset:2px}
+/* Lichtschein hinter dem Glas */
+.ambient{position:fixed;inset:-20%;z-index:0;pointer-events:none;filter:blur(70px);opacity:.55;transition:opacity .6s}
+.ambient i{position:absolute;width:60vmax;height:60vmax;border-radius:50%;animation:drift 22s ease-in-out infinite alternate}
+.ambient i:nth-child(1){background:var(--g1);left:-5%;top:-10%}
+.ambient i:nth-child(2){background:var(--g2);right:-10%;top:25%;animation-delay:-8s}
+.ambient i:nth-child(3){background:var(--g1);left:20%;bottom:-25%;opacity:.6;animation-delay:-14s}
+.off .ambient{opacity:.08}
+@keyframes drift{to{transform:translate(8vmax,6vmax) scale(1.15)}}
+.demo{position:relative;z-index:2;font-size:13px;text-align:center;padding:8px 16px;color:var(--muted)}
+.app{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 16px calc(40px + env(safe-area-inset-bottom));display:grid;gap:20px}
+@media (min-width:900px){.app{grid-template-columns:1fr 1fr;align-items:start;column-gap:28px}.span{grid-column:1/-1}}
+.col{display:grid;gap:20px}
+header{display:flex;align-items:flex-end;gap:14px;padding-top:12px}
+header .txt{flex:1;min-width:0}
+header h1{font:700 34px/1.1 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+header .sub{color:var(--muted);font-size:14px;margin-top:4px;font-variant-numeric:tabular-nums}
+.power{width:58px;height:58px;border-radius:50%;border:0;background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;transition:transform .2s,background .3s,box-shadow .3s}
+.power svg{width:26px;height:26px;stroke:var(--muted);stroke-width:2.4;fill:none;stroke-linecap:round}
+.power[aria-pressed="true"]{background:var(--acc);box-shadow:0 10px 30px color-mix(in srgb,var(--acc) 55%,transparent),0 0 0 1px rgba(255,255,255,.25) inset}
+.power[aria-pressed="true"] svg{stroke:var(--on-acc)}
+.power:active{transform:scale(.92)}
+.glass{background:var(--glass);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--glass-hi)}
+.group{display:grid;gap:8px}
+.group>h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 0 18px}
+.pad{padding:16px;display:grid;gap:16px}
+/* Live-Streifen mit Spiegelung */
+.stage{padding:0;overflow:hidden}
+.strip{display:block;width:100%;height:132px;background:radial-gradient(120% 90% at 50% 40%,rgba(255,255,255,.04),transparent),#050507}
+.stage .pad{padding-top:14px}
+.status{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;background:var(--fill)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.chip.live{color:var(--green)}.chip.live i{background:var(--green)}
+.chip.warn{color:#ff9f0a}.chip.warn i{background:#ff9f0a}
+/* Regler wie im Kontrollzentrum */
+.ctl{display:grid;gap:6px}
+.ctl .lab{display:flex;justify-content:space-between;font-size:15px}
+.ctl .lab output{color:var(--muted);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:32px;border-radius:16px;background:linear-gradient(90deg,var(--acc) var(--p,50%),var(--fill) var(--p,50%));cursor:pointer;margin:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.03)}
+input[type=range].big{height:48px;border-radius:16px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:32px;box-shadow:none}
+input[type=range]::-moz-range-thumb{width:0;height:0;border:0}
+input[type=range]::-moz-range-track{background:transparent}
+input[type=range]:disabled{opacity:.35;cursor:default}
+/* Presets */
+.presets{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
+.preset{flex:0 0 auto;scroll-snap-align:start;display:grid;justify-items:center;gap:8px;width:76px;border:0;background:none;cursor:pointer;padding:0;font-size:13px}
+.preset .orb{width:64px;height:64px;border-radius:20px;box-shadow:0 8px 20px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -8px 16px rgba(0,0,0,.18);transition:transform .25s}
+.preset.add .orb{background:var(--fill);display:grid;place-items:center;font-size:30px;color:var(--muted);box-shadow:none}
+.preset:active .orb{transform:scale(.92)}
+/* Effekte als Karten mit Tiefe */
+.fx{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;perspective:800px}
+.tile{position:relative;border:0;border-radius:18px;padding:0;cursor:pointer;text-align:left;overflow:hidden;display:grid;background:var(--glass);box-shadow:var(--shadow);transform-style:preserve-3d;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;outline-offset:3px}
+.tile canvas{display:block;width:100%;height:46px;background:#050507}
+.tile span{padding:9px 12px 11px;font-size:15px;font-weight:500}
+.tile::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.22),transparent 40%);opacity:.0;transition:opacity .25s}
+.tile:hover::after{opacity:1}
+.tile[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--acc),0 14px 30px color-mix(in srgb,var(--acc) 35%,transparent)}
+.tile:active{transform:scale(.96)!important}
+/* Farben */
+.colors{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+@media (max-width:440px){.colors{grid-template-columns:1fr;justify-items:center}}
+.wheelwrap{position:relative;width:200px;height:200px;border-radius:50%;box-shadow:0 12px 30px rgba(0,0,0,.2),inset 0 0 0 1px rgba(255,255,255,.3)}
+.wheel{width:200px;height:200px;border-radius:50%;cursor:crosshair;touch-action:none;display:block}
+.knob{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--fill);border-radius:10px;padding:2px;gap:2px}
+.seg button{border:0;background:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;transition:background .2s,box-shadow .2s}
+.seg button[aria-pressed="true"]{background:var(--glass-hi);box-shadow:0 3px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:#636366}}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:#636366}
+.swatches{display:grid;gap:12px;width:100%}
+.swrow{display:flex;gap:12px;align-items:center}
+.swrow b{width:44px;height:44px;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 12px rgba(0,0,0,.15)}
+.swrow span{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.pals{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.pal{border:0;border-radius:14px;background:none;padding:0;cursor:pointer;display:grid;gap:6px;text-align:center;font-size:13px}
+.pal i{height:30px;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 10px rgba(0,0,0,.12);transition:transform .2s}
+.pal[aria-pressed="true"] i{box-shadow:0 0 0 2.5px var(--bg),0 0 0 5px var(--acc)}
+.pal[aria-pressed="true"]{font-weight:600}
+/* Gruppierte Liste */
+.list{padding:0}
+.li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:12px 16px;min-height:52px;position:relative}
+.li+.li::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+.li small{color:var(--muted);font-size:13px;grid-column:1}
+.li .val{color:var(--muted);font-variant-numeric:tabular-nums}
+.li.btn{cursor:pointer;color:#ff3b30;border:0;background:none;width:100%;text-align:left;font-size:16px}
+.switch{position:relative;width:51px;height:31px;border-radius:16px;background:var(--fill);border:0;cursor:pointer;grid-row:1/3;grid-column:2;transition:background .25s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);transition:transform .25s cubic-bezier(.3,.7,.3,1.2)}
+.switch[aria-checked="true"]{background:var(--green)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+input[type=number]{width:90px;text-align:right;border:0;background:none;color:var(--muted);font-variant-numeric:tabular-nums;padding:0}
+.foot{color:var(--muted);font-size:13px;margin:0 16px}
+@media (prefers-reduced-motion:reduce){*,.ambient i{transition:none!important;animation:none!important}}
+</style></head><body>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="demo" id="demo">Vorschau mit Beispieldaten · steuert keine echten LEDs</div>
+<main class="app">
+ <header class="span">
+  <div class="txt"><h1>LED-Kopfhörer&shy;ständer</h1><div class="sub" id="sub">verbinde …</div></div>
+  <button class="power" id="power" type="button" aria-pressed="true" aria-label="LEDs ein- oder ausschalten"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
+ </header>
+
+ <div class="col">
+  <section class="glass stage" aria-label="Live-Vorschau">
+   <canvas class="strip" id="strip"></canvas>
+   <div class="pad">
+    <div class="status" id="status"></div>
+    <div class="ctl"><div class="lab"><label for="bri">Helligkeit</label><output id="briO"></output></div><input id="bri" class="big" type="range" min="1" max="255"></div>
+   </div>
+  </section>
+
+  <div class="group"><h2>Presets</h2>
+   <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="group"><h2>Farben</h2>
+   <section class="glass pad">
+    <div class="colors">
+     <div class="wheelwrap"><canvas class="wheel" id="wheel" width="400" height="400" aria-label="Farbrad"></canvas><span class="knob" id="knob"></span></div>
+     <div class="swatches">
+      <div class="seg" role="group" aria-label="Farbe wählen"><button id="sw1" type="button" aria-pressed="true">Farbe 1</button><button id="sw2" type="button" aria-pressed="false">Farbe 2</button></div>
+      <div class="swrow"><b id="b1"></b><span id="h1"></span></div>
+      <div class="swrow"><b id="b2"></b><span id="h2"></span></div>
+     </div>
+    </div>
+   </section>
+  </div>
+
+  <div class="group"><h2>Palette</h2>
+   <section class="glass pad"><div class="pals" id="pals"></div></section>
+  </div>
+ </div>
+
+ <div class="col">
+  <div class="group"><h2>Effekt</h2>
+   <div class="fx" id="fx"></div>
+  </div>
+  <section class="glass pad">
+   <div class="ctl"><div class="lab"><label for="spd">Tempo</label><output id="spdO"></output></div><input id="spd" type="range" min="0" max="255"></div>
+   <div class="ctl"><div class="lab"><label for="int" id="intL">Intensität</label><output id="intO"></output></div><input id="int" type="range" min="0" max="255"></div>
+  </section>
+
+  <div class="group"><h2>PC und Mainboard</h2>
+   <section class="glass list">
+    <div class="li"><span>ASUS Aura über Kabel</span><button class="switch" id="argb" type="button" role="switch" aria-checked="false" aria-label="ASUS Aura übernehmen"></button><small id="argbHint"></small></div>
+    <div class="li"><span>PC-Sync per WLAN</span><button class="switch" id="sync" type="button" role="switch" aria-checked="true" aria-label="PC-Sync per WLAN"></button><small>SignalRGB, OpenRGB, Home Assistant</small></div>
+   </section>
+  </div>
+
+  <div class="group"><h2>Einstellungen</h2>
+   <section class="glass list">
+    <div class="li"><label for="ma">Stromgrenze</label><span class="val"><input id="ma" type="number" min="200" step="100"> mA</span></div>
+    <div class="li"><span id="rotL">Anzeige drehen</span><div class="seg" id="rot" role="group" aria-labelledby="rotL" style="min-width:210px"></div></div>
+   </section>
+   <p class="foot" id="maHint"></p>
+   <section class="glass list" id="meta"></section>
+   <section class="glass list"><button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button></section>
+  </div>
+ </div>
+</main>
+<script>
+"use strict";
+// Auf dem Geraet spricht die Seite mit /api/...; nur die Online-Vorschau setzt window.LED_DEMO.
+const DEMO = !!window.LED_DEMO;
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Farben ----------
+const hex2rgb = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+const rgb2hex = c => '#' + c.map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+function hsv(h,s,v){h=((h%1)+1)%1*6;const i=Math.floor(h),f=h-i,p=v*(1-s),q=v*(1-s*f),t=v*(1-s*(1-f));
+ return [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i%6].map(x=>x*255);}
+const mix = (a,b,t) => a.map((x,i)=>x+(b[i]-x)*t);
+const PAL = [
+ null, // Regenbogen: berechnet
+ ['#5500ab','#b5004b','#e81700','#ab7700','#abab00','#dd2200','#8f0071','#2f00d0','#0007f9'],
+ ['#000080','#003080','#0070a0','#00a0c0','#40d0e0','#0060a0','#000060'],
+ ['#000000','#600000','#c00000','#ff3000','#ff9000','#ffd060','#ff3000','#600000'],
+ ['#003300','#006600','#228b22','#6b8e23','#9acd32','#2e8b57','#004000'],
+ ['#0000ff','#00008b','#87ceeb','#ffffff','#add8e6','#4169e1'],
+ ['#000000','#800000','#ff0000','#ff8000','#ffff00','#ffffff'],
+ null  // Eigene Farben: c1 -> c2
+];
+function palAt(p, x, s){
+ x = ((x%1)+1)%1;
+ if (p===0) return hsv(x,1,1);
+ if (p===7) return mix(hex2rgb(s.c1), hex2rgb(s.c2), x<.5 ? x*2 : 2-x*2);
+ const L = PAL[p], f = x*L.length, i = Math.floor(f);
+ return mix(hex2rgb(L[i%L.length]), hex2rgb(L[(i+1)%L.length]), f-i);
+}
+function palCss(p, s){
+ const stops = []; for (let k=0;k<=8;k++) stops.push(rgb2hex(palAt(p,k/8.001,s)));
+ return 'linear-gradient(90deg,'+stops.join(',')+')';
+}
+
+// ---------- Effekte (Vorschau im Browser, angelehnt an die Firmware) ----------
+const FX_INT = ['','Anzahl Regenbögen','Wiederholungen','Dichte','','','Abstand','Schweiflänge','Schweiflänge',
+ 'Häufigkeit','Menge','Flammenhöhe','Anzahl Punkte','Wellengröße','Frequenz','',
+ 'Kontrast','Feinheit','Anzahl Meteore','Häufigkeit','Ausbreitung','Flackern','Dichte','Schaum'];
+const AURORA=[[0,[0,0,0]],[70,[0,40,10]],[130,[0,200,60]],[180,[0,160,140]],[220,[70,0,160]],[255,[140,40,200]]];
+const OCEAN=[[0,[0,4,24]],[90,[0,30,90]],[170,[0,110,150]],[220,[40,170,200]],[255,[200,240,255]]];
+function grad(G,x){ x=Math.max(0,Math.min(255,x)); for(let k=1;k<G.length;k++) if(x<=G[k][0]){ const [a,ca]=G[k-1],[b,cb]=G[k]; return mix(ca,cb,(x-a)/(b-a)); } return G[G.length-1][1].slice(); }
+function noise(x){ const i=Math.floor(x), f=x-i, u=f*f*(3-2*f); return hash(i)*(1-u)+hash(i+1)*u; }
+function noise2(x,y){ const j=Math.floor(y), f=y-j, u=f*f*(3-2*f); return noise(x+j*57.3)*(1-u)+noise(x+(j+1)*57.3)*u; }
+const hash = n => { n = Math.sin(n*127.1)*43758.5453; return n-Math.floor(n); };
+function makeSim(n){
+ const m = {buf: Array.from({length:n},()=>[0,0,0]), heat: new Float32Array(n), ph: 0, met: [], drops: []};
+ return function frame(fx, s, dt){
+  m.ph += dt * s.spd/128;
+  const ph = m.ph, it = s.int/255, c1 = hex2rgb(s.c1), c2 = hex2rgb(s.c2), out = m.buf;
+  const fade = k => { for (const c of out) for (let j=0;j<3;j++) c[j]*=k; };
+  const put = (i,c) => { out[i] = c.slice(); };
+  switch (fx){
+   case 0: for (let i=0;i<n;i++) put(i,c1); break;
+   case 1: for (let i=0;i<n;i++) put(i,hsv(i/n*(1+it*4)-ph*.25,1,1)); break;
+   case 2: { const r=1+Math.round(it*4); for (let i=0;i<n;i++){const x=((i/n*r-ph*.2)%1+1)%1; put(i,mix(c1,c2,x<.5?x*2:2-x*2));} } break;
+   case 3: for (let i=0;i<n;i++) put(i,palAt(s.pal,i/n*(.5+it*3)-ph*.2,s)); break;
+   case 4: { const b=.12+.88*(Math.sin(ph*2.2)+1)/2; for (let i=0;i<n;i++) put(i,c1.map(v=>v*b)); } break;
+   case 5: { const p=(ph*.45)%2, a=p<1?c1:c2, b=p<1?c2:c1; for (let i=0;i<n;i++) put(i, i/n < p%1 ? a : b); } break;
+   case 6: { const k=2+Math.round(it*5), o=Math.floor(ph*6); for (let i=0;i<n;i++) put(i,(i+o)%k===0?palAt(s.pal,i/n-ph*.05,s):[0,0,0]); } break;
+   case 7: { fade(.72+it*.25); const h=Math.floor((ph*.5%1)*n); put(h,c1); } break;
+   case 8: { fade(.7+it*.27); const x=(Math.sin(ph*1.6)+1)/2; for (const c of out){} const h=Math.round(x*(n-1));
+             for (let i=0;i<n;i++) if (out[i][0]+out[i][1]+out[i][2]<8) put(i,c2.map(v=>v*.08)); put(h,c1); } break;
+   case 9: for (let i=0;i<n;i++){ const sl=Math.floor(ph*3+hash(i)*7), on=hash(i*7.3+sl)<.15+it*.6; const f=(ph*3+hash(i)*7)%1;
+             put(i, on ? palAt(s.pal,hash(i+sl),s).map(v=>v*Math.sin(f*Math.PI)) : [0,0,0]); } break;
+   case 10: fade(.9); if (Math.random()<.25+it) { const i=Math.floor(Math.random()*n); put(i,palAt(s.pal,Math.random(),s)); } break;
+   case 11: { const H=m.heat; for (let i=0;i<n;i++) H[i]=Math.max(0,H[i]-Math.random()*(.08+(1-it)*.12));
+              for (let i=n-1;i>=2;i--) H[i]=(H[i-1]+H[i-2]*2)/3; if (Math.random()<.6) H[Math.floor(Math.random()*4)]=Math.min(1,H[0]+.6+Math.random()*.4);
+              for (let i=0;i<n;i++){const t=H[i]; put(i,[Math.min(255,t*3*255),Math.max(0,Math.min(255,(t*3-1)*255)),Math.max(0,(t*3-2)*255)]);} } break;
+   case 12: { fade(.82); const k=2+Math.round(it*6); for (let j=0;j<k;j++){ const x=(Math.sin(ph*(1+j*.37)+j)+1)/2; put(Math.round(x*(n-1)),palAt(s.pal,j/k,s)); } } break;
+   case 13: for (let i=0;i<n;i++){ const w=(Math.sin(i/n*Math.PI*2*(1+it*4)-ph*2)+1)/2; put(i,palAt(s.pal,i/n*.6+ph*.05,s).map(v=>v*(.08+.92*w))); } break;
+   case 14: for (let i=0;i<n;i++) put(i,mix(c1,c2,(Math.sin(i/n*Math.PI*2*(1+it*6)+ph*2)+1)/2)); break;
+   case 15: { const c=palAt(s.pal,ph*.08,s); for (let i=0;i<n;i++) put(i,c); } break;
+   case 16: for (let i=0;i<n;i++){ const h=noise2(i/n*6,ph*.25)*255, l=Math.max(0,noise2(i/n*3+40,ph*.12+20)-it*.45)/(1-it*.45);
+             put(i,grad(AURORA,h).map(v=>v*l)); } break;
+   case 17: for (let i=0;i<n;i++){ const f=1+it*5, x=i/n*Math.PI*2; const v=(Math.sin(x*3*f/3+ph)/2+Math.sin(x*2*f/3-ph*2+1.2)/3+Math.cos(x*f/3+ph/3)/6+1)/2;
+             put(i,palAt(s.pal,v+ph*.03,s)); } break;
+   case 18: { for (const c of out) if (Math.random()<.35) for(let j=0;j<3;j++) c[j]*=.84;
+              const mx=1+Math.round(it*4); if (m.met.length<mx && Math.random()<.04) m.met.push({p:n-1,v:.5+Math.random()*.8,c:Math.random()});
+              m.met.forEach(o=>{ o.p-=o.v*dt*30*s.spd/128; for(let j=0;j<3;j++){const q=Math.round(o.p)+j; if(q>=0&&q<n) put(q,palAt(s.pal,o.c,s).map(v=>v*(1-j*.28)));} });
+              m.met=m.met.filter(o=>o.p>-4); } break;
+   case 19: { fade(.82); if (m.drops.length<5 && Math.random()<.03+it*.15) m.drops.push({c:Math.floor(Math.random()*n),a:0,k:Math.random()});
+              m.drops.forEach(d=>{ d.a+=dt*20*s.spd/128; const l=Math.max(0,1-d.a/22), r=Math.round(d.a/2), col=palAt(s.pal,d.k,s).map(v=>v*l);
+                for (const q of [d.c-r,d.c+r]) if(q>=0&&q<n) put(q,col); }); m.drops=m.drops.filter(d=>d.a<22); } break;
+   case 20: { const beat=(ph*4)%4.1, mid=n/2, spread=.25+it*2; for (let i=0;i<n;i++){ const t=beat-Math.abs(i-mid)/n/spread*1.2;
+              let l=0; if(t>=0&&t<.62) l=Math.sin(t/.62*Math.PI); else if(t>=.86&&t<1.33) l=.67*Math.sin((t-.86)/.47*Math.PI);
+              put(i,c1.map(v=>v*(.1+.9*l))); } } break;
+   case 21: for (let i=0;i<n;i++){ const nz=noise2(Math.floor(i/6)*1.7,ph*2.5), dip=(1-nz)*(.16+it*.5); put(i,[c1[0]*(1-dip),c1[1]*(1-dip)*(1-dip/3),c1[2]*(1-dip)]); } break;
+   case 22: { const sc=(2+it*10)/n*4, mid=n/2; for (let i=0;i<n;i++) put(i,palAt(s.pal,Math.abs(i-mid)*sc/4-ph*.2,s)); } break;
+   case 23: { const foam=1-it/3; for (let i=0;i<n;i++){ const x=i/n*Math.PI*2; const v=(Math.sin(x*4*1.6+ph)+Math.sin(x*7*1.6-ph*2+.9)+Math.sin(x*2*1.6+ph/2+2.6)+3)/6;
+              let c=grad(OCEAN,v*235); if(v>foam){const f=(v-foam)*3*255; c=c.map(q=>Math.min(255,q+f));} put(i,c);} } break;
+  }
+  return out;
+ };
+}
+function drawStrip(cv, cols, bri){
+ const ctx=cv.getContext('2d'), dpr=devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+ if (cv.width!==Math.round(W*dpr)) { cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+ ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+ const n=cols.length, pad=18, w=(W-pad*2)/n, k=bri/255, y=H*.42, h=12;
+ // Streifenkoerper
+ ctx.fillStyle='#16171b'; ctx.beginPath(); ctx.roundRect(pad-6,y-h/2-5,W-pad*2+12,h+10,7); ctx.fill();
+ const col=i=>{const c=cols[i].map(v=>v*(.2+.8*k)); return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;};
+ // Lichtschein auf dem Untergrund
+ ctx.globalCompositeOperation='lighter';
+ for (let i=0;i<n;i+=3){ const g=ctx.createRadialGradient(pad+i*w,y,0,pad+i*w,y,40); g.addColorStop(0,col(i).replace('rgb','rgba').replace(')',`,${.22*k})`)); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(pad+i*w-40,y-40,80,80); }
+ ctx.globalCompositeOperation='source-over';
+ for (let i=0;i<n;i++){ ctx.fillStyle=col(i); ctx.shadowColor=col(i); ctx.shadowBlur=reduce?0:10*k;
+  ctx.beginPath(); ctx.roundRect(pad+i*w+w*.18,y-h/2+2,Math.max(1,w*.64),h-4,1.5); ctx.fill(); }
+ ctx.shadowBlur=0;
+ // Spiegelung
+ ctx.save(); ctx.globalAlpha=.22; ctx.translate(0,y*2+h+6); ctx.scale(1,-1);
+ for (let i=0;i<n;i++){ ctx.fillStyle=col(i); ctx.fillRect(pad+i*w+w*.18,y-h/2+2,Math.max(1,w*.64),h-4); }
+ ctx.restore();
+ const fadeG=ctx.createLinearGradient(0,y+h/2+4,0,H); fadeG.addColorStop(0,'rgba(5,5,7,0)'); fadeG.addColorStop(.6,'rgba(5,5,7,1)');
+ ctx.fillStyle=fadeG; ctx.fillRect(0,y+h/2+4,W,H);
+}
+function drawLeds(cv, cols, bri, glow){
+ const ctx=cv.getContext('2d'), dpr=devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+ if (cv.width!==Math.round(W*dpr)) { cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+ ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+ const n=cols.length, w=W/n, k=bri/255;
+ for (let i=0;i<n;i++){
+  const c=cols[i].map(v=>v*(.25+.75*k)), css=`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+  ctx.fillStyle=css;
+  if (glow && !reduce){ ctx.shadowColor=css; ctx.shadowBlur=8; }
+  const gw=Math.max(1,w*.62), gh=H*.32;
+  ctx.beginPath(); ctx.roundRect(i*w+(w-gw)/2,(H-gh)/2,gw,gh,Math.min(2,gw/2)); ctx.fill();
+ }
+ ctx.shadowBlur=0;
+}
+
+// ---------- Schnittstelle ----------
+const demoState = {on:true,bri:170,fx:16,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,argbBlocked:false,live:false,liveSrc:''};
+const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
+ palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
+const api = DEMO ? {
+ info: async () => demoInfo,
+ state: async () => ({...demoState}),
+ set: async o => { for (const k in o) demoState[k] = typeof demoState[k]==='number' ? +o[k] : typeof demoState[k]==='boolean' ? !!+o[k] : o[k]; return {...demoState}; },
+ wifiReset: async () => 'In der Vorschau passiert hier nichts.',
+ presets: async () => null, savePresets: async () => {}, live: null
+} : {
+ info: () => fetch('/api/info').then(r=>r.json()),
+ state: () => fetch('/api/state').then(r=>r.json()),
+ set: o => fetch('/api/state',{method:'POST',body:new URLSearchParams(o)}).then(r=>r.json()),
+ wifiReset: () => fetch('/api/wifi/reset',{method:'POST'}).then(r=>r.text()),
+ presets: () => fetch('/api/presets').then(r=>r.text()).then(t=>t?JSON.parse(t):null),
+ savePresets: list => fetch('/api/presets',{method:'POST',body:new URLSearchParams({data:JSON.stringify(list)})}),
+ live: () => fetch('/api/live').then(r=>r.text()).then(t=>{ const a=[]; for(let i=0;i+5<t.length;i+=6) a.push(hex2rgb('#'+t.substr(i,6))); return a; })
+};
+
+let st = {...demoState}, info = demoInfo, pending = {}, timer = null, editing = 1;
+function send(o){ Object.assign(st,o); Object.assign(pending,o); render(); clearTimeout(timer);
+ timer = setTimeout(()=>{ const p=pending; pending={}; api.set(p).then(s=>{ if(!Object.keys(pending).length){ st=s; render(); } }).catch(()=>{}); },120); }
+
+// ---------- Presets (in der Vorschau nur im Browser gespeichert) ----------
+let presets = [
+ {name:'Abend', s:{on:1,bri:90,fx:4,pal:3,spd:60,int:128,c1:'#ff6a1a',c2:'#5a1000'}},
+ {name:'Gaming', s:{on:1,bri:220,fx:13,pal:1,spd:170,int:120,c1:'#ff0080',c2:'#00e0ff'}},
+ {name:'Nordlicht', s:{on:1,bri:150,fx:16,pal:2,spd:60,int:90,c1:'#00c060',c2:'#7020c0'}},
+ {name:'Kerze', s:{on:1,bri:110,fx:21,pal:3,spd:110,int:120,c1:'#ff8a20',c2:'#ff3000'}},
+ {name:'Ozean', s:{on:1,bri:160,fx:23,pal:2,spd:70,int:120,c1:'#0070c0',c2:'#40d0ff'}},
+ {name:'Feuer', s:{on:1,bri:200,fx:11,pal:6,spd:140,int:150,c1:'#ff3000',c2:'#ffd000'}}
+];
+function buildPresets(){
+ const box=$('presets'); box.innerHTML='';
+ presets.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.className='preset';
+  const g = [0,.5,1].map(x=>rgb2hex(palAt(p.s.fx===2||p.s.fx===14||p.s.fx===4?7:p.s.pal,x*.5,p.s))); b.innerHTML=`<span class="orb" style="background:linear-gradient(145deg,${g[0]},${g[1]} 55%,${g[2]})"></span>${p.name}`;
+  b.onclick=()=>send({...p.s});
+  b.oncontextmenu=e=>{ e.preventDefault(); if(confirm(`Preset „${p.name}“ löschen?`)){ presets=presets.filter(x=>x!==p); buildPresets(); api.savePresets(presets); } };
+  box.appendChild(b); });
+ const a=document.createElement('button'); a.type='button'; a.className='preset add'; a.innerHTML='<span class="orb">+</span>Speichern'; a.setAttribute('aria-label','Aktuelle Einstellung als Preset speichern');
+ a.onclick=()=>{ const n=prompt('Name für das Preset:'); if(n&&n.trim()){ presets.push({name:n.trim().slice(0,16),s:{on:1,bri:st.bri,fx:st.fx,pal:st.pal,spd:st.spd,int:st.int,c1:st.c1,c2:st.c2}}); if(presets.length>12) presets.shift(); buildPresets(); api.savePresets(presets); } };
+ box.appendChild(a);
+}
+
+// ---------- Aufbau ----------
+const tiles = [];
+function build(){
+ info.effects.forEach((name,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='tile';
+  b.innerHTML=`<canvas></canvas><span>${name}</span>`; b.onclick=()=>send({fx:i}); $('fx').appendChild(b);
+  tiles.push({el:b, cv:b.querySelector('canvas'), sim:makeSim(30)});
+  if (!reduce){ b.onpointermove=e=>{ if(e.pointerType!=='mouse')return; const r=b.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+    b.style.transform=`rotateX(${-y*14}deg) rotateY(${x*14}deg) translateZ(6px)`; };
+   b.onpointerleave=()=>{ b.style.transform=''; }; } });
+ info.palettes.forEach((name,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='pal';
+  b.innerHTML=`<i></i><span>${name}</span>`; b.onclick=()=>send({pal:i}); $('pals').appendChild(b); });
+ ['0°','90°','180°','270°'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
+ $('ma').max=info.maMax;
+ $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
+ $('meta').innerHTML=[['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
+  .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${v}</span></div>`).join('');
+ buildPresets();
+}
+function setRange(id,v){ const el=$(id); if(document.activeElement!==el) el.value=v; el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%'); }
+function render(){
+ const c1=hex2rgb(st.c1), lum=(c1[0]*.3+c1[1]*.59+c1[2]*.11);
+ const acc = lum<60 ? '#8fa3ff' : st.c1;
+ document.documentElement.style.setProperty('--acc',acc);
+ document.documentElement.style.setProperty('--on-acc', (lum<60?140:lum)>140 ? '#14100a' : '#ffffff');
+ $('power').setAttribute('aria-pressed',st.on);
+ setRange('bri',st.bri); $('briO').textContent=Math.round(st.bri/2.55)+' %';
+ setRange('spd',st.spd); $('spdO').textContent=st.spd;
+ setRange('int',st.int); $('intO').textContent=FX_INT[st.fx]?st.int:'–';
+ $('int').disabled=!FX_INT[st.fx]; $('intL').textContent=FX_INT[st.fx]||'Intensität';
+ tiles.forEach((t,i)=>t.el.setAttribute('aria-pressed',i===st.fx));
+ [...$('pals').children].forEach((b,i)=>{ b.setAttribute('aria-pressed',i===st.pal); b.firstChild.style.background=palCss(i,st); });
+ [...$('rot').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===st.rot));
+ $('b1').style.background=st.c1; $('b2').style.background=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
+ placeKnob(editing===1?st.c1:st.c2);
+ document.documentElement.style.setProperty('--g1',st.c1); document.documentElement.style.setProperty('--g2',st.c2);
+ document.body.classList.toggle('off',!st.on);
+ $('sw1').setAttribute('aria-pressed',editing===1); $('sw2').setAttribute('aria-pressed',editing===2);
+ $('argb').setAttribute('aria-checked',st.argb); $('sync').setAttribute('aria-checked',st.sync);
+ if(document.activeElement!==$('ma')) $('ma').value=st.ma;
+ const full=info.leds*60, pct=Math.min(100,Math.round(st.ma/full*100));
+ $('maHint').textContent=`Etwa 85 % des Netzteilstroms, z. B. 2400 mA bei 5 V / 3 A. Vollweiß auf ${info.leds} LEDs schafft damit etwa ${pct} % Helligkeit, farbige Effekte meist die volle.`;
+ $('argbHint').textContent = st.argbBlocked ? 'Nach einem Absturz bis zum nächsten Neustart aus' : 'Ohne Signal nach 2 s eigene Effekte';
+ const chips=[];
+ if (!st.on) chips.push('<span class="chip"><i></i>Aus</span>');
+ else if (st.live) chips.push(`<span class="chip live"><i></i>${st.liveSrc} steuert die LEDs</span>`);
+ else chips.push(`<span class="chip"><i style="background:var(--acc)"></i>${info.effects[st.fx]}</span>`);
+ chips.push(`<span class="chip"><i style="background:var(--green)"></i>WLAN ${info.ssid}</span>`);
+ if (st.argb && !st.live) chips.push('<span class="chip"><i></i>Aura bereit</span>');
+ if (st.argbBlocked) chips.push('<span class="chip warn"><i></i>ARGB-Eingang gesperrt</span>');
+ $('status').innerHTML=chips.join('');
+}
+
+// ---------- Farbrad ----------
+function drawWheel(){
+ const cv=$('wheel'), ctx=cv.getContext('2d'), R=cv.width/2, img=ctx.createImageData(cv.width,cv.height);
+ for (let y=0;y<cv.height;y++) for (let x=0;x<cv.width;x++){
+  const dx=x-R, dy=y-R, d=Math.hypot(dx,dy)/R, o=(y*cv.width+x)*4;
+  if (d>1) continue; const c=hsv(Math.atan2(dy,dx)/(2*Math.PI),Math.min(1,d),1);
+  img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=d>.985?255*(1-d)/.015:255;
+ }
+ ctx.putImageData(img,0,0);
+}
+function placeKnob(hex){
+ const [r,g,b]=hex2rgb(hex).map(v=>v/255), mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+ let h=0; if(d){ h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4; h/=6; }
+ const sat = mx ? d/mx : 0, a=h*2*Math.PI, k=$('knob');
+ k.style.left=(50+Math.cos(a)*sat*50)+'%'; k.style.top=(50+Math.sin(a)*sat*50)+'%'; k.style.background=hex;
+}
+function wheelPick(e){
+ const r=$('wheel').getBoundingClientRect(), x=(e.clientX-r.left)/r.width*2-1, y=(e.clientY-r.top)/r.height*2-1;
+ const c=rgb2hex(hsv(Math.atan2(y,x)/(2*Math.PI),Math.min(1,Math.hypot(x,y)),1));
+ send(editing===1?{c1:c}:{c2:c});
+}
+
+// ---------- Bedienung ----------
+$('power').onclick=()=>send({on:st.on?0:1});
+for (const k of ['bri','spd','int']) $(k).oninput=e=>send({[k]:+e.target.value});
+$('sw1').onclick=()=>{editing=1;render();}; $('sw2').onclick=()=>{editing=2;render();};
+$('wheel').onpointerdown=e=>{ $('wheel').setPointerCapture(e.pointerId); wheelPick(e); };
+$('wheel').onpointermove=e=>{ if(e.buttons) wheelPick(e); };
+$('argb').onclick=()=>send({argb:st.argb?0:1}); $('sync').onclick=()=>send({sync:st.sync?0:1});
+$('ma').onchange=e=>send({ma:+e.target.value});
+$('wifiReset').onclick=()=>{ if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?')) api.wifiReset().then(t=>alert(t)); };
+
+// ---------- Animation ----------
+let mainSim, last=performance.now(), acc=0, liveCols=null, liveAt=0;
+function pollLive(){ if(!api.live || document.hidden) return setTimeout(pollLive,1000);
+ api.live().then(c=>{ if(c.length){ liveCols=c; liveAt=performance.now(); } }).catch(()=>{}).finally(()=>setTimeout(pollLive,180)); }
+function loop(now){
+ const dt=Math.min(.1,(now-last)/1000); last=now; acc+=dt;
+ const step = reduce ? .5 : 1/30;
+ if (acc>=step){
+  const cols = !st.on ? Array.from({length:info.leds},()=>[0,0,0]) : (liveCols && performance.now()-liveAt<1000) ? liveCols : mainSim(st.fx, st, acc);
+  drawStrip($('strip'), cols, st.on?st.bri:0);
+  tiles.forEach((t,i)=>drawLeds(t.cv, t.sim(i, {...st, spd:Math.max(st.spd,60)}, acc), 235, true));
+  acc=0;
+ }
+ requestAnimationFrame(loop);
+}
+$('demo').hidden=!DEMO;
+Promise.all([api.info(),api.state(),api.presets().catch(()=>null)]).then(([i,s,p])=>{ info=i; st=s; if(Array.isArray(p)&&p.length) presets=p; mainSim=makeSim(info.leds); build(); drawWheel(); render(); requestAnimationFrame(loop); if(api.live) pollLive(); });
+if (!DEMO) setInterval(()=>{ if(!Object.keys(pending).length) api.state().then(s=>{st=s;render();}).catch(()=>{}); },3000);
+</script></body></html>

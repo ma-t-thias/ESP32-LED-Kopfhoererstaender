@@ -38,7 +38,8 @@ Findet der Controller das gespeicherte WLAN nach dem Einschalten 20 Sekunden lan
 
 ## Bedienung
 
-- **Weboberfläche:** Ein/Aus, Helligkeit, Tempo, Intensität, zwei Farben, Palette, Effekt, PC-Sync, Stromgrenze, Anzeige drehen (0°, 90°, 180°, 270°), WLAN neu einrichten.
+- **Weboberfläche:** Live-Vorschau des Streifens, Ein/Aus, Helligkeit, Presets, Farbrad für zwei Farben, Paletten, Effekte mit animierter Vorschau, Tempo, Intensität, Aura und PC-Sync, Stromgrenze, Anzeige drehen, WLAN neu einrichten. Hell- und Dunkelmodus folgen dem Gerät. Auf dem iPhone lässt sich die Seite über *Teilen → Zum Home-Bildschirm* wie eine App ablegen.
+- **Presets:** Tippen lädt ein Preset, „Speichern“ legt die aktuelle Einstellung als neues an (bis zu 12). Gedrückt halten bzw. Rechtsklick löscht eins. Presets liegen im Flash des Controllers und gelten für alle Geräte im Heimnetz.
 - **BOOT-Taster kurz drücken:** nächster Effekt.
 - **BOOT-Taster 5 s halten:** WLAN-Daten löschen, Neustart ins Einrichtungs-WLAN.
 
@@ -129,6 +130,8 @@ upload_flags = --auth=dein-passwort
 | GET | `/api/state` | aktueller Zustand als JSON |
 | POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3) |
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
+| GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
+| GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
 | GET | `/json/info`, `/json/state`, `/json` | WLED-kompatible Abfrage für Sync-Programme |
 
 Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state`
@@ -143,6 +146,8 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO2 mit |
-| `src/webui.h` | Weboberfläche und Einrichtungsseite |
+| `web/index.html` | Weboberfläche (Quelle) |
+| `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |
+| `src/webui.h` | Einrichtungsseite |
 | `src/display.cpp` | Anzeige auf dem LCD |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |

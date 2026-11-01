@@ -260,6 +260,38 @@ String wledStateJson() {
   return j;
 }
 
+const CRGB *liveLeds = nullptr;
+uint16_t liveCount = 0;
+
+// Aktuelle LED-Farben als Hex-Text (6 Zeichen je LED, ohne globale Helligkeit)
+void handleLive() {
+  static const char HEXCHARS[] = "0123456789abcdef";
+  String out;
+  if (liveLeds) {
+    out.reserve(liveCount * 6);
+    for (uint16_t i = 0; i < liveCount; i++) {
+      const CRGB &c = liveLeds[i];
+      const uint8_t v[3] = {c.r, c.g, c.b};
+      for (uint8_t k = 0; k < 3; k++) {
+        out += HEXCHARS[v[k] >> 4];
+        out += HEXCHARS[v[k] & 15];
+      }
+    }
+  }
+  server.sendHeader("Cache-Control", "no-store");
+  server.send(200, "text/plain", out);
+}
+
+void handleSavePresets() {
+  String j = server.arg("data");
+  if (j.length() > 3000 || !j.startsWith("[")) {
+    server.send(400, "text/plain", "Presets ungueltig oder zu gross");
+    return;
+  }
+  settings::savePresets(j);
+  server.send(200, "text/plain", "ok");
+}
+
 void handleNotFound() {
   if (setupAp) {  // Captive Portal: jede Anfrage auf die Einrichtungsseite umleiten
     server.sendHeader("Location", "http://" + WiFi.softAPIP().toString() + "/", true);
@@ -299,6 +331,9 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/state", HTTP_GET, []() { server.send(200, "application/json", stateJson()); });
   server.on("/api/state", HTTP_POST, handleSetState);
   server.on("/api/info", HTTP_GET, []() { server.send(200, "application/json", infoJson()); });
+  server.on("/api/live", HTTP_GET, handleLive);
+  server.on("/api/presets", HTTP_GET, []() { server.send(200, "application/json", settings::loadPresets()); });
+  server.on("/api/presets", HTTP_POST, handleSavePresets);
   server.on("/api/scan", HTTP_GET, handleScan);
   server.on("/api/wifi", HTTP_POST, handleSaveWifi);
   server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
@@ -343,6 +378,11 @@ void loop() {
   if (servicesStarted && strlen(OTA_PASSWORD) > 0) ArduinoOTA.handle();
 
   if (restartAt && (int32_t)(millis() - restartAt) > 0) ESP.restart();
+}
+
+void setLeds(const CRGB *leds, uint16_t n) {
+  liveLeds = leds;
+  liveCount = n;
 }
 
 display::NetInfo info() {
