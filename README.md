@@ -2,6 +2,17 @@
 
 WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-LCD-1.3 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau.
 
+<p align="center">
+  <img src="docs/images/weboberflaeche-handy-hell.jpg" alt="Weboberfläche auf dem Handy, heller Modus" width="260">
+  <img src="docs/images/weboberflaeche-handy-dunkel.jpg" alt="Weboberfläche auf dem Handy, dunkler Modus" width="260">
+</p>
+
+<p align="center">
+  <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC mit allen Effekten" width="800">
+</p>
+
+Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
+
 ## Hardware
 
 | Bauteil | Anschluss |
