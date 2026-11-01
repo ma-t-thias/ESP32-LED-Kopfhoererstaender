@@ -38,8 +38,9 @@ select,input[type=number]{font:inherit;background:#222a30;color:var(--fg);border
 </div>
 <div class="card"><h2>Effekt</h2><div id="fx" class="grid"></div></div>
 <div class="card stack"><h2>PC-Sync</h2>
- <label class="check" for="sync"><input id="sync" type="checkbox">Farben vom PC übernehmen (SignalRGB, OpenRGB)</label>
- <small>Solange der PC sendet, haben seine Farben Vorrang. Ohne PC laufen nach wenigen Sekunden wieder die eigenen Effekte.</small>
+ <label class="check" for="argb"><input id="argb" type="checkbox">Mainboard-ARGB übernehmen (ASUS Aura, Kabel an GPIO2)</label>
+ <label class="check" for="sync"><input id="sync" type="checkbox">Farben per WLAN übernehmen (SignalRGB, OpenRGB)</label>
+ <small>Solange der PC sendet, haben seine Farben Vorrang, das Mainboard-Kabel vor WLAN. Ohne PC laufen nach wenigen Sekunden wieder die eigenen Effekte.</small>
 </div>
 <div class="card stack"><h2>Einstellungen</h2>
  <div class="row"><label for="ma">Stromgrenze</label><input id="ma" type="number" min="200" step="100"><small>mA</small></div>
@@ -58,11 +59,11 @@ function show(s){st=s;$('power').textContent=s.on?'Ein':'Aus';$('power').classLi
  if(document.activeElement!==$('c1'))$('c1').value=s.c1;if(document.activeElement!==$('c2'))$('c2').value=s.c2;
  $('pal').value=s.pal;if(document.activeElement!==$('ma'))$('ma').value=s.ma;
  document.querySelectorAll('#fx button').forEach((b,i)=>b.classList.toggle('sel',i===s.fx));
- $('sync').checked=s.sync;$('live').textContent=s.live?`PC-Sync aktiv (${s.liveSrc}). Die eigenen Effekte pausieren.`:'';}
+ $('sync').checked=s.sync;$('argb').checked=s.argb;$('live').textContent=s.live?`PC-Sync aktiv (${s.liveSrc}). Die eigenen Effekte pausieren.`:'';}
 $('power').onclick=()=>send({on:st.on?0:1});
 for(const k of['bri','spd','int'])$(k).oninput=e=>{$(k+'O').textContent=e.target.value;send({[k]:e.target.value});};
 $('c1').oninput=e=>send({c1:e.target.value});$('c2').oninput=e=>send({c2:e.target.value});
-$('pal').onchange=e=>send({pal:e.target.value});$('sync').onchange=e=>send({sync:e.target.checked?1:0});$('ma').onchange=e=>send({ma:e.target.value});
+$('pal').onchange=e=>send({pal:e.target.value});$('sync').onchange=e=>send({sync:e.target.checked?1:0});$('argb').onchange=e=>send({argb:e.target.checked?1:0});$('ma').onchange=e=>send({ma:e.target.value});
 $('wifiReset').onclick=()=>{if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?'))
  fetch('/api/wifi/reset',{method:'POST'}).then(r=>r.text()).then(t=>alert(t));};
 fetch('/api/info').then(r=>r.json()).then(info=>{

@@ -6,7 +6,8 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
 
 | Bauteil | Anschluss |
 |---|---|
-| ESP32-C6-LCD-1.3 | 5V-Pin über Schottky-Diode 1N5819, GND, **GPIO1 = LED-Daten** |
+| ESP32-C6-LCD-1.3 | 5V-Pin über Schottky-Diode 1N5819, GND, **GPIO1 = LED-Daten**, **GPIO2 = ARGB-Eingang** |
+| ARGB-Kabel vom Mainboard | D über 1 kΩ / 2 kΩ an GPIO2, G an GND, 5V frei |
 | 74AHCT125 | Pegelwandler 3,3 V → 5 V (Kanal 1), 100 nF an Pin 14 |
 | WS2812B | DIN über 330 Ω, +5 V/GND direkt vom Netzteil |
 | Netzteil | 5 V / 10 A (oder 5 V / 4 A mit Stromgrenze 3000 mA) |
@@ -66,6 +67,21 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
 
+## ASUS Aura über das Mainboard-Kabel
+
+Der Ständer kann direkt von Armoury Crate/Aura gesteuert werden, ohne Zusatzsoftware. Dafür liest der ESP das Signal eines ARGB-Headers auf dem Mainboard mit. Für Aura ist der Ständer dann ein ganz normaler ARGB-Streifen.
+
+**Anschluss** (siehe `docs/hardware/schaltung.html`):
+- Header-Pin **D** → R3 1 kΩ → **GPIO2**, von GPIO2 → R4 2 kΩ → GND. Der Spannungsteiler macht aus 5 V etwa 3,3 V.
+- Header-Pin **G** → GND des Aufbaus.
+- Header-Pin **5V** bleibt frei. Die LEDs bekommen ihren Strom weiter vom eigenen Netzteil.
+
+**In Armoury Crate:** Unter *Geräte → Aura → ARGB-Anschluss* die LED-Anzahl einstellen. Erlaubt ist jeder Wert bis 300. Die Firmware erkennt die Anzahl selbst und streckt sie auf 144 LEDs. Mit 144 LEDs entspricht jede Aura-LED genau einer LED am Ständer.
+
+**Verhalten:** Sendet das Mainboard, zeigt der Ständer die Aura-Farben. Display und Weboberfläche zeigen dann „Aura (… LEDs)“. Kommt 2 Sekunden lang kein gültiges Signal, etwa weil der PC aus ist, laufen wieder die eigenen Effekte. Abschalten lässt sich das mit dem Schalter **Mainboard-ARGB übernehmen** in der Weboberfläche.
+
+Vorrang: Mainboard-Kabel vor PC-Sync per WLAN vor eigenen Effekten.
+
 ## PC-Sync mit SignalRGB oder OpenRGB
 
 Der Controller nimmt Farben vom PC entgegen und leuchtet dann synchron mit Mainboard, Lüftern und Co. (z. B. ASUS ARGB). Sendet der PC nichts mehr, laufen nach 2,5 Sekunden wieder die eigenen Effekte. Der Schalter **PC-Sync** in der Weboberfläche schaltet den Empfang ab.
@@ -109,7 +125,7 @@ upload_flags = --auth=dein-passwort
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync` |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb` |
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
 | GET | `/json/info`, `/json/state`, `/json` | WLED-kompatible Abfrage für Sync-Programme |
 
@@ -124,6 +140,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
+| `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO2 mit |
 | `src/webui.h` | Weboberfläche und Einrichtungsseite |
 | `src/display.cpp` | Anzeige auf dem LCD |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |

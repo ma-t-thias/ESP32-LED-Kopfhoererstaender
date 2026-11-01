@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "effects.h"
+#include "argb_in.h"
 #include "realtime.h"
 
 namespace display {
@@ -73,7 +74,9 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
     textLine(66, 40, net.ssid, 1, MUTED, lastNet2);
   }
 
-  if (s.syncEnabled && realtime::active())
+  if (s.argbEnabled && argb::active())
+    textLine(112, 24, "Aura (" + String(argb::detectedLeds()) + " LEDs)", 2, GOOD, lastFx);
+  else if (s.syncEnabled && realtime::active())
     textLine(112, 24, String("PC-Sync ") + realtime::source(), 2, GOOD, lastFx);
   else
     textLine(112, 24, effects::NAMES[s.effect < effects::COUNT ? s.effect : 0], 2, FG, lastFx);
