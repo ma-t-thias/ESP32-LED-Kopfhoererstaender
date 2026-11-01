@@ -64,6 +64,14 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 | Wellen | Palette | Wellengröße |
 | Sinus | Farbe 1 und 2 | Frequenz |
 | Farbwechsel | Palette | – |
+| Nordlicht | eigene Grün-Violett-Töne | Kontrast |
+| Plasma | Palette | Feinheit |
+| Meteorregen | Palette | Anzahl Meteore |
+| Regentropfen | Palette | Häufigkeit |
+| Herzschlag | Farbe 1 | Ausbreitung |
+| Kerze | Farbe 1 (warm wählen) | Flackern |
+| Lichtwelle | Palette | Dichte |
+| Ozean | eigene Blautöne | Schaum |
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
 
