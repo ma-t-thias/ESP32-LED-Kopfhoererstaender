@@ -213,9 +213,9 @@ for (wy, col, lab) in ((40, RED, "+5V"), (130, BLU, "GND")):
 text(nx + 29, 32, "WAGO 221", 9.5, fill="var(--muted)")
 # Netzteil
 A(f'<rect x="{nx-10}" y="{215}" width="78" height="62" rx="6" fill="var(--psu)" stroke="var(--line)"/>')
-text(nx + 29, 241, "Netzteil", 11, weight=700)
-text(nx + 29, 256, "5 V · 10 A", 10)
-text(nx + 29, 269, "(min. 4 A)", 9, fill="var(--muted)")
+text(nx + 29, 241, "USB-C", 11, weight=700)
+text(nx + 29, 256, "5 V · 3 A", 10)
+text(nx + 29, 269, "Buchse CC 5,1k", 9, fill="var(--muted)")
 wire([(nx + 12, 215), (nx + 12, 200), (nx - 14, 200), (nx - 14, 60), (nx, 60)], RED, 4.5)
 wire([(nx + 46, 215), (nx + 46, 190), (nx + 70, 190), (nx + 70, 150), (nx + 58, 150)], BLU, 4.5)
 # duenne Leitungen zum Breadboard
@@ -261,8 +261,8 @@ def t(tx, ty, s, size=12, anchor="middle", weight=400, fill="currentColor"):
 Y5, YG = 60, 470       # 5-V-Leitung oben, Masse unten
 # Netzteil
 A('<rect x="30" y="150" width="110" height="130" rx="6" fill="var(--psu)" stroke="currentColor" stroke-width="1.4"/>')
-t(85, 200, "Netzteil", 13, weight=700); t(85, 218, "5 V DC", 12); t(85, 234, "10 A / 50 W", 12)
-t(85, 252, "(min. 4 A + ABL)", 10, fill="var(--muted)")
+t(85, 192, "USB-C-Netzteil", 12, weight=700); t(85, 210, "5 V / 3 A", 12); t(85, 226, "(15 W)", 11)
+t(85, 244, "Buchse mit", 10, fill="var(--muted)"); t(85, 257, "CC 5,1 kΩ", 10, fill="var(--muted)"); t(85, 270, "ABL 2400 mA", 10, fill="var(--muted)")
 L([(85, 150), (85, Y5), (900, Y5)], RED, 2.6)
 L([(85, 280), (85, YG), (900, YG)], BLU, 2.6)
 t(100, Y5 - 10, "+5 V (Litze ≥ 1,0 mm²)", 11, anchor="start", fill=RED, weight=700)
@@ -334,7 +334,7 @@ L([(760, 248), (820, 248)], GRN, 2.4)
 
 # Streifen
 A('<rect x="820" y="140" width="110" height="200" rx="6" fill="#15171b" stroke="currentColor" stroke-width="1.4"/>')
-t(875, 166, "WS2812B", 12, weight=700, fill="#e8ecf2"); t(875, 182, "144 LEDs / 1 m", 10, fill="#b8c1cc")
+t(875, 166, "WS2812B", 12, weight=700, fill="#e8ecf2"); t(875, 182, "≈100 LEDs / 70 cm", 10, fill="#b8c1cc")
 for i in range(6):
     A(f'<circle cx="{842+i*14}" cy="208" r="5" fill="hsl({i*55},85%,60%)"/>')
 t(830, 252, "DIN", 11, anchor="start", fill="#e8ecf2", weight=700)

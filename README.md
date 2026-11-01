@@ -10,7 +10,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
 | ARGB-Kabel vom Mainboard | D über 1 kΩ / 2 kΩ an GPIO2, G an GND, 5V frei |
 | 74AHCT125 | Pegelwandler 3,3 V → 5 V (Kanal 1), 100 nF an Pin 14 |
 | WS2812B | DIN über 330 Ω, +5 V/GND direkt vom Netzteil |
-| Netzteil | 5 V / 10 A (oder 5 V / 4 A mit Stromgrenze 3000 mA) |
+| Netzteil | USB-C-Netzteil 5 V / 3 A über USB-C-Buchse mit 5,1-kΩ-CC-Widerständen, Stromgrenze 2400 mA |
 
 Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html`](docs/hardware/schaltung.html). Im Browser öffnen. Die Seite wird mit `python3 docs/hardware/gen_schaltung.py` aus der Vorlage neu erzeugt.
 
@@ -23,7 +23,7 @@ Voraussetzung: VS Code mit PlatformIO (wie im Testprojekt `ESP32-C6-LCD-1.3`).
 3. Board per USB-C anschließen, **Upload** in der PlatformIO-Leiste klicken.
 4. Serieller Monitor mit 115200 Baud zeigt Verbindung und IP-Adresse.
 
-Das LED-Netzteil darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
+Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
 
 ## Erste Einrichtung (WLAN)
 
@@ -104,7 +104,7 @@ Die Helligkeit aus der Weboberfläche und die Stromgrenze gelten auch im PC-Sync
 
 ## Stromgrenze
 
-Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 3000 mA (`include/config.h`), passend zu einem 4-A-Netzteil. Mit dem 10-A-Netzteil kannst du in der Weboberfläche auf 8000 mA erhöhen.
+Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 2400 mA (`include/config.h`), passend zum USB-C-Netzteil 5 V / 3 A. Farbige Effekte laufen damit in voller Helligkeit, nur Vollweiß auf allen LEDs wird gedimmt. War schon ein anderer Wert gespeichert, stellst du ihn in der Weboberfläche auf 2400 mA. Mit einem stärkeren Netzteil (z. B. USB-C PD 12 V und Step-down auf 5 V / 6 A) kannst du auf etwa 85 % von dessen Strom erhöhen.
 
 ## Update über WLAN (optional)
 
