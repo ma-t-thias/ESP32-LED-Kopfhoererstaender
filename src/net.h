@@ -8,6 +8,8 @@ namespace net {
 using ChangeHandler = void (*)(bool effectChanged);
 
 void begin(LedState &state, ChangeHandler onChange);
+// LED-Puffer fuer die Live-Vorschau in der Weboberflaeche (/api/live)
+void setLeds(const CRGB *leds, uint16_t n);
 void loop();
 display::NetInfo info();
 // Loescht WLAN-Daten und startet neu (Taster 5 s halten oder Weboberflaeche)

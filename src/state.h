@@ -29,4 +29,8 @@ void loop(const LedState &state);  // speichert ~3 s nach der letzten Aenderung
 bool loadWifi(String &ssid, String &pass);
 void saveWifi(const String &ssid, const String &pass);
 void clearWifi();
+
+// Presets der Weboberflaeche als JSON-Text (max. ca. 3 KB)
+String loadPresets();
+void savePresets(const String &json);
 }  // namespace settings

@@ -74,6 +74,7 @@ void setup() {
 
   if (!display::begin()) Serial.println("Display nicht gefunden - laeuft ohne Anzeige weiter");
 
+  net::setLeds(leds, LED_COUNT);
   net::begin(state, onWebChange);
 }
 

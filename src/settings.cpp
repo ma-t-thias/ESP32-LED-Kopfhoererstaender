@@ -57,6 +57,19 @@ void loop(const LedState &s) {
   prefs.end();
 }
 
+String loadPresets() {
+  prefs.begin("presets", true);
+  String j = prefs.getString("list", "");
+  prefs.end();
+  return j;
+}
+
+void savePresets(const String &json) {
+  prefs.begin("presets", false);
+  prefs.putString("list", json);
+  prefs.end();
+}
+
 bool loadWifi(String &ssid, String &pass) {
   prefs.begin("wifi", true);
   ssid = prefs.getString("ssid", "");
