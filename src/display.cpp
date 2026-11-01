@@ -6,6 +6,11 @@
 #include "effects.h"
 #include "argb_in.h"
 #include "realtime.h"
+#include "matter_dev.h"
+
+extern "C" {
+#include <qrcode.h>
+}
 
 namespace display {
 
@@ -13,6 +18,7 @@ namespace {
 Arduino_DataBus *bus = new Arduino_HWSPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI, GFX_NOT_DEFINED);
 Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true /* IPS */, LCD_W, LCD_H, 0, 0, 0, LCD_ROW_OFFSET2);
 bool ok = false;
+bool pairingShown = false;  // Matter-Koppelbildschirm ist zu sehen
 uint8_t rotation = LCD_ROTATION;
 
 constexpr uint16_t BG = 0x0000;
@@ -53,6 +59,41 @@ void drawStatic() {
   lastHeader = lastNet1 = lastNet2 = lastFx = lastInfo = "";
   lastPreviewMs = 0;
 }
+// QR-Code zeichnen: Die Bibliothek ruft uns mit dem fertigen Code auf.
+constexpr int QR_Y = 30;
+constexpr int QR_BOX = 156;
+void drawQr(esp_qrcode_handle_t q) {
+  int n = esp_qrcode_get_size(q);
+  int scale = (QR_BOX - 16) / n;  // 4 Module Ruhezone sind im weissen Rand enthalten
+  int size = n * scale;
+  int x0 = (LCD_W - size) / 2, y0 = QR_Y + (QR_BOX - size) / 2;
+  gfx->fillRect((LCD_W - QR_BOX) / 2, QR_Y, QR_BOX, QR_BOX, 0xFFFF);
+  for (int y = 0; y < n; y++)
+    for (int x = 0; x < n; x++)
+      if (esp_qrcode_get_module(q, x, y)) gfx->fillRect(x0 + x * scale, y0 + y * scale, scale, scale, 0x0000);
+}
+
+// Bildschirm zum Koppeln mit Apple Home & Co.: QR-Code und Zahlencode
+void drawPairing(const NetInfo &net) {
+  gfx->setRotation(rotation);
+  gfx->fillScreen(BG);
+  gfx->setTextSize(2);
+  gfx->setTextColor(FG);
+  gfx->setCursor(8, 8);
+  gfx->print("Mit Home koppeln");
+  esp_qrcode_config_t cfg = ESP_QRCODE_CONFIG_DEFAULT();
+  cfg.display_func = drawQr;
+  esp_qrcode_generate(&cfg, matterdev::qrPayload().c_str());
+  String c = matterdev::manualCode();
+  if (c.length() == 11) c = c.substring(0, 4) + "-" + c.substring(4, 7) + "-" + c.substring(7);
+  gfx->setTextColor(ACCENT);
+  gfx->setCursor((LCD_W - c.length() * 12) / 2, 194);
+  gfx->print(c);
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  gfx->setCursor(8, 222);
+  gfx->print(net.ip + "  " + String(HOSTNAME) + ".local");
+}
 }  // namespace
 
 bool begin() {
@@ -68,10 +109,18 @@ bool begin() {
 void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (!ok) return;
 
+  bool wantPairing = matterdev::started() && !matterdev::paired() && net.connected;
   if ((s.displayRotation & 3) != rotation) {
     rotation = s.displayRotation & 3;
-    drawStatic();
+    if (wantPairing) drawPairing(net);
+    else drawStatic();
   }
+  if (wantPairing != pairingShown) {
+    pairingShown = wantPairing;
+    if (wantPairing) drawPairing(net);
+    else drawStatic();
+  }
+  if (pairingShown) return;
 
   textLine(6, 24, "LED-Kopfhoerer", 2, FG, lastHeader);
 

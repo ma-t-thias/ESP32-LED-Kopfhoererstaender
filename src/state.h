@@ -19,6 +19,7 @@ struct LedState {
   bool syncEnabled = true;    // Farben vom PC (SignalRGB, OpenRGB ...) annehmen
   bool argbEnabled = false;   // Signal vom Mainboard-ARGB-Header (Aura) uebernehmen
   uint8_t displayRotation = LCD_ROTATION;  // 0..3 = 0/90/180/270 Grad im Uhrzeigersinn
+  bool matterEnabled = false;  // Apple Home & Co. ueber Matter; wirkt nach Neustart
 };
 
 namespace settings {
@@ -32,5 +33,7 @@ void clearWifi();
 
 // Presets der Weboberflaeche als JSON-Text (max. ca. 3 KB)
 String loadPresets();
+// Matter ein/aus sofort speichern (danach folgt ein Neustart)
+void saveMatter(bool enabled);
 void savePresets(const String &json);
 }  // namespace settings
