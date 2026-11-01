@@ -1,8 +1,13 @@
 #include "matter_dev.h"
 
+// Matter belegt rund 600 KB Flash und passt nicht neben zwei Update-Slots.
+// Deshalb nur in der Umgebung env:esp32-c6-lcd-matter (ohne Update per WLAN).
+#ifdef WITH_MATTER
 #include <Matter.h>
 
 namespace matterdev {
+
+bool available() { return true; }
 
 namespace {
 MatterEnhancedColorLight light;
@@ -178,3 +183,20 @@ String qrPayload() {
 }
 
 }  // namespace matterdev
+#else
+
+namespace matterdev {
+bool available() { return false; }
+void begin(const LedState &) {}
+bool started() { return false; }
+bool paired() { return false; }
+bool loop(LedState &, bool &effectChanged) {
+  effectChanged = false;
+  return false;
+}
+void unpair() {}
+String manualCode() { return ""; }
+String qrPayload() { return ""; }
+}  // namespace matterdev
+
+#endif

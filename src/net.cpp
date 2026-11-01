@@ -99,6 +99,7 @@ String stateJson() {
   j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
   j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
   j += ",\"rot\":" + String(s.displayRotation);
+  j += ",\"matterAvail\":" + String(matterdev::available() ? "true" : "false");
   j += ",\"matter\":" + String(s.matterEnabled ? "true" : "false");
   j += ",\"matterPaired\":" + String(matterdev::paired() ? "true" : "false");
   if (matterdev::started() && !matterdev::paired()) j += ",\"matterCode\":\"" + matterdev::manualCode() + "\"";
@@ -198,7 +199,7 @@ void handleSetState() {
   v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
   v = argInt("rot", 0, 3, p);          if (p) s.displayRotation = v;
   v = argInt("matter", 0, 1, p);
-  if (p && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
+  if (p && matterdev::available() && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
     s.matterEnabled = v;
     settings::saveMatter(s.matterEnabled);
     display::message(v ? "Matter an" : "Matter aus", "Neustart...");

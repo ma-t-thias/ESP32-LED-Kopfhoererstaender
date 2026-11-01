@@ -37,7 +37,14 @@ Voraussetzung: VS Code mit PlatformIO (wie im Testprojekt `ESP32-C6-LCD-1.3`).
 3. Board per USB-C anschließen, **Upload** in der PlatformIO-Leiste klicken.
 4. Serieller Monitor mit 115200 Baud zeigt Verbindung und IP-Adresse.
 
-Die Partitionstabelle (`partitions.csv`, mit großem Speicherbereich für Matter) wird nur per USB geschrieben. Nach einem Wechsel der Tabelle sind WLAN-Daten und Einstellungen einmal weg und werden neu eingerichtet.
+Es gibt zwei Umgebungen, auswählbar unten in der VS-Code-Statusleiste:
+
+| Umgebung | Inhalt | Update per WLAN |
+|---|---|---|
+| `esp32-c6-lcd` (Standard) | alles außer Matter | möglich, siehe unten |
+| `esp32-c6-lcd-matter` | zusätzlich Matter für Apple Home & Co. | nein, Matter braucht den Platz beider Update-Slots |
+
+Die Partitionstabelle (`partitions.csv` bzw. `partitions_matter.csv`) wird nur per USB geschrieben. Ein Wechsel zwischen den Umgebungen geht deshalb nur per USB. Die Einstellungen liegen in beiden Tabellen an derselben Stelle und bleiben erhalten.
 
 Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
 
@@ -130,6 +137,7 @@ Damit lassen sich Automationen bauen, z. B. „Ständer auf Kerze, wenn abends d
 
 Der Ständer kann sich per Matter über WLAN in Apple Home einbinden, ebenso in Google Home, Alexa oder SmartThings. Das ist ein **Prototyp** und ab Werk aus.
 
+0. Die Umgebung `esp32-c6-lcd-matter` per USB flashen (siehe *Bauen und flashen*). In der normalen Firmware fehlt der Matter-Abschnitt in der Weboberfläche.
 1. Weboberfläche → *Einstellungen* → *Apple Home · Matter* einschalten. Der Ständer startet neu.
 2. Das Display zeigt jetzt einen QR-Code und den Koppel-Code `3497-011-2332`. Beides steht auch in der Weboberfläche.
 3. In der Home-App *Gerät hinzufügen* wählen und den QR-Code scannen, oder unter *Weitere Optionen* den Code eingeben. iPhone und Ständer müssen im selben WLAN sein.
@@ -166,21 +174,16 @@ Die Helligkeit aus der Weboberfläche und die Stromgrenze gelten auch im PC-Sync
 
 Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 2400 mA (`include/config.h`), passend zum USB-C-Netzteil 5 V / 3 A. Farbige Effekte laufen damit in voller Helligkeit, nur Vollweiß auf allen LEDs wird gedimmt. War schon ein anderer Wert gespeichert, stellst du ihn in der Weboberfläche auf 2400 mA. Mit einem stärkeren Netzteil (z. B. USB-C PD 12 V und Step-down auf 5 V / 6 A) kannst du auf etwa 85 % von dessen Strom erhöhen.
 
-## Update über WLAN (optional)
+## Update über WLAN (nur Testbetrieb)
 
-OTA ist standardmäßig aus. Zum Einschalten `include/secrets.h` anlegen (wird nicht ins Repo übernommen):
+Die normale Firmware hat kein Update per WLAN. Für den Testbetrieb gibt es zwei zusätzliche Umgebungen, die nur lokal existieren:
 
-```c
-#define OTA_PASSWORD "dein-passwort"
-```
+1. `test_ota.example.ini` nach `test_ota.ini` kopieren (wird nicht eingecheckt) und dort ein eigenes Passwort eintragen.
+2. VS Code neu laden. Unten in der Statusleiste gibt es jetzt `env:test-usb` und `env:test-ota`.
+3. Einmal `env:test-usb` wählen und per USB hochladen. Diese Firmware nimmt Updates per WLAN an.
+4. Ab dann `env:test-ota` wählen und **Upload** klicken. Die Firmware geht per WLAN auf den Ständer, das Display zeigt „Update…“.
 
-Danach einmal per USB flashen. Ab dann geht es in `platformio.ini` mit:
-
-```ini
-upload_protocol = espota
-upload_port = led-kopfhoerer.local
-upload_flags = --auth=dein-passwort
-```
+Findet der PC `led-kopfhoerer.local` nicht, in `test_ota.ini` bei `host` die IP-Adresse vom Display eintragen. Fragt die Windows-Firewall beim ersten Mal nach Python, für private Netzwerke zulassen. Ohne `test_ota.ini` gibt es die Test-Umgebungen nicht, und die Firmware bleibt ohne Update per WLAN.
 
 ## API
 
