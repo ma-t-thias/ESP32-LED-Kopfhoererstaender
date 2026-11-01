@@ -12,7 +12,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
   <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht mit allen Effekten" width="800">
 </p>
 
-Die Weboberfläche hat drei Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten) und **Einstellungen** (ASUS Aura, PC-Sync, Stromgrenze, Display-Drehung, Gerätedaten, WLAN). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`), und der Browser merkt sich die zuletzt offene.
+Die Weboberfläche hat drei Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten) und **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung, Gerätedaten, WLAN). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`), und der Browser merkt sich die zuletzt offene.
 
 Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
 
@@ -36,6 +36,8 @@ Voraussetzung: VS Code mit PlatformIO (wie im Testprojekt `ESP32-C6-LCD-1.3`).
 2. Den Ordner in VS Code öffnen. PlatformIO lädt beim ersten Bauen die Plattform `pioarduino` (Arduino-Core 3.x für den ESP32-C6) und die Bibliotheken FastLED und GFX Library for Arduino.
 3. Board per USB-C anschließen, **Upload** in der PlatformIO-Leiste klicken.
 4. Serieller Monitor mit 115200 Baud zeigt Verbindung und IP-Adresse.
+
+Die Partitionstabelle (`partitions.csv`, mit großem Speicherbereich für Matter) wird nur per USB geschrieben. Nach einem Wechsel der Tabelle sind WLAN-Daten und Einstellungen einmal weg und werden neu eingerichtet.
 
 Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
 
@@ -124,6 +126,24 @@ Der Controller verhält sich nach außen wie ein WLED-Gerät. Deshalb funktionie
 
 Damit lassen sich Automationen bauen, z. B. „Ständer auf Kerze, wenn abends das Wohnzimmerlicht gedimmt wird“. Nicht nachgebildet sind mehrere Segmente, Playlists, Nachtlicht-Timer und Firmware-Updates über Home Assistant.
 
+## Apple Home, Google Home und Alexa (Matter)
+
+Der Ständer kann sich per Matter über WLAN in Apple Home einbinden, ebenso in Google Home, Alexa oder SmartThings. Das ist ein **Prototyp** und ab Werk aus.
+
+1. Weboberfläche → *Einstellungen* → *Apple Home · Matter* einschalten. Der Ständer startet neu.
+2. Das Display zeigt jetzt einen QR-Code und den Koppel-Code `3497-011-2332`. Beides steht auch in der Weboberfläche.
+3. In der Home-App *Gerät hinzufügen* wählen und den QR-Code scannen, oder unter *Weitere Optionen* den Code eingeben. iPhone und Ständer müssen im selben WLAN sein.
+4. Die Home-App warnt vor einem nicht zertifizierten Gerät. Mit *Trotzdem hinzufügen* geht es weiter.
+
+In der Home-App lassen sich Ein/Aus, Helligkeit, Farbe und Weißton steuern, also auch per Siri und in Automationen. Wählt man dort eine Farbe, wechselt der Ständer auf den Effekt *Einfarbig*. Effekte und Presets kennt Matter nicht, die bleiben in der Weboberfläche. Änderungen aus der Weboberfläche zeigt die Home-App sofort an. *Kopplung entfernen* in der Weboberfläche löscht die Matter-Daten, danach lässt sich neu koppeln.
+
+**Grenzen des Prototyps:** Er nutzt die Test-Zugangsdaten aus dem Arduino-Core: Hersteller-ID `0xFFF1` und auf jedem Gerät derselbe Koppel-Code. Für den Verkauf braucht es:
+- eine Mitgliedschaft in der Connectivity Standards Alliance (CSA) mit eigener Hersteller-ID,
+- pro Gerät ein eigenes Zertifikat (DAC) und einen eigenen Koppel-Code, die ab Werk im Flash stehen (dafür ist die Partition `fctry` vorgesehen),
+- eine Zertifizierung im Testlabor.
+
+Dafür würde die Firmware auf ESP-IDF mit esp-matter umziehen. Auf echter Hardware noch zu prüfen: ob das Matter-mDNS und das mDNS für `led-kopfhoerer.local`/WLED sauber nebeneinander laufen.
+
 ## PC-Sync mit SignalRGB oder OpenRGB
 
 Der Controller nimmt Farben vom PC entgegen und leuchtet dann synchron mit Mainboard, Lüftern und Co. (z. B. ASUS ARGB). Sendet der PC nichts mehr, laufen nach 2,5 Sekunden wieder die eigenen Effekte. Der Schalter **PC-Sync** in der Weboberfläche schaltet den Empfang ab.
@@ -167,8 +187,9 @@ upload_flags = --auth=dein-passwort
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3) |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3), `matter` (0/1, startet neu) |
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
+| POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
 | GET | `/json`, `/json/si`, `/json/info`, `/json/state`, `/json/eff`, `/json/pal`, `/presets.json` | WLED-kompatible Abfrage |
@@ -186,6 +207,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
+| `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO2 mit |
 | `web/index.html` | Weboberfläche (Quelle) |
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |

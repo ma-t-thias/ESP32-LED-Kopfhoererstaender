@@ -47,7 +47,7 @@ button,input{font:inherit;color:inherit}
 .col{display:grid;gap:20px;align-content:start}
 /* Drei Bereiche; Kopf, Streifen und Helligkeit bleiben auf jeder Seite sichtbar */
 .view{display:grid;gap:20px;align-items:start}
-.view[hidden]{display:none}
+.view[hidden],.li[hidden]{display:none}
 .view.in{animation:viewIn .32s cubic-bezier(.2,.8,.2,1)}
 @keyframes viewIn{from{opacity:0;transform:translateY(10px)}}
 @media (min-width:900px){
@@ -210,6 +210,14 @@ input[type=number]{width:90px;text-align:right;border:0;background:none;color:va
    </div>
   </div>
   <div class="col">
+   <div class="group"><h2>Apple Home · Matter</h2>
+    <section class="glass list">
+     <div class="li"><span>Matter</span><button class="switch" id="matter" type="button" role="switch" aria-checked="false" aria-label="Matter für Apple Home"></button><small id="matterHint"></small></div>
+     <div class="li" id="mCodeRow"><span>Koppel-Code</span><span class="val" id="mCode"></span></div>
+     <button class="li btn" id="mUnpair" type="button">Kopplung entfernen</button>
+    </section>
+    <p class="foot" id="mFoot"></p>
+   </div>
    <div class="group"><h2>Gerät</h2>
     <section class="glass list" id="meta"></section>
    </div>
@@ -356,7 +364,7 @@ function drawLeds(cv, cols, bri, glow){
 }
 
 // ---------- Schnittstelle ----------
-const demoState = {on:true,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,argbBlocked:false,live:false,liveSrc:''};
+const demoState = {on:true,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
  palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 const api = DEMO ? {
@@ -364,12 +372,14 @@ const api = DEMO ? {
  state: async () => ({...demoState}),
  set: async o => { for (const k in o) demoState[k] = typeof demoState[k]==='number' ? +o[k] : typeof demoState[k]==='boolean' ? !!+o[k] : o[k]; return {...demoState}; },
  wifiReset: async () => 'In der Vorschau passiert hier nichts.',
+ matterUnpair: async () => 'In der Vorschau passiert hier nichts.',
  presets: async () => null, savePresets: async () => {}, live: null
 } : {
  info: () => fetch('/api/info').then(r=>r.json()),
  state: () => fetch('/api/state').then(r=>r.json()),
  set: o => fetch('/api/state',{method:'POST',body:new URLSearchParams(o)}).then(r=>r.json()),
  wifiReset: () => fetch('/api/wifi/reset',{method:'POST'}).then(r=>r.text()),
+ matterUnpair: () => fetch('/api/matter/unpair',{method:'POST'}).then(r=>r.text()),
  presets: () => fetch('/api/presets').then(r=>r.text()).then(t=>t?JSON.parse(t):null),
  savePresets: list => fetch('/api/presets',{method:'POST',body:new URLSearchParams({data:JSON.stringify(list)})}),
  live: () => fetch('/api/live').then(r=>r.text()).then(t=>{ const a=[]; for(let i=0;i+5<t.length;i+=6) a.push(hex2rgb('#'+t.substr(i,6))); return a; })
@@ -441,6 +451,12 @@ function render(){
  if(document.activeElement!==$('ma')) $('ma').value=st.ma;
  const full=info.leds*60, pct=Math.min(100,Math.round(st.ma/full*100));
  $('maHint').textContent=`Etwa 85 % des Netzteilstroms, z. B. 2400 mA bei 5 V / 3 A. Vollweiß auf ${info.leds} LEDs schafft damit etwa ${pct} % Helligkeit, farbige Effekte meist die volle.`;
+ const m=!!st.matter, mp=!!st.matterPaired, code=st.matterCode||'';
+ $('matter').setAttribute('aria-checked',m);
+ $('matterHint').textContent = !m ? 'Für Apple Home, Google Home und Alexa' : mp ? 'Gekoppelt' : 'Bereit zum Koppeln';
+ $('mCodeRow').hidden = !(m && !mp && code); $('mCode').textContent = code.length===11 ? code.slice(0,4)+'-'+code.slice(4,7)+'-'+code.slice(7) : code;
+ $('mUnpair').hidden = !(m && mp);
+ $('mFoot').textContent = !m ? 'Beim Einschalten startet der Ständer neu.' : mp ? 'Ein/Aus, Helligkeit und Farbe lassen sich in der Home-App steuern. Eine Farbe aus der Home-App schaltet auf den Effekt Einfarbig.' : 'Home-App: Gerät hinzufügen, dann den QR-Code am Display scannen oder unter „Weitere Optionen“ den Code eingeben. Prototyp mit Test-Zugangsdaten: die Home-App meldet ein nicht zertifiziertes Gerät, das Koppeln funktioniert trotzdem.';
  $('argbHint').textContent = st.argbBlocked ? 'Nach einem Absturz bis zum nächsten Neustart aus' : 'Ohne Signal nach 2 s eigene Effekte';
  const chips=[];
  if (!st.on) chips.push('<span class="chip"><i></i>Aus</span>');
@@ -481,6 +497,8 @@ $('sw1').onclick=()=>{editing=1;render();}; $('sw2').onclick=()=>{editing=2;rend
 $('wheel').onpointerdown=e=>{ $('wheel').setPointerCapture(e.pointerId); wheelPick(e); };
 $('wheel').onpointermove=e=>{ if(e.buttons) wheelPick(e); };
 $('argb').onclick=()=>send({argb:st.argb?0:1}); $('sync').onclick=()=>send({sync:st.sync?0:1});
+$('matter').onclick=()=>{ if(DEMO || confirm(st.matter?'Matter ausschalten? Der Ständer startet dafür neu.':'Matter einschalten? Der Ständer startet dafür neu.')) send({matter:st.matter?0:1}); };
+$('mUnpair').onclick=()=>{ if(confirm('Kopplung mit Apple Home & Co. löschen? Der Ständer startet neu und kann dann wieder gekoppelt werden.')) api.matterUnpair().then(t=>alert(t)); };
 $('ma').onchange=e=>send({ma:+e.target.value});
 $('wifiReset').onclick=()=>{ if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?')) api.wifiReset().then(t=>alert(t)); };
 

@@ -9,6 +9,7 @@
 #include "effects.h"
 #include "net.h"
 #include "argb_in.h"
+#include "matter_dev.h"
 #include "realtime.h"
 #include "state.h"
 
@@ -84,6 +85,10 @@ void loop() {
   argb::loop(state.argbEnabled);
   handleButton();
   settings::loop(state);
+
+  if (state.matterEnabled && !matterdev::started() && net::info().connected) matterdev::begin(state);
+  bool fxCh = false;
+  if (matterdev::loop(state, fxCh)) onWebChange(fxCh);
 
   uint32_t now = millis();
   if (now - lastFrame >= FRAME_MS) {

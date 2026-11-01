@@ -10,6 +10,7 @@
 #include "config.h"
 #include "effects.h"
 #include "argb_in.h"
+#include "matter_dev.h"
 #include "wled_api.h"
 #include "realtime.h"
 #include "webui.h"
@@ -98,6 +99,9 @@ String stateJson() {
   j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
   j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
   j += ",\"rot\":" + String(s.displayRotation);
+  j += ",\"matter\":" + String(s.matterEnabled ? "true" : "false");
+  j += ",\"matterPaired\":" + String(matterdev::paired() ? "true" : "false");
+  if (matterdev::started() && !matterdev::paired()) j += ",\"matterCode\":\"" + matterdev::manualCode() + "\"";
   j += ",\"argbBlocked\":" + String(argb::blocked() ? "true" : "false");
   bool aura = s.argbEnabled && argb::active();
   bool live = aura || (s.syncEnabled && realtime::active());
@@ -193,6 +197,13 @@ void handleSetState() {
   v = argInt("sync", 0, 1, p);         if (p) s.syncEnabled = v;
   v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
   v = argInt("rot", 0, 3, p);          if (p) s.displayRotation = v;
+  v = argInt("matter", 0, 1, p);
+  if (p && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
+    s.matterEnabled = v;
+    settings::saveMatter(s.matterEnabled);
+    display::message(v ? "Matter an" : "Matter aus", "Neustart...");
+    restartAt = millis() + 1500;
+  }
   if (server.hasArg("c1")) parseHex(server.arg("c1"), s.color1);
   if (server.hasArg("c2")) parseHex(server.arg("c2"), s.color2);
   if (changed) changed(effectChanged);
@@ -225,6 +236,17 @@ void handleSaveWifi() {
   server.send(200, "text/plain; charset=utf-8", "Gespeichert. Der Controller startet neu und verbindet sich mit " + ssid + ".");
   display::message("WLAN gespeichert", "Neustart...");
   restartAt = millis() + 1500;
+}
+
+void handleMatterUnpair() {
+  if (!matterdev::started()) {
+    server.send(409, "text/plain; charset=utf-8", "Matter ist nicht eingeschaltet.");
+    return;
+  }
+  server.send(200, "text/plain; charset=utf-8", "Kopplung geloescht. Der Staender startet neu und kann dann wieder gekoppelt werden.");
+  display::message("Matter entkoppelt", "Neustart...");
+  delay(300);
+  matterdev::unpair();  // startet selbst neu
 }
 
 void handleResetWifi() {
@@ -324,6 +346,7 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/scan", HTTP_GET, handleScan);
   server.on("/api/wifi", HTTP_POST, handleSaveWifi);
   server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
+  server.on("/api/matter/unpair", HTTP_POST, handleMatterUnpair);
   // WLED-kompatibel fuer Home Assistant, WLED-App und Sync-Programme (siehe wled_api.h)
   server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledapi::info(*st)); });
   server.on("/json/state", HTTP_GET, []() { server.send(200, "application/json", wledapi::state(*st)); });

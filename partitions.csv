@@ -1,0 +1,9 @@
+# Name,   Type, SubType, Offset,   Size,     Flags
+# 4 MB Flash: zwei App-Slots fuer Updates per WLAN, grosser NVS-Bereich,
+# weil Matter dort seine Kopplungsdaten (Zertifikate, Schluessel) ablegt.
+otadata,  data, ota,     0x9000,   0x2000,
+fctry,    data, nvs,     0xB000,   0x5000,
+app0,     app,  ota_0,   0x10000,  0x1E0000,
+app1,     app,  ota_1,   0x1F0000, 0x1E0000,
+nvs,      data, nvs,     0x3D0000, 0x20000,
+coredump, data, coredump,0x3F0000, 0x10000,
