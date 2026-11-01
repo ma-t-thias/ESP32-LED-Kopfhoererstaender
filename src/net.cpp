@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "effects.h"
+#include "argb_in.h"
 #include "realtime.h"
 #include "webui.h"
 
@@ -68,9 +69,12 @@ String stateJson() {
   j += ",\"c2\":\"" + hex(s.color2) + "\"";
   j += ",\"ma\":" + String(s.maxMilliamps);
   j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
-  bool live = s.syncEnabled && realtime::active();
+  j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
+  bool aura = s.argbEnabled && argb::active();
+  bool live = aura || (s.syncEnabled && realtime::active());
+  String src = aura ? "Mainboard-ARGB, " + String(argb::detectedLeds()) + " LEDs" : String(realtime::source());
   j += ",\"live\":" + String(live ? "true" : "false");
-  j += ",\"liveSrc\":\"" + String(live ? realtime::source() : "") + "\"";
+  j += ",\"liveSrc\":\"" + String(live ? src : "") + "\"";
   j += "}";
   return j;
 }
@@ -151,6 +155,7 @@ void handleSetState() {
   v = argInt("int", 0, 255, p);        if (p) s.intensity = v;
   v = argInt("ma", 200, LED_MAX_MILLIAMPS_LIMIT, p); if (p) s.maxMilliamps = v;
   v = argInt("sync", 0, 1, p);         if (p) s.syncEnabled = v;
+  v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
   if (server.hasArg("c1")) parseHex(server.arg("c1"), s.color1);
   if (server.hasArg("c2")) parseHex(server.arg("c2"), s.color2);
   if (changed) changed(effectChanged);

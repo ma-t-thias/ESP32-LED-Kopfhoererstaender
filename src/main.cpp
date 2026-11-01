@@ -8,6 +8,7 @@
 #include "display.h"
 #include "effects.h"
 #include "net.h"
+#include "argb_in.h"
 #include "realtime.h"
 #include "state.h"
 
@@ -73,20 +74,23 @@ void setup() {
 
   if (!display::begin()) Serial.println("Display nicht gefunden - laeuft ohne Anzeige weiter");
 
+  argb::begin();
   net::begin(state, onWebChange);
 }
 
 void loop() {
   net::loop();
   realtime::loop(state.syncEnabled);
+  argb::loop(state.argbEnabled);
   handleButton();
   settings::loop(state);
 
   uint32_t now = millis();
   if (now - lastFrame >= FRAME_MS) {
     lastFrame = now;
-    // PC-Sync hat Vorrang; ohne Daten vom PC laufen die eigenen Effekte.
-    if (state.syncEnabled && realtime::active()) realtime::copyTo(leds, LED_COUNT);
+    // Reihenfolge: Mainboard (Aura) vor PC-Sync per WLAN vor eigenen Effekten.
+    if (state.argbEnabled && argb::active()) argb::copyTo(leds, LED_COUNT);
+    else if (state.syncEnabled && realtime::active()) realtime::copyTo(leds, LED_COUNT);
     else effects::render(leds, LED_COUNT, state, now);
 
     uint8_t target = state.on ? state.brightness : 0;

@@ -22,6 +22,7 @@ RED = "var(--plus)"
 BLU = "var(--minus)"
 YEL = "var(--data1)"
 GRN = "var(--data2)"
+PUR = "var(--data3)"
 
 out = []
 A = out.append
@@ -152,16 +153,36 @@ for px in (rx1, rx2):
     A(f'<circle cx="{px}" cy="{ry}" r="3" fill="#9aa3ad"/>')
 text((rx1 + rx2) / 2, ry + 22, "R1 330 Ω", 10, weight=700)
 
-# C1 Elko 1000 uF an oberer Schiene (Reihe 13/14)
-ex, ey = (x(13) + x(14)) / 2, TOP_P - 30
-A(f'<line x1="{x(13)}" y1="{TOP_P}" x2="{ex-5}" y2="{ey+10}" stroke="#9aa3ad" stroke-width="2"/>')
-A(f'<line x1="{x(14)}" y1="{TOP_M}" x2="{ex+5}" y2="{ey+10}" stroke="#9aa3ad" stroke-width="2"/>')
+# C1 Elko 1000 uF an oberer Schiene (Reihe 11/12)
+ex, ey = (x(11) + x(12)) / 2, TOP_P - 30
+A(f'<line x1="{x(11)}" y1="{TOP_P}" x2="{ex-5}" y2="{ey+10}" stroke="#9aa3ad" stroke-width="2"/>')
+A(f'<line x1="{x(12)}" y1="{TOP_M}" x2="{ex+5}" y2="{ey+10}" stroke="#9aa3ad" stroke-width="2"/>')
 A(f'<circle cx="{ex}" cy="{ey}" r="15" fill="#20324f" stroke="#0f1b2d"/>')
 A(f'<path d="M{ex+7},{ey-13} A15,15 0 0,1 {ex+7},{ey+13}" fill="none" stroke="#c9d3e3" stroke-width="5"/>')
 text(ex - 22, ey + 4, "C1", 10, anchor="end", weight=700)
 text(ex - 22, ey + 16, "1000 µF", 9, anchor="end", fill="var(--muted)")
-for px, py in ((x(13), TOP_P), (x(14), TOP_M)):
+for px, py in ((x(11), TOP_P), (x(12), TOP_M)):
     A(f'<circle cx="{px}" cy="{py}" r="3" fill="#9aa3ad"/>')
+
+# --- ARGB-Eingang vom Mainboard: R3 1 k (j9 -> j13), R4 2 k (h13 -> h15), h15 -> GND ---
+def resistor(r1, r2, col, label, bands):
+    xa, yy = hole(r1, col)
+    xb, _ = hole(r2, col)
+    A(f'<line x1="{xa}" y1="{yy}" x2="{xb}" y2="{yy}" stroke="#9aa3ad" stroke-width="2"/>')
+    A(f'<rect x="{xa+16}" y="{yy-6}" width="{xb-xa-32}" height="12" rx="5" fill="#d9c49a" stroke="#8a7650"/>')
+    for i, c in enumerate(bands):
+        A(f'<rect x="{xa+22+i*7}" y="{yy-6}" width="3" height="12" fill="{c}"/>')
+    for px in (xa, xb):
+        A(f'<circle cx="{px}" cy="{yy}" r="3" fill="#9aa3ad"/>')
+resistor(9, 13, "j", "R3", ("#7a4a1d", "#111111", "#d22f2f"))
+resistor(13, 15, "h", "R4", ("#d22f2f", "#111111", "#d22f2f"))
+text(x(11), COLS["j"] - 8, "R3 1 k", 9, weight=700)
+text(x(14), COLS["h"] + 16, "R4 2 k", 9, weight=700)
+wire([hole(15, "j"), (x(15), TOP_M)], BLU)
+# Kabel vom Mainboard-ARGB-Header: D -> g13, G -> - Schiene (Reihe 17)
+wire([(x(13) + 10, 12), (x(13) + 10, COLS["g"]), hole(13, "g")], PUR, 3)
+wire([(x(17), 12), (x(17), TOP_M)], "#555b63", 3)
+text(x(13) + 14, 10, "ARGB vom Mainboard: D (lila), G (grau), 5V nicht anschließen", 9.5, anchor="start", fill=PUR, weight=700)
 
 # --- Verdrahtung unten (Spalten a-e) ---
 wire([hole(22, "a"), (x(22), BOT_P)], RED)   # VCC pin 14
@@ -224,7 +245,7 @@ BB_SVG = "\n".join(out)
 # ======================= Schaltplan =======================
 out = []
 A = out.append
-SW, SH = 960, 440
+SW, SH = 960, 510
 A(f'<svg viewBox="0 0 {SW} {SH}" role="img" aria-label="Schaltplan: 5-V-Netzteil versorgt LED-Streifen direkt; '
   f'ESP32-C6 über Schottky-Diode; GPIO1 über 74AHCT125 und 330 Ohm an DIN; gemeinsame Masse" class="sch" '
   f'font-family="var(--mono)">')
@@ -237,7 +258,7 @@ J = lambda a, b, col="currentColor": A(f'<circle cx="{a}" cy="{b}" r="3.6" fill=
 def t(tx, ty, s, size=12, anchor="middle", weight=400, fill="currentColor"):
     A(f'<text x="{tx}" y="{ty}" font-size="{size}" text-anchor="{anchor}" font-weight="{weight}" fill="{fill}">{s}</text>')
 
-Y5, YG = 60, 400       # 5-V-Leitung oben, Masse unten
+Y5, YG = 60, 470       # 5-V-Leitung oben, Masse unten
 # Netzteil
 A('<rect x="30" y="150" width="110" height="130" rx="6" fill="var(--psu)" stroke="currentColor" stroke-width="1.4"/>')
 t(85, 200, "Netzteil", 13, weight=700); t(85, 218, "5 V DC", 12); t(85, 234, "10 A / 50 W", 12)
@@ -322,6 +343,21 @@ L([(900, Y5), (900, 140)], RED, 2.6); J(900, Y5, RED)
 L([(900, 340), (900, YG)], BLU, 2.6); J(900, YG, BLU)
 t(906, 130, "+5V", 10, anchor="start", fill=RED, weight=700)
 t(906, 356, "GND", 10, anchor="start", fill=BLU, weight=700)
+
+# ARGB-Eingang: Header D -> R3 -> GPIO2, Knoten -> R4 -> GND
+t(392, 300, "GPIO2", 11, weight=700)
+L([(392, 310), (392, 326)], PUR, 2.4); J(392, 326, PUR)
+A('<rect x="383" y="334" width="18" height="40" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>')
+t(378, 358, "R3 1 k", 10, anchor="end", weight=700)
+L([(392, 326), (392, 334)], PUR, 2.4); L([(392, 374), (392, 396)], PUR, 2.4)
+L([(392, 326), (450, 326), (450, 352)])
+A('<rect x="441" y="352" width="18" height="40" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>')
+t(464, 376, "R4 2 k", 10, anchor="start", weight=700)
+L([(450, 392), (450, YG)], BLU); J(450, YG, BLU)
+A('<rect x="350" y="396" width="84" height="48" rx="5" fill="var(--psu)" stroke="currentColor" stroke-width="1.4"/>')
+t(392, 413, "Mainboard", 10, weight=700); t(392, 426, "ARGB-Header", 10)
+t(392, 439, "D · G", 9.5, fill="var(--muted)")
+L([(420, 444), (420, YG)], BLU); J(420, YG, BLU)
 
 t(660, 372, "unbenutzte Kanäle 2–4:", 9.5, anchor="start", fill="var(--muted)")
 t(660, 385, "OE̅ → +5 V, A → GND", 9.5, anchor="start", fill="var(--muted)")

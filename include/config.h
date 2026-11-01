@@ -24,6 +24,16 @@
 // Geraetename, unter dem SignalRGB & Co. den Controller anzeigen
 #define DEVICE_NAME "LED-Kopfhoerer"
 
+// ---------------- ARGB-Eingang (Mainboard, z. B. ASUS Aura) ----------------
+// Daten-Pin des Mainboard-ARGB-Headers ueber Spannungsteiler 1 kOhm / 2 kOhm.
+#define ARGB_IN_PIN 2
+// Ohne gueltiges Signal so lange laufen danach wieder die eigenen Effekte.
+#define ARGB_TIMEOUT_MS 2000
+// Byte-Reihenfolge, die das Mainboard sendet. WS2812-Standard ist G, R, B.
+#define ARGB_IN_ORDER_R 1
+#define ARGB_IN_ORDER_G 0
+#define ARGB_IN_ORDER_B 2
+
 // ---------------- Display (Waveshare ESP32-C6-LCD-1.3) ----------------
 #define LCD_SCK 7
 #define LCD_MOSI 6

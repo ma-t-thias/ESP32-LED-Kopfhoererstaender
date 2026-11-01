@@ -19,6 +19,7 @@
   --minus: #2463c9;
   --data1: #d99a00;
   --data2: #13945e;
+  --data3: #8a4fd6;
   --board: #ecebe6;
   --channel: #d6d4cc;
   --hole: #4a4d52;
@@ -38,7 +39,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111416; --paper: #181c1f; --fg: #e3e7ea; --muted: #98a2ab; --line: #2e353a;
-    --accent: #3cc497; --plus: #ff6b6b; --minus: #6ea2ff; --data1: #f2b632; --data2: #39c784;
+    --accent: #3cc497; --plus: #ff6b6b; --minus: #6ea2ff; --data1: #f2b632; --data2: #39c784; --data3: #b48cff;
     --board: #2a2d30; --channel: #1d2023; --hole: #0d0f10; --pcb2: #1d2633; --ic2: #1f2422;
     --wago: #2a2f34; --psu: #242a30; --warn-bg: #2d2410; --warn-fg: #f2c46b;
     color-scheme: dark;
@@ -46,7 +47,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #111416; --paper: #181c1f; --fg: #e3e7ea; --muted: #98a2ab; --line: #2e353a;
-  --accent: #3cc497; --plus: #ff6b6b; --minus: #6ea2ff; --data1: #f2b632; --data2: #39c784;
+  --accent: #3cc497; --plus: #ff6b6b; --minus: #6ea2ff; --data1: #f2b632; --data2: #39c784; --data3: #b48cff;
   --board: #2a2d30; --channel: #1d2023; --hole: #0d0f10; --pcb2: #1d2633; --ic2: #1f2422;
   --wago: #2a2f34; --psu: #242a30; --warn-bg: #2d2410; --warn-fg: #f2c46b;
   color-scheme: dark;
@@ -101,11 +102,12 @@ footer { font-size: 13px; color: var(--muted); }
 </header>
 
 <section>
-  <h2>Die vier Entscheidungen</h2>
+  <h2>Die fünf Entscheidungen</h2>
   <div class="keys">
     <div class="key"><b>Datenpin GPIO1</b><span>Freier Pin auf der 5V-Leiste, kein Strapping-Pin, nicht von LCD, SD, IMU oder USB belegt.</span></div>
     <div class="key"><b>LED-Strom nie übers Breadboard</b><span>Bis zu 8,6 A fließen direkt Netzteil → WAGO → Streifen. Das Breadboard bekommt nur Signal und Logikversorgung.</span></div>
     <div class="key"><b>Pegelwandler 74AHCT125</b><span>Hebt das 3,3-V-Signal auf 5 V. WS2812B erwartet ab 0,7 × VDD = 3,5 V ein sicheres High.</span></div>
+    <div class="key"><b>Aura über Kabel an GPIO2</b><span>Der ESP liest das ARGB-Signal des Mainboard-Headers mit. Ohne Signal laufen die eigenen Effekte.</span></div>
     <div class="key"><b>Schottky-Diode vor dem 5V-Pin</b><span>Der 5V-Pin des Boards hängt direkt an USB-VBUS. D1 verhindert, dass das Netzteil in den PC zurückspeist.</span></div>
   </div>
 </section>
@@ -125,6 +127,7 @@ footer { font-size: 13px; color: var(--muted); }
     <span><i style="background:var(--minus)"></i>GND</span>
     <span><i style="background:var(--data1)"></i>GPIO1 (3,3 V)</span>
     <span><i style="background:var(--data2)"></i>Daten 5 V zum Streifen</span>
+    <span><i style="background:var(--data3)"></i>ARGB-Daten vom Mainboard</span>
     <span>Dicke Linien rechts = Litze ≥ 1,0 mm²</span>
   </div>
   <figure>
@@ -149,6 +152,9 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td class="mono">U1 Pin 4 (f19) / 10 (e18) / 13 (e21)</td><td class="mono">j19, a18, a21 → + Schiene</td><td>rot</td><td>Unbenutzte Kanäle abschalten</td></tr>
       <tr><td class="mono">U1 Pin 5 (f18) / 9 (e17) / 12 (e20)</td><td class="mono">j18, a17, a20 → − Schiene</td><td>blau</td><td>Unbenutzte Eingänge nicht offen lassen</td></tr>
       <tr><td class="mono">C1 1000 µF</td><td class="mono">+ Bein in obere + Schiene, − Bein (Streifen) in obere − Schiene</td><td>Elko</td><td>Puffert Einschaltstrom und Lastsprünge</td></tr>
+      <tr><td class="mono">Mainboard-ARGB D</td><td class="mono">g13, dann R3 1 kΩ von j13 nach j9 (ESP IO2 in i9)</td><td>lila</td><td>Aura-Signal, 5 V auf ca. 3,3 V geteilt</td></tr>
+      <tr><td class="mono">R4 2 kΩ</td><td class="mono">h13 nach h15, j15 → obere − Schiene</td><td>Widerstand</td><td>Unterer Teil des Spannungsteilers</td></tr>
+      <tr><td class="mono">Mainboard-ARGB G</td><td class="mono">obere − Schiene (Reihe 17)</td><td>grau</td><td>Gemeinsame Masse mit dem PC. Den 5V-Pin des Headers nicht anschließen.</td></tr>
       <tr><td class="mono">obere Schienen</td><td class="mono">untere Schienen (+ zu +, − zu −) rechts ums Board</td><td>rot / blau</td><td>Beide Seiten versorgen</td></tr>
       <tr><td class="mono">WAGO +5V / GND</td><td class="mono">obere + Schiene (Reihe 26) / obere − Schiene (Reihe 28)</td><td>dünn</td><td>Logikversorgung, unter 0,4 A</td></tr>
       <tr><td class="mono">WAGO +5V / GND</td><td class="mono">Streifen +5V / GND</td><td>Litze ≥ 1,0 mm²</td><td>LED-Strom bis 8,6 A</td></tr>
@@ -177,7 +183,9 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td>12</td><td>Litze</td><td>1,0 mm² (AWG 18), rot und schwarz</td><td class="num">je 0,5 m</td><td>Für den Strompfad Netzteil → Streifen.</td></tr>
       <tr><td>13</td><td>Steckverbinder Streifen</td><td>JST-SM 3-polig, Gegenstück zum Eingang</td><td class="num">1</td><td>Optional, wenn du die offenen Litzen am Streifen nicht direkt in die WAGO-Klemme führen willst.</td></tr>
       <tr><td>14</td><td>Steckbrücken</td><td>Jumper Stecker–Stecker, Drahtbrückenset</td><td class="num">ca. 18</td><td>Plus 3 × Buchse–Stecker als Reserve für die Variante „Board neben dem Breadboard“.</td></tr>
-      <tr><td>15</td><td>Sicherung <span class="tag opt">optional</span></td><td>KFZ-Flachsicherung 10 A mit Halter</td><td class="num">1</td><td>In die +5-V-Leitung nach dem Netzteil. 5 A beim 4-A-Netzteil.</td></tr>
+      <tr><td>15</td><td>ARGB-Kabel</td><td>3-polige ARGB-Verlängerung (5V, D, G) mit Buchse für den Mainboard-Header</td><td class="num">1</td><td>Ende abschneiden, nur D und G nutzen. So steuert ASUS Aura den Ständer.</td></tr>
+      <tr><td>16</td><td>Widerstände R3, R4</td><td>1 kΩ und 2 kΩ</td><td class="num">je 1</td><td>Spannungsteiler: 5 V × 2 / 3 = 3,3 V am GPIO2. Ersatzweise 3 × 1 kΩ, zwei davon in Reihe als 2 kΩ.</td></tr>
+      <tr><td>17</td><td>Sicherung <span class="tag opt">optional</span></td><td>KFZ-Flachsicherung 10 A mit Halter</td><td class="num">1</td><td>In die +5-V-Leitung nach dem Netzteil. 5 A beim 4-A-Netzteil.</td></tr>
     </tbody>
   </table>
   </div>
@@ -213,7 +221,7 @@ footer { font-size: 13px; color: var(--muted); }
   <table>
     <thead><tr><th>Leiste</th><th>Pins</th><th>Verwendung hier</th></tr></thead>
     <tbody>
-      <tr><td>5V-Leiste</td><td class="mono">5V (= USB-VBUS), GND, 3V3, GPIO1, GPIO2, GPIO3</td><td>5V über D1, GND, GPIO1 = LED-Daten. GPIO2/3 frei, z. B. für einen Taster später.</td></tr>
+      <tr><td>5V-Leiste</td><td class="mono">5V (= USB-VBUS), GND, 3V3, GPIO1, GPIO2, GPIO3</td><td>5V über D1, GND, GPIO1 = LED-Daten, GPIO2 = ARGB-Eingang vom Mainboard. GPIO3 frei.</td></tr>
       <tr><td>Gegenüber</td><td class="mono">GPIO12, 13, 16, 17, 20, 23</td><td>12/13 sind USB D−/D+ und 16/17 UART0, nicht benutzen. 20 und 23 sind frei.</td></tr>
       <tr><td>Intern belegt</td><td class="mono">LCD 5/6/7/14/15/21/22 · SD 4–7 · IMU 18/19 · RGB-LED 8 · BOOT 9</td><td>Nicht auf das Breadboard geführt.</td></tr>
     </tbody>
