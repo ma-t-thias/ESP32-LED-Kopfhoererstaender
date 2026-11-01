@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
+#include "config.h"
+
 // Alles, was die Weboberflaeche einstellen kann und was ueber einen Neustart
 // hinweg gespeichert wird.
 struct LedState {
@@ -16,6 +18,7 @@ struct LedState {
   uint16_t maxMilliamps = 0;  // 0 = Startwert aus config.h verwenden
   bool syncEnabled = true;    // Farben vom PC (SignalRGB, OpenRGB ...) annehmen
   bool argbEnabled = false;   // Signal vom Mainboard-ARGB-Header (Aura) uebernehmen
+  uint8_t displayRotation = LCD_ROTATION;  // 0..3 = 0/90/180/270 Grad im Uhrzeigersinn
 };
 
 namespace settings {

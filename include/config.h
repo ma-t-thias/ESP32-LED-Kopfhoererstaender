@@ -43,7 +43,9 @@
 #define LCD_BL 22
 #define LCD_W 240
 #define LCD_H 240
-#define LCD_ROTATION 1  // wie im Testprojekt: 90 Grad im Uhrzeigersinn
+#define LCD_ROTATION 1  // Startwert, in der Weboberflaeche einstellbar (0..3 = 0/90/180/270 Grad)
+// 240x240-Panel am 240x320-Controller: bei 180 und 270 Grad liegt das Bild 80 Zeilen versetzt
+#define LCD_ROW_OFFSET2 80
 
 // ---------------- Taster ----------------
 // BOOT-Taster auf dem Board. Kurz druecken: naechster Effekt.

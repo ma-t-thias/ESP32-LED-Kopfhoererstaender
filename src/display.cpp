@@ -11,8 +11,9 @@ namespace display {
 
 namespace {
 Arduino_DataBus *bus = new Arduino_HWSPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI, GFX_NOT_DEFINED);
-Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true /* IPS */, LCD_W, LCD_H, 0, 0, 0, 0);
+Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true /* IPS */, LCD_W, LCD_H, 0, 0, 0, LCD_ROW_OFFSET2);
 bool ok = false;
+uint8_t rotation = LCD_ROTATION;
 
 constexpr uint16_t BG = 0x0000;
 constexpr uint16_t FG = 0xFFFF;
@@ -40,6 +41,18 @@ void textLine(int y, int h, const String &txt, uint8_t size, uint16_t color, Str
   gfx->setCursor(8, y + 2);
   gfx->print(txt);
 }
+// Feste Bildteile; danach zeichnen die Zeilen beim naechsten loop() neu.
+void drawStatic() {
+  gfx->setRotation(rotation);
+  gfx->fillScreen(BG);
+  gfx->drawFastHLine(8, 34, LCD_W - 16, ACCENT);
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  gfx->setCursor(8, PREVIEW_Y - 12);
+  gfx->print("LED-Vorschau");
+  lastHeader = lastNet1 = lastNet2 = lastFx = lastInfo = "";
+  lastPreviewMs = 0;
+}
 }  // namespace
 
 bool begin() {
@@ -47,19 +60,18 @@ bool begin() {
   digitalWrite(LCD_BL, HIGH);
   ok = gfx->begin();
   if (!ok) return false;
-  gfx->setRotation(LCD_ROTATION);
-  gfx->fillScreen(BG);
   gfx->setTextWrap(false);
-  gfx->drawFastHLine(8, 34, LCD_W - 16, ACCENT);
-  gfx->setTextSize(1);
-  gfx->setTextColor(MUTED);
-  gfx->setCursor(8, PREVIEW_Y - 12);
-  gfx->print("LED-Vorschau");
+  drawStatic();
   return true;
 }
 
 void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (!ok) return;
+
+  if ((s.displayRotation & 3) != rotation) {
+    rotation = s.displayRotation & 3;
+    drawStatic();
+  }
 
   textLine(6, 24, "LED-Kopfhoerer", 2, FG, lastHeader);
 
