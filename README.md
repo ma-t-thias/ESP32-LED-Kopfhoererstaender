@@ -76,7 +76,7 @@ Der Ständer kann direkt von Armoury Crate/Aura gesteuert werden, ohne Zusatzsof
 - Header-Pin **G** → GND des Aufbaus.
 - Header-Pin **5V** bleibt frei. Die LEDs bekommen ihren Strom weiter vom eigenen Netzteil.
 
-**In Armoury Crate:** Unter *Geräte → Aura → ARGB-Anschluss* die LED-Anzahl einstellen. Erlaubt ist jeder Wert bis 300. Die Firmware erkennt die Anzahl selbst und streckt sie auf 144 LEDs. Mit 144 LEDs entspricht jede Aura-LED genau einer LED am Ständer.
+**In Armoury Crate:** Im Aura-Bereich die LED-Anzahl für den ARGB-Anschluss einstellen oder erkennen lassen. Die Firmware erkennt die Anzahl, die das Mainboard sendet (bis 300), und streckt sie auf 144 LEDs. Erlaubt Aura 144 LEDs, entspricht jede Aura-LED genau einer LED am Ständer. Viele Boards begrenzen auf weniger, dann übernimmt eine Aura-LED mehrere Ständer-LEDs.
 
 **Verhalten:** Sendet das Mainboard, zeigt der Ständer die Aura-Farben. Display und Weboberfläche zeigen dann „Aura (… LEDs)“. Kommt 2 Sekunden lang kein gültiges Signal, etwa weil der PC aus ist, laufen wieder die eigenen Effekte. Abschalten lässt sich das mit dem Schalter **Mainboard-ARGB übernehmen** in der Weboberfläche.
 
