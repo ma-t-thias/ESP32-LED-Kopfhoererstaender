@@ -10,6 +10,7 @@
 #include "config.h"
 #include "effects.h"
 #include "argb_in.h"
+#include "wled_api.h"
 #include "realtime.h"
 #include "webui.h"
 
@@ -156,6 +157,10 @@ void startServices() {
   if (MDNS.begin(HOSTNAME)) {
     MDNS.addService("http", "tcp", 80);
     MDNS.addService("wled", "tcp", 80);  // damit SignalRGB & Co. den Controller finden
+    String mac = WiFi.macAddress();
+    mac.replace(":", "");
+    mac.toLowerCase();
+    MDNS.addServiceTxt("wled", "tcp", "mac", mac);  // Home Assistant erkennt das Geraet daran wieder
   }
   realtime::begin();
   if (strlen(OTA_PASSWORD) > 0) {
@@ -231,33 +236,14 @@ void handleResetWifi() {
 
 // ---------- WLED-kompatible Abfrage fuer SignalRGB & Co. ----------
 // Nur so viel, wie Sync-Programme zum Erkennen brauchen. Gesteuert wird dann per UDP.
-String wledInfoJson() {
-  String mac = WiFi.macAddress();
-  mac.replace(":", "");
-  mac.toLowerCase();
-  bool live = st->syncEnabled && realtime::active();
-  String j = "{\"ver\":\"0.15.0\",\"vid\":2411010,\"name\":\"" DEVICE_NAME "\"";
-  j += ",\"leds\":{\"count\":" + String(LED_COUNT) + ",\"rgbw\":false,\"wv\":0,\"cct\":0,\"pwr\":0,\"fps\":60";
-  j += ",\"maxpwr\":" + String(st->maxMilliamps) + ",\"maxseg\":1,\"lc\":1,\"seglc\":[1]}";
-  j += ",\"str\":false,\"udpport\":21324,\"live\":" + String(live ? "true" : "false");
-  j += ",\"lm\":\"" + String(live ? realtime::source() : "") + "\",\"lip\":\"\",\"ws\":-1";
-  j += ",\"fxcount\":" + String(effects::COUNT) + ",\"palcount\":" + String(effects::PALETTE_COUNT);
-  j += ",\"wifi\":{\"rssi\":" + String(WiFi.RSSI()) + ",\"channel\":" + String(WiFi.channel()) + "}";
-  j += ",\"arch\":\"esp32\",\"core\":\"" + String(ESP.getSdkVersion()) + "\"";
-  j += ",\"freeheap\":" + String(ESP.getFreeHeap()) + ",\"uptime\":" + String(millis() / 1000);
-  j += ",\"brand\":\"WLED\",\"product\":\"" DEVICE_NAME "\",\"mac\":\"" + mac + "\"";
-  j += ",\"ip\":\"" + WiFi.localIP().toString() + "\"}";
-  return j;
-}
-
-String wledStateJson() {
-  const LedState &s = *st;
-  String j = "{\"on\":" + String(s.on ? "true" : "false") + ",\"bri\":" + String(s.brightness);
-  j += ",\"transition\":7,\"ps\":-1,\"pl\":-1,\"lor\":0";
-  j += ",\"seg\":[{\"id\":0,\"start\":0,\"stop\":" + String(LED_COUNT) + ",\"len\":" + String(LED_COUNT);
-  j += ",\"on\":true,\"bri\":255,\"fx\":" + String(s.effect) + ",\"sx\":" + String(s.speed);
-  j += ",\"ix\":" + String(s.intensity) + ",\"pal\":" + String(s.palette) + "}]}";
-  return j;
+void handleWledState() {
+  bool ch = false, fxCh = false;
+  if (!wledapi::apply(*st, server.arg("plain"), ch, fxCh)) {
+    server.send(400, "application/json", "{\"error\":9}");
+    return;
+  }
+  if (ch && changed) changed(fxCh);
+  server.send(200, "application/json", wledapi::state(*st));
 }
 
 const CRGB *liveLeds = nullptr;
@@ -289,6 +275,7 @@ void handleSavePresets() {
     return;
   }
   settings::savePresets(j);
+  wledapi::presetsChanged();
   server.send(200, "text/plain", "ok");
 }
 
@@ -337,13 +324,21 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/scan", HTTP_GET, handleScan);
   server.on("/api/wifi", HTTP_POST, handleSaveWifi);
   server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
-  server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledInfoJson()); });
-  server.on("/json/state", HTTP_GET, []() { server.send(200, "application/json", wledStateJson()); });
-  // Sync-Programme schicken hier z. B. {"on":true,"live":true}. Die Farben kommen per UDP,
-  // deshalb wird der Inhalt nur bestaetigt und nicht ausgewertet.
-  server.on("/json/state", HTTP_POST, []() { server.send(200, "application/json", "{\"success\":true}"); });
+  // WLED-kompatibel fuer Home Assistant, WLED-App und Sync-Programme (siehe wled_api.h)
+  server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledapi::info(*st)); });
+  server.on("/json/state", HTTP_GET, []() { server.send(200, "application/json", wledapi::state(*st)); });
+  server.on("/json/state", HTTP_POST, handleWledState);
+  server.on("/json/si", HTTP_GET, []() {
+    server.send(200, "application/json", "{\"state\":" + wledapi::state(*st) + ",\"info\":" + wledapi::info(*st) + "}");
+  });
+  server.on("/json/eff", HTTP_GET, []() { server.send(200, "application/json", wledapi::effectsJson()); });
+  server.on("/json/pal", HTTP_GET, []() { server.send(200, "application/json", wledapi::palettesJson()); });
+  server.on("/json/fxdata", HTTP_GET, []() { server.send(200, "application/json", wledapi::fxdataJson()); });
+  server.on("/presets.json", HTTP_GET, []() { server.send(200, "application/json", wledapi::presetsJson()); });
   server.on("/json", HTTP_GET, []() {
-    server.send(200, "application/json", "{\"state\":" + wledStateJson() + ",\"info\":" + wledInfoJson() + "}");
+    server.send(200, "application/json",
+                "{\"state\":" + wledapi::state(*st) + ",\"info\":" + wledapi::info(*st) +
+                    ",\"effects\":" + wledapi::effectsJson() + ",\"palettes\":" + wledapi::palettesJson() + "}");
   });
   server.onNotFound(handleNotFound);
   server.begin();

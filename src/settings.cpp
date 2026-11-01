@@ -13,6 +13,15 @@ uint32_t packColor(const CRGB &c) { return (uint32_t(c.r) << 16) | (uint32_t(c.g
 CRGB unpackColor(uint32_t v) { return CRGB((v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF); }
 }  // namespace
 
+// Startpresets, bis in der Weboberflaeche eigene gespeichert werden
+static const char DEFAULT_PRESETS[] =
+    "[{\"name\":\"Abend\",\"s\":{\"on\":1,\"bri\":90,\"fx\":4,\"pal\":3,\"spd\":60,\"int\":128,\"c1\":\"#ff6a1a\",\"c2\":\"#5a1000\"}},"
+    "{\"name\":\"Gaming\",\"s\":{\"on\":1,\"bri\":220,\"fx\":13,\"pal\":1,\"spd\":170,\"int\":120,\"c1\":\"#ff0080\",\"c2\":\"#00e0ff\"}},"
+    "{\"name\":\"Nordlicht\",\"s\":{\"on\":1,\"bri\":150,\"fx\":16,\"pal\":2,\"spd\":60,\"int\":90,\"c1\":\"#00c060\",\"c2\":\"#7020c0\"}},"
+    "{\"name\":\"Kerze\",\"s\":{\"on\":1,\"bri\":110,\"fx\":21,\"pal\":3,\"spd\":110,\"int\":120,\"c1\":\"#ff8a20\",\"c2\":\"#ff3000\"}},"
+    "{\"name\":\"Ozean\",\"s\":{\"on\":1,\"bri\":160,\"fx\":23,\"pal\":2,\"spd\":70,\"int\":120,\"c1\":\"#0070c0\",\"c2\":\"#40d0ff\"}},"
+    "{\"name\":\"Feuer\",\"s\":{\"on\":1,\"bri\":200,\"fx\":11,\"pal\":6,\"spd\":140,\"int\":150,\"c1\":\"#ff3000\",\"c2\":\"#ffd000\"}}]";
+
 namespace settings {
 
 void begin(LedState &s) {
@@ -61,6 +70,7 @@ String loadPresets() {
   prefs.begin("presets", true);
   String j = prefs.getString("list", "");
   prefs.end();
+  if (j.isEmpty()) j = DEFAULT_PRESETS;
   return j;
 }
 

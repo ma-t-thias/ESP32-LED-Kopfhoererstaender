@@ -104,6 +104,23 @@ Stürzt der ESP ab, während der ARGB-Empfang läuft, bleibt der Eingang beim n�
 
 Vorrang: Mainboard-Kabel vor PC-Sync per WLAN vor eigenen Effekten.
 
+## Home Assistant und WLED-App
+
+Der Controller verhält sich nach außen wie ein WLED-Gerät. Deshalb funktionieren die **WLED-Integration von Home Assistant** und die **WLED-App** (iOS/Android) ohne Zusatzsoftware.
+
+**Home Assistant:** Meist taucht der Ständer unter *Einstellungen → Geräte & Dienste* von selbst als „Entdeckt: WLED“ auf. Sonst *Integration hinzufügen → WLED* und `led-kopfhoerer.local` oder die IP-Adresse eintragen.
+
+| In Home Assistant | Am Ständer |
+|---|---|
+| Licht ein/aus, Helligkeit, Farbe | Ein/Aus, Helligkeit, Farbe 1 |
+| Effekt | alle 24 Effekte mit ihren Namen |
+| Auswahl „Farbpalette“ | Palette |
+| Zahlen „Geschwindigkeit“ und „Intensität“ | Tempo und Intensität |
+| Auswahl „Preset“ | Presets aus der Weboberfläche |
+| Schalter „Sync Receive“ | PC-Sync per WLAN |
+
+Damit lassen sich Automationen bauen, z. B. „Ständer auf Kerze, wenn abends das Wohnzimmerlicht gedimmt wird“. Nicht nachgebildet sind mehrere Segmente, Playlists, Nachtlicht-Timer und Firmware-Updates über Home Assistant.
+
 ## PC-Sync mit SignalRGB oder OpenRGB
 
 Der Controller nimmt Farben vom PC entgegen und leuchtet dann synchron mit Mainboard, Lüftern und Co. (z. B. ASUS ARGB). Sendet der PC nichts mehr, laufen nach 2,5 Sekunden wieder die eigenen Effekte. Der Schalter **PC-Sync** in der Weboberfläche schaltet den Empfang ab.
@@ -114,7 +131,7 @@ Der Controller nimmt Farben vom PC entgegen und leuchtet dann synchron mit Mainb
 | E1.31 / sACN | UDP 5568, Universum 1 | OpenRGB, xLights, Jinx |
 | WLED-UDP (DRGB, DNRGB, WARLS) | UDP 21324 | SignalRGB (WLED-Integration), LedFx |
 
-Damit Sync-Programme den Controller als WLED-Gerät erkennen, meldet er sich per mDNS als `_wled._tcp` und beantwortet `/json/info` und `/json/state`. Effekte lassen sich darüber nicht umschalten, dafür ist die eigene Weboberfläche da.
+Damit Sync-Programme den Controller als WLED-Gerät erkennen, meldet er sich per mDNS als `_wled._tcp` und beantwortet die WLED-Schnittstelle (siehe Home Assistant).
 
 **SignalRGB:** Unter *Geräte* die WLED-Integration öffnen und den Controller hinzufügen. Wenn er nicht automatisch auftaucht, die IP-Adresse vom Display von Hand eintragen. Danach als Streifen mit 144 LEDs im Layout platzieren.
 
@@ -151,7 +168,8 @@ upload_flags = --auth=dein-passwort
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
-| GET | `/json/info`, `/json/state`, `/json` | WLED-kompatible Abfrage für Sync-Programme |
+| GET | `/json`, `/json/si`, `/json/info`, `/json/state`, `/json/eff`, `/json/pal`, `/presets.json` | WLED-kompatible Abfrage |
+| POST | `/json/state` | WLED-kompatibel setzen: `on`, `bri`, `ps`, `udpn.recv`, `seg` mit `col`, `fx`, `sx`, `ix`, `pal` |
 
 Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state`
 
@@ -164,6 +182,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
+| `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO2 mit |
 | `web/index.html` | Weboberfläche (Quelle) |
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |
