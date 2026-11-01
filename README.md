@@ -37,7 +37,7 @@ Findet der Controller das gespeicherte WLAN nach dem Einschalten 20 Sekunden lan
 
 ## Bedienung
 
-- **Weboberfläche:** Ein/Aus, Helligkeit, Tempo, Intensität, zwei Farben, Palette, Effekt, Stromgrenze, WLAN neu einrichten.
+- **Weboberfläche:** Ein/Aus, Helligkeit, Tempo, Intensität, zwei Farben, Palette, Effekt, PC-Sync, Stromgrenze, WLAN neu einrichten.
 - **BOOT-Taster kurz drücken:** nächster Effekt.
 - **BOOT-Taster 5 s halten:** WLAN-Daten löschen, Neustart ins Einrichtungs-WLAN.
 
@@ -66,6 +66,24 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
 
+## PC-Sync mit SignalRGB oder OpenRGB
+
+Der Controller nimmt Farben vom PC entgegen und leuchtet dann synchron mit Mainboard, Lüftern und Co. (z. B. ASUS ARGB). Sendet der PC nichts mehr, laufen nach 2,5 Sekunden wieder die eigenen Effekte. Der Schalter **PC-Sync** in der Weboberfläche schaltet den Empfang ab.
+
+| Protokoll | Port | Typische Quelle |
+|---|---|---|
+| DDP | UDP 4048 | SignalRGB, xLights, Hyperion |
+| E1.31 / sACN | UDP 5568, Universum 1 | OpenRGB, xLights, Jinx |
+| WLED-UDP (DRGB, DNRGB, WARLS) | UDP 21324 | SignalRGB (WLED-Integration), LedFx |
+
+Damit Sync-Programme den Controller als WLED-Gerät erkennen, meldet er sich per mDNS als `_wled._tcp` und beantwortet `/json/info` und `/json/state`. Effekte lassen sich darüber nicht umschalten, dafür ist die eigene Weboberfläche da.
+
+**SignalRGB:** Unter *Geräte* die WLED-Integration öffnen und den Controller hinzufügen. Wenn er nicht automatisch auftaucht, die IP-Adresse vom Display von Hand eintragen. Danach als Streifen mit 144 LEDs im Layout platzieren.
+
+**OpenRGB:** Unter *Settings → E1.31 Devices* ein Gerät anlegen: IP-Adresse des Controllers, Universum 1, Startkanal 1, 144 LEDs, Typ „Linear“. Danach OpenRGB neu starten.
+
+Die Helligkeit aus der Weboberfläche und die Stromgrenze gelten auch im PC-Sync. Für die vollen Farben vom PC stellst du die Helligkeit auf 100 %.
+
 ## Stromgrenze
 
 Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 3000 mA (`include/config.h`), passend zu einem 4-A-Netzteil. Mit dem 10-A-Netzteil kannst du in der Weboberfläche auf 8000 mA erhöhen.
@@ -91,8 +109,9 @@ upload_flags = --auth=dein-passwort
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma` |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync` |
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
+| GET | `/json/info`, `/json/state`, `/json` | WLED-kompatible Abfrage für Sync-Programme |
 
 Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state`
 
@@ -104,6 +123,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/main.cpp` | Ablauf, Bildrate, Ein-/Ausblenden, BOOT-Taster |
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
+| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
 | `src/webui.h` | Weboberfläche und Einrichtungsseite |
 | `src/display.cpp` | Anzeige auf dem LCD |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |

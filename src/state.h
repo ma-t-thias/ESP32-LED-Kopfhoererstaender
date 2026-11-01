@@ -14,6 +14,7 @@ struct LedState {
   CRGB color1 = CRGB(255, 120, 0);
   CRGB color2 = CRGB(0, 80, 255);
   uint16_t maxMilliamps = 0;  // 0 = Startwert aus config.h verwenden
+  bool syncEnabled = true;    // Farben vom PC (SignalRGB, OpenRGB ...) annehmen
 };
 
 namespace settings {

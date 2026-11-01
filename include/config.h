@@ -16,6 +16,14 @@
 #define LED_MAX_MILLIAMPS_DEFAULT 3000
 #define LED_MAX_MILLIAMPS_LIMIT 9000  // Obergrenze, die die Weboberflaeche zulaesst
 
+// ---------------- PC-Sync (SignalRGB, OpenRGB ...) ----------------
+// Kommen laenger als diese Zeit keine Daten vom PC, laufen wieder die eigenen Effekte.
+#define REALTIME_TIMEOUT_MS 2500
+// E1.31/sACN: erstes Universum (144 LEDs passen in ein Universum mit 170 LEDs)
+#define REALTIME_E131_UNIVERSE 1
+// Geraetename, unter dem SignalRGB & Co. den Controller anzeigen
+#define DEVICE_NAME "LED-Kopfhoerer"
+
 // ---------------- Display (Waveshare ESP32-C6-LCD-1.3) ----------------
 #define LCD_SCK 7
 #define LCD_MOSI 6

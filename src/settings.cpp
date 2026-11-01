@@ -26,6 +26,7 @@ void begin(LedState &s) {
   s.color1 = unpackColor(prefs.getUInt("c1", packColor(s.color1)));
   s.color2 = unpackColor(prefs.getUInt("c2", packColor(s.color2)));
   s.maxMilliamps = prefs.getUShort("ma", LED_MAX_MILLIAMPS_DEFAULT);
+  s.syncEnabled = prefs.getBool("sync", s.syncEnabled);
   prefs.end();
   if (s.maxMilliamps == 0 || s.maxMilliamps > LED_MAX_MILLIAMPS_LIMIT) s.maxMilliamps = LED_MAX_MILLIAMPS_DEFAULT;
 }
@@ -48,6 +49,7 @@ void loop(const LedState &s) {
   prefs.putUInt("c1", packColor(s.color1));
   prefs.putUInt("c2", packColor(s.color2));
   prefs.putUShort("ma", s.maxMilliamps);
+  prefs.putBool("sync", s.syncEnabled);
   prefs.end();
 }
 

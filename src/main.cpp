@@ -8,6 +8,7 @@
 #include "display.h"
 #include "effects.h"
 #include "net.h"
+#include "realtime.h"
 #include "state.h"
 
 namespace {
@@ -77,13 +78,16 @@ void setup() {
 
 void loop() {
   net::loop();
+  realtime::loop(state.syncEnabled);
   handleButton();
   settings::loop(state);
 
   uint32_t now = millis();
   if (now - lastFrame >= FRAME_MS) {
     lastFrame = now;
-    effects::render(leds, LED_COUNT, state, now);
+    // PC-Sync hat Vorrang; ohne Daten vom PC laufen die eigenen Effekte.
+    if (state.syncEnabled && realtime::active()) realtime::copyTo(leds, LED_COUNT);
+    else effects::render(leds, LED_COUNT, state, now);
 
     uint8_t target = state.on ? state.brightness : 0;
     if (outputLevel < target) outputLevel = min<int>(target, outputLevel + FADE_STEP);

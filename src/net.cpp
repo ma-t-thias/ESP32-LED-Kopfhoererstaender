@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "effects.h"
+#include "realtime.h"
 #include "webui.h"
 
 namespace net {
@@ -66,6 +67,10 @@ String stateJson() {
   j += ",\"c1\":\"" + hex(s.color1) + "\"";
   j += ",\"c2\":\"" + hex(s.color2) + "\"";
   j += ",\"ma\":" + String(s.maxMilliamps);
+  j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
+  bool live = s.syncEnabled && realtime::active();
+  j += ",\"live\":" + String(live ? "true" : "false");
+  j += ",\"liveSrc\":\"" + String(live ? realtime::source() : "") + "\"";
   j += "}";
   return j;
 }
@@ -113,7 +118,11 @@ void stopSetupAp() {
 void startServices() {
   if (servicesStarted) return;
   servicesStarted = true;
-  if (MDNS.begin(HOSTNAME)) MDNS.addService("http", "tcp", 80);
+  if (MDNS.begin(HOSTNAME)) {
+    MDNS.addService("http", "tcp", 80);
+    MDNS.addService("wled", "tcp", 80);  // damit SignalRGB & Co. den Controller finden
+  }
+  realtime::begin();
   if (strlen(OTA_PASSWORD) > 0) {
     ArduinoOTA.setHostname(HOSTNAME);
     ArduinoOTA.setPassword(OTA_PASSWORD);
@@ -141,6 +150,7 @@ void handleSetState() {
   v = argInt("spd", 0, 255, p);        if (p) s.speed = v;
   v = argInt("int", 0, 255, p);        if (p) s.intensity = v;
   v = argInt("ma", 200, LED_MAX_MILLIAMPS_LIMIT, p); if (p) s.maxMilliamps = v;
+  v = argInt("sync", 0, 1, p);         if (p) s.syncEnabled = v;
   if (server.hasArg("c1")) parseHex(server.arg("c1"), s.color1);
   if (server.hasArg("c2")) parseHex(server.arg("c2"), s.color2);
   if (changed) changed(effectChanged);
@@ -182,6 +192,37 @@ void handleResetWifi() {
   restartAt = millis() + 1500;
 }
 
+// ---------- WLED-kompatible Abfrage fuer SignalRGB & Co. ----------
+// Nur so viel, wie Sync-Programme zum Erkennen brauchen. Gesteuert wird dann per UDP.
+String wledInfoJson() {
+  String mac = WiFi.macAddress();
+  mac.replace(":", "");
+  mac.toLowerCase();
+  bool live = st->syncEnabled && realtime::active();
+  String j = "{\"ver\":\"0.15.0\",\"vid\":2411010,\"name\":\"" DEVICE_NAME "\"";
+  j += ",\"leds\":{\"count\":" + String(LED_COUNT) + ",\"rgbw\":false,\"wv\":0,\"cct\":0,\"pwr\":0,\"fps\":60";
+  j += ",\"maxpwr\":" + String(st->maxMilliamps) + ",\"maxseg\":1,\"lc\":1,\"seglc\":[1]}";
+  j += ",\"str\":false,\"udpport\":21324,\"live\":" + String(live ? "true" : "false");
+  j += ",\"lm\":\"" + String(live ? realtime::source() : "") + "\",\"lip\":\"\",\"ws\":-1";
+  j += ",\"fxcount\":" + String(effects::COUNT) + ",\"palcount\":" + String(effects::PALETTE_COUNT);
+  j += ",\"wifi\":{\"rssi\":" + String(WiFi.RSSI()) + ",\"channel\":" + String(WiFi.channel()) + "}";
+  j += ",\"arch\":\"esp32\",\"core\":\"" + String(ESP.getSdkVersion()) + "\"";
+  j += ",\"freeheap\":" + String(ESP.getFreeHeap()) + ",\"uptime\":" + String(millis() / 1000);
+  j += ",\"brand\":\"WLED\",\"product\":\"" DEVICE_NAME "\",\"mac\":\"" + mac + "\"";
+  j += ",\"ip\":\"" + WiFi.localIP().toString() + "\"}";
+  return j;
+}
+
+String wledStateJson() {
+  const LedState &s = *st;
+  String j = "{\"on\":" + String(s.on ? "true" : "false") + ",\"bri\":" + String(s.brightness);
+  j += ",\"transition\":7,\"ps\":-1,\"pl\":-1,\"lor\":0";
+  j += ",\"seg\":[{\"id\":0,\"start\":0,\"stop\":" + String(LED_COUNT) + ",\"len\":" + String(LED_COUNT);
+  j += ",\"on\":true,\"bri\":255,\"fx\":" + String(s.effect) + ",\"sx\":" + String(s.speed);
+  j += ",\"ix\":" + String(s.intensity) + ",\"pal\":" + String(s.palette) + "}]}";
+  return j;
+}
+
 void handleNotFound() {
   if (setupAp) {  // Captive Portal: jede Anfrage auf die Einrichtungsseite umleiten
     server.sendHeader("Location", "http://" + WiFi.softAPIP().toString() + "/", true);
@@ -217,6 +258,14 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/scan", HTTP_GET, handleScan);
   server.on("/api/wifi", HTTP_POST, handleSaveWifi);
   server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
+  server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledInfoJson()); });
+  server.on("/json/state", HTTP_GET, []() { server.send(200, "application/json", wledStateJson()); });
+  // Sync-Programme schicken hier z. B. {"on":true,"live":true}. Die Farben kommen per UDP,
+  // deshalb wird der Inhalt nur bestaetigt und nicht ausgewertet.
+  server.on("/json/state", HTTP_POST, []() { server.send(200, "application/json", "{\"success\":true}"); });
+  server.on("/json", HTTP_GET, []() {
+    server.send(200, "application/json", "{\"state\":" + wledStateJson() + ",\"info\":" + wledInfoJson() + "}");
+  });
   server.onNotFound(handleNotFound);
   server.begin();
 }
