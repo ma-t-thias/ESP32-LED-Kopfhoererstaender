@@ -28,6 +28,7 @@ void begin(LedState &s) {
   s.maxMilliamps = prefs.getUShort("ma", LED_MAX_MILLIAMPS_DEFAULT);
   s.syncEnabled = prefs.getBool("sync", s.syncEnabled);
   s.argbEnabled = prefs.getBool("argb2", s.argbEnabled);
+  s.displayRotation = prefs.getUChar("rot", s.displayRotation) & 3;
   prefs.end();
   if (s.maxMilliamps == 0 || s.maxMilliamps > LED_MAX_MILLIAMPS_LIMIT) s.maxMilliamps = LED_MAX_MILLIAMPS_DEFAULT;
 }
@@ -52,6 +53,7 @@ void loop(const LedState &s) {
   prefs.putUShort("ma", s.maxMilliamps);
   prefs.putBool("sync", s.syncEnabled);
   prefs.putBool("argb2", s.argbEnabled);
+  prefs.putUChar("rot", s.displayRotation);
   prefs.end();
 }
 

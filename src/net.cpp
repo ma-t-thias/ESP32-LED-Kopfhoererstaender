@@ -96,6 +96,7 @@ String stateJson() {
   j += ",\"ma\":" + String(s.maxMilliamps);
   j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
   j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
+  j += ",\"rot\":" + String(s.displayRotation);
   j += ",\"argbBlocked\":" + String(argb::blocked() ? "true" : "false");
   bool aura = s.argbEnabled && argb::active();
   bool live = aura || (s.syncEnabled && realtime::active());
@@ -186,6 +187,7 @@ void handleSetState() {
   v = argInt("ma", 200, LED_MAX_MILLIAMPS_LIMIT, p); if (p) s.maxMilliamps = v;
   v = argInt("sync", 0, 1, p);         if (p) s.syncEnabled = v;
   v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
+  v = argInt("rot", 0, 3, p);          if (p) s.displayRotation = v;
   if (server.hasArg("c1")) parseHex(server.arg("c1"), s.color1);
   if (server.hasArg("c2")) parseHex(server.arg("c2"), s.color2);
   if (changed) changed(effectChanged);

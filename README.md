@@ -38,7 +38,7 @@ Findet der Controller das gespeicherte WLAN nach dem Einschalten 20 Sekunden lan
 
 ## Bedienung
 
-- **Weboberfläche:** Ein/Aus, Helligkeit, Tempo, Intensität, zwei Farben, Palette, Effekt, PC-Sync, Stromgrenze, WLAN neu einrichten.
+- **Weboberfläche:** Ein/Aus, Helligkeit, Tempo, Intensität, zwei Farben, Palette, Effekt, PC-Sync, Stromgrenze, Anzeige drehen (0°, 90°, 180°, 270°), WLAN neu einrichten.
 - **BOOT-Taster kurz drücken:** nächster Effekt.
 - **BOOT-Taster 5 s halten:** WLAN-Daten löschen, Neustart ins Einrichtungs-WLAN.
 
@@ -127,7 +127,7 @@ upload_flags = --auth=dein-passwort
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb` |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3) |
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
 | GET | `/json/info`, `/json/state`, `/json` | WLED-kompatible Abfrage für Sync-Programme |
 
