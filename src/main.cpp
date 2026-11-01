@@ -86,7 +86,7 @@ void loop() {
   handleButton();
   settings::loop(state);
 
-  if (state.matterEnabled && !matterdev::started() && net::info().connected) matterdev::begin(state);
+  if (state.matterEnabled && matterdev::available() && !matterdev::started() && net::info().connected) matterdev::begin(state);
   bool fxCh = false;
   if (matterdev::loop(state, fxCh)) onWebChange(fxCh);
 

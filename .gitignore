@@ -2,3 +2,4 @@
 .vscode/
 *.bin
 include/secrets.h
+test_ota.ini

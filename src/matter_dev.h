@@ -9,6 +9,9 @@
 // zertifizierte Zugangsdaten (siehe README).
 namespace matterdev {
 
+// false, wenn ohne Matter gebaut (normale Firmware mit Update per WLAN)
+bool available();
+
 // Startet Matter, sobald das WLAN verbunden ist. Nur aufrufen, wenn aktiviert.
 void begin(const LedState &s);
 bool started();
