@@ -40,6 +40,7 @@ select,input[type=number]{font:inherit;background:#222a30;color:var(--fg);border
 <div class="card stack"><h2>PC-Sync</h2>
  <label class="check" for="argb"><input id="argb" type="checkbox">Mainboard-ARGB übernehmen (ASUS Aura, Kabel an GPIO2)</label>
  <label class="check" for="sync"><input id="sync" type="checkbox">Farben per WLAN übernehmen (SignalRGB, OpenRGB)</label>
+ <small id="argbWarn" style="color:#fd9a3c"></small>
  <small>Solange der PC sendet, haben seine Farben Vorrang, das Mainboard-Kabel vor WLAN. Ohne PC laufen nach wenigen Sekunden wieder die eigenen Effekte.</small>
 </div>
 <div class="card stack"><h2>Einstellungen</h2>
@@ -59,7 +60,7 @@ function show(s){st=s;$('power').textContent=s.on?'Ein':'Aus';$('power').classLi
  if(document.activeElement!==$('c1'))$('c1').value=s.c1;if(document.activeElement!==$('c2'))$('c2').value=s.c2;
  $('pal').value=s.pal;if(document.activeElement!==$('ma'))$('ma').value=s.ma;
  document.querySelectorAll('#fx button').forEach((b,i)=>b.classList.toggle('sel',i===s.fx));
- $('sync').checked=s.sync;$('argb').checked=s.argb;$('live').textContent=s.live?`PC-Sync aktiv (${s.liveSrc}). Die eigenen Effekte pausieren.`:'';}
+ $('sync').checked=s.sync;$('argb').checked=s.argb;$('argbWarn').textContent=s.argbBlocked?'Der ARGB-Eingang hat einen Absturz ausgelöst und ist bis zum nächsten Neustart aus.':'';$('live').textContent=s.live?`PC-Sync aktiv (${s.liveSrc}). Die eigenen Effekte pausieren.`:'';}
 $('power').onclick=()=>send({on:st.on?0:1});
 for(const k of['bri','spd','int'])$(k).oninput=e=>{$(k+'O').textContent=e.target.value;send({[k]:e.target.value});};
 $('c1').oninput=e=>send({c1:e.target.value});$('c2').oninput=e=>send({c2:e.target.value});
@@ -69,7 +70,7 @@ $('wifiReset').onclick=()=>{if(confirm('Gespeicherte WLAN-Daten löschen und Ein
 fetch('/api/info').then(r=>r.json()).then(info=>{
  info.effects.forEach((n,i)=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>send({fx:i});$('fx').appendChild(b);});
  info.palettes.forEach((n,i)=>{const o=document.createElement('option');o.value=i;o.textContent=n;$('pal').appendChild(o);});
- $('ma').max=info.maMax;$('net').textContent=`WLAN ${info.ssid} · ${info.ip} · ${info.rssi} dBm · ${info.leds} LEDs · http://${info.host}.local`;
+ $('ma').max=info.maMax;$('net').textContent=`WLAN ${info.ssid} · ${info.ip} · ${info.rssi} dBm · ${info.leds} LEDs · http://${info.host}.local · Start: ${info.reset} · WLAN-Abbrüche: ${info.drops}${info.drops?` (${info.dropReason})`:""}`;
  return fetch('/api/state');}).then(r=>r.json()).then(show);
 setInterval(()=>{if(!timer||!Object.keys(pending).length)fetch('/api/state').then(r=>r.json()).then(show).catch(()=>{});},3000);
 </script></body></html>)HTML";

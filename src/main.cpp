@@ -74,7 +74,6 @@ void setup() {
 
   if (!display::begin()) Serial.println("Display nicht gefunden - laeuft ohne Anzeige weiter");
 
-  argb::begin();
   net::begin(state, onWebChange);
 }
 

@@ -68,10 +68,10 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
     textLine(66, 40, "Verbinde mit\n " + net.ssid + "\n dann " + net.ip, 1, FG, lastNet2);
   } else if (net.connected) {
     textLine(44, 20, net.ip, 2, GOOD, lastNet1);
-    textLine(66, 40, String(HOSTNAME) + ".local\n " + net.ssid, 1, MUTED, lastNet2);
+    textLine(66, 40, String(HOSTNAME) + ".local\n " + net.ssid + "\n " + net.detail2, 1, MUTED, lastNet2);
   } else {
     textLine(44, 20, "Verbinde WLAN...", 2, WARN, lastNet1);
-    textLine(66, 40, net.ssid, 1, MUTED, lastNet2);
+    textLine(66, 40, net.ssid + "\n " + net.detail + "\n " + net.detail2, 1, MUTED, lastNet2);
   }
 
   if (s.argbEnabled && argb::active())

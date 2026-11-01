@@ -15,7 +15,7 @@ struct LedState {
   CRGB color2 = CRGB(0, 80, 255);
   uint16_t maxMilliamps = 0;  // 0 = Startwert aus config.h verwenden
   bool syncEnabled = true;    // Farben vom PC (SignalRGB, OpenRGB ...) annehmen
-  bool argbEnabled = true;    // Signal vom Mainboard-ARGB-Header (Aura) uebernehmen
+  bool argbEnabled = false;   // Signal vom Mainboard-ARGB-Header (Aura) uebernehmen
 };
 
 namespace settings {

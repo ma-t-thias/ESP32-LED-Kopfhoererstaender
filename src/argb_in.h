@@ -10,8 +10,10 @@
 // Header-Pin "G" an GND. Den 5V-Pin des Headers NICHT anschliessen.
 namespace argb {
 
-bool begin();               // RMT-Empfangskanal anlegen; false bei Fehler
-void loop(bool enabled);    // fertige Bilder auswerten und Empfang neu starten
+// Startet und stoppt den Empfang je nach "enabled", wertet fertige Bilder aus.
+// Stuerzt der ESP ab, waehrend der Empfang laeuft, bleibt er beim naechsten Start aus.
+void loop(bool enabled);
+bool blocked();             // nach Absturz fuer diesen Start gesperrt?
 bool active();              // gerade gueltiges Signal vom Mainboard?
 uint16_t detectedLeds();    // Anzahl LEDs, die das Mainboard sendet
 void copyTo(CRGB *leds, uint16_t n);

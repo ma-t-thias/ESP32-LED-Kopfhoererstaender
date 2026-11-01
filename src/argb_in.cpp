@@ -1,6 +1,8 @@
 #include "argb_in.h"
 
 #include <driver/rmt_rx.h>
+#include <esp_attr.h>
+#include <esp_system.h>
 
 #include "config.h"
 
@@ -32,6 +34,13 @@ size_t lastLength = 0;
 uint8_t stableFrames = 0;
 uint32_t lastFrameMs = 0;
 bool started = false;
+bool blockedFlag = false;  // nach Absturz im Empfang fuer diesen Start gesperrt
+bool checkedBoot = false;
+
+// Ueberlebt einen Software-Neustart (nicht das Ausschalten). Steht der Wert beim Start
+// noch, ist der ESP abgestuerzt, waehrend der Empfang lief.
+constexpr uint32_t RUNNING_MAGIC = 0xA4B6C0DE;
+RTC_NOINIT_ATTR uint32_t runningMarker;
 
 bool onReceive(rmt_channel_handle_t, const rmt_rx_done_event_data_t *e, void *) {
   for (size_t k = 0; k < e->num_symbols; k++) {
@@ -61,9 +70,8 @@ void startReceive() {
   frameDone = false;
   if (rmt_receive(channel, chunk, sizeof(chunk), &rxConfig) != ESP_OK) started = false;
 }
-}  // namespace
 
-bool begin() {
+bool startChannel() {
   pinMode(ARGB_IN_PIN, INPUT_PULLDOWN);  // kein Kabel = sauber low
 
   rmt_rx_channel_config_t cfg = {};
@@ -73,6 +81,7 @@ bool begin() {
   cfg.mem_block_symbols = SOC_RMT_MEM_WORDS_PER_CHANNEL;
   if (rmt_new_rx_channel(&cfg, &channel) != ESP_OK) {
     Serial.println("ARGB-Eingang: kein RMT-Kanal frei");
+    channel = nullptr;
     return false;
   }
   rmt_rx_event_callbacks_t cbs = {};
@@ -84,13 +93,42 @@ bool begin() {
   rxConfig.signal_range_max_ns = 30000;  // 30 us low = Bildende (WS2812-Reset)
   rxConfig.flags.en_partial_rx = 1;      // ein Bild ist laenger als der Hardwarepuffer
 
+  runningMarker = RUNNING_MAGIC;
   started = true;
   startReceive();
   Serial.printf("ARGB-Eingang aktiv an GPIO%d\n", ARGB_IN_PIN);
   return started;
 }
 
+void stopChannel() {
+  if (channel) {
+    rmt_disable(channel);
+    rmt_del_channel(channel);
+    channel = nullptr;
+  }
+  started = false;
+  lastFrameMs = 0;
+  runningMarker = 0;
+  Serial.println("ARGB-Eingang aus");
+}
+}  // namespace
+
+bool blocked() { return blockedFlag; }
+
 void loop(bool enabled) {
+  if (!checkedBoot) {
+    checkedBoot = true;
+    esp_reset_reason_t r = esp_reset_reason();
+    bool crashed = r == ESP_RST_PANIC || r == ESP_RST_INT_WDT || r == ESP_RST_TASK_WDT || r == ESP_RST_WDT;
+    if (crashed && runningMarker == RUNNING_MAGIC) {
+      blockedFlag = true;
+      Serial.println("ARGB-Eingang nach Absturz fuer diesen Start gesperrt");
+    }
+    runningMarker = 0;
+  }
+  if (blockedFlag) return;
+  if (enabled && !started && !channel) startChannel();
+  if (!enabled && channel) stopChannel();
   if (!started || !frameDone) return;
 
   size_t bits = bitCount;
@@ -114,7 +152,6 @@ void loop(bool enabled) {
     inCount = count;
     lastFrameMs = millis();
   }
-  if (!enabled) lastFrameMs = 0;
   startReceive();
 }
 
