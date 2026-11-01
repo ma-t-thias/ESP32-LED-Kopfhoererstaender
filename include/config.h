@@ -13,7 +13,7 @@
 //   5 V / 4 A-Netzteil  -> 3000
 //   5 V / 10 A-Netzteil -> 8000
 // Ueber die Weboberflaeche laesst sich der Wert spaeter anpassen; dies ist der Startwert.
-#define LED_MAX_MILLIAMPS_DEFAULT 3000
+#define LED_MAX_MILLIAMPS_DEFAULT 2400  // USB-C-Netzteil 5 V / 3 A
 #define LED_MAX_MILLIAMPS_LIMIT 9000  // Obergrenze, die die Weboberflaeche zulaesst
 
 // ---------------- PC-Sync (SignalRGB, OpenRGB ...) ----------------
