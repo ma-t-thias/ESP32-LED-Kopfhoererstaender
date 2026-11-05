@@ -6,6 +6,7 @@
 
 #include "config.h"
 #include "display.h"
+#include "touch.h"
 #include "effects.h"
 #include "net.h"
 #include "argb_in.h"
@@ -37,6 +38,14 @@ void onWebChange(bool effectChanged) {
   settings::markDirty();
 }
 
+// Naechster Effekt (und einschalten): kurzer Tastendruck oder Tippen aufs Display
+void nextEffect() {
+  state.on = true;
+  state.effect = (state.effect + 1) % effects::COUNT;
+  effects::reset();
+  settings::markDirty();
+}
+
 void handleButton() {
   bool pressed = digitalRead(BUTTON_PIN) == LOW;
   uint32_t now = millis();
@@ -50,12 +59,7 @@ void handleButton() {
   } else if (!pressed && btnDown && now - btnSince > DEBOUNCE_MS) {
     btnDown = false;
     btnSince = now;
-    if (!longHandled) {  // kurzer Druck: naechster Effekt (und einschalten)
-      state.on = true;
-      state.effect = (state.effect + 1) % effects::COUNT;
-      effects::reset();
-      settings::markDirty();
-    }
+    if (!longHandled) nextEffect();  // kurzer Druck
   }
 }
 }  // namespace
@@ -74,6 +78,7 @@ void setup() {
   FastLED.clear(true);
 
   if (!display::begin()) Serial.println("Display nicht gefunden - laeuft ohne Anzeige weiter");
+  touch::begin();
 
   net::setLeds(leds, LED_COUNT);
   net::begin(state, onWebChange);
@@ -84,6 +89,7 @@ void loop() {
   realtime::loop(state.syncEnabled);
   argb::loop(state.argbEnabled);
   handleButton();
+  if (touch::tapped()) nextEffect();
   settings::loop(state);
 
   if (state.matterEnabled && matterdev::available() && !matterdev::started() && net::info().connected) matterdev::begin(state);

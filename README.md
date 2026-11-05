@@ -1,6 +1,6 @@
 # ESP32-LED-Kopfhoererstaender
 
-WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-LCD-1.3 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau.
+WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau. Tippen aufs Display schaltet zum nächsten Effekt.
 
 <p align="center">
   <img src="docs/images/weboberflaeche-handy-licht.jpg" alt="Seite Licht mit Presets, Tempo und Effekten, heller Modus" width="250">
@@ -20,29 +20,32 @@ Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau 
 
 | Bauteil | Anschluss |
 |---|---|
-| ESP32-C6-LCD-1.3 | 5V-Pin über Schottky-Diode 1N5819, GND, **GPIO1 = LED-Daten**, **GPIO2 = ARGB-Eingang** |
-| ARGB-Kabel vom Mainboard | D über 1 kΩ / 2 kΩ an GPIO2, G an GND, 5V frei |
+| ESP32-C6-Touch-LCD-1.9 | VBUS-Pin über Schottky-Diode 1N5819, GND, **GPIO3 = LED-Daten**, **GPIO23 = ARGB-Eingang** |
+| ARGB-Kabel vom Mainboard | D über 1 kΩ / 2 kΩ an GPIO23, G an GND, 5V frei |
 | 74AHCT125 | Pegelwandler 3,3 V → 5 V (Kanal 1), 100 nF an Pin 14 |
 | WS2812B | DIN über 330 Ω, +5 V/GND direkt vom Netzteil |
 | Netzteil | USB-C-Netzteil 5 V / 3 A über USB-C-Buchse mit 5,1-kΩ-CC-Widerständen, Stromgrenze 2400 mA |
 
-Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html`](docs/hardware/schaltung.html). Im Browser öffnen. Die Seite wird mit `python3 docs/hardware/gen_schaltung.py` aus der Vorlage neu erzeugt.
+Beim ESP32-C6-Touch-LCD-1.9 sind GPIO1 und GPIO2 mit der Lagesensor-IMU verbunden. Deshalb liegen LED-Daten und ARGB-Eingang hier auf **GPIO3** (Leiste mit 1, 2, 3) und **GPIO23** (Leiste mit 22, 23). Das alte ESP32-C6-LCD-1.3 nutzt weiter GPIO1 und GPIO2, siehe `env:esp32-c6-lcd-13`.
+
+Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html`](docs/hardware/schaltung.html). Die Zeichnung zeigt noch das ESP32-C6-LCD-1.3, also GPIO1/GPIO2; die übrige Schaltung bleibt gleich. Im Browser öffnen. Die Seite wird mit `python3 docs/hardware/gen_schaltung.py` aus der Vorlage neu erzeugt.
 
 ## Bauen und flashen
 
-Voraussetzung: VS Code mit PlatformIO (wie im Testprojekt `ESP32-C6-LCD-1.3`).
+Voraussetzung: VS Code mit PlatformIO.
 
 1. Repo mit Fork klonen, z. B. nach `K:\Fork-GitHub\ESP32-LED-Kopfhoererstaender`.
 2. Den Ordner in VS Code öffnen. PlatformIO lädt beim ersten Bauen die Plattform `pioarduino` (Arduino-Core 3.x für den ESP32-C6) und die Bibliotheken FastLED und GFX Library for Arduino.
 3. Board per USB-C anschließen, **Upload** in der PlatformIO-Leiste klicken.
 4. Serieller Monitor mit 115200 Baud zeigt Verbindung und IP-Adresse.
 
-Es gibt zwei Umgebungen, auswählbar unten in der VS-Code-Statusleiste:
+Es gibt drei Umgebungen, auswählbar unten in der VS-Code-Statusleiste:
 
 | Umgebung | Inhalt | Update per WLAN |
 |---|---|---|
 | `esp32-c6-lcd` (Standard) | alles außer Matter | möglich, siehe unten |
 | `esp32-c6-lcd-matter` | zusätzlich Matter für Apple Home & Co. | nein, Matter braucht den Platz beider Update-Slots |
+| `esp32-c6-lcd-13` | wie Standard, für das alte ESP32-C6-LCD-1.3 | möglich |
 
 Die Partitionstabelle (`partitions.csv` bzw. `partitions_matter.csv`) wird nur per USB geschrieben. Ein Wechsel zwischen den Umgebungen geht deshalb nur per USB. Die Einstellungen liegen in beiden Tabellen an derselben Stelle und bleiben erhalten.
 
@@ -63,8 +66,9 @@ Findet der Controller das gespeicherte WLAN nach dem Einschalten 20 Sekunden lan
 
 - **Weboberfläche:** Live-Vorschau des Streifens, Ein/Aus, Helligkeit, Presets, Farbrad für zwei Farben, Paletten, Effekte mit animierter Vorschau, Tempo, Intensität, Aura und PC-Sync, Stromgrenze, Anzeige drehen, WLAN neu einrichten. Hell- und Dunkelmodus folgen dem Gerät. Auf dem iPhone lässt sich die Seite über *Teilen → Zum Home-Bildschirm* wie eine App ablegen.
 - **Presets:** Tippen lädt ein Preset, „Speichern“ legt die aktuelle Einstellung als neues an (bis zu 12). Gedrückt halten bzw. Rechtsklick löscht eins. Presets liegen im Flash des Controllers und gelten für alle Geräte im Heimnetz.
-- **BOOT-Taster kurz drücken:** nächster Effekt.
+- **BOOT-Taster kurz drücken oder aufs Display tippen:** nächster Effekt.
 - **BOOT-Taster 5 s halten:** WLAN-Daten löschen, Neustart ins Einrichtungs-WLAN.
+- **Anzeige drehen** (Einstellungen): 0° und 180° ergeben Hochformat, 90° und 270° Querformat, passend zur Gehäusevariante. Die Anzeige ordnet sich selbst neu an.
 
 Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert und nach einem Neustart wiederhergestellt.
 
@@ -104,7 +108,7 @@ Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 
 Der Ständer kann direkt von Armoury Crate/Aura gesteuert werden, ohne Zusatzsoftware. Dafür liest der ESP das Signal eines ARGB-Headers auf dem Mainboard mit. Für Aura ist der Ständer dann ein ganz normaler ARGB-Streifen.
 
 **Anschluss** (siehe `docs/hardware/schaltung.html`):
-- Header-Pin **D** → R3 1 kΩ → **GPIO2**, von GPIO2 → R4 2 kΩ → GND. Der Spannungsteiler macht aus 5 V etwa 3,3 V.
+- Header-Pin **D** → R3 1 kΩ → **GPIO23**, von GPIO23 → R4 2 kΩ → GND (beim alten 1.3er GPIO2). Der Spannungsteiler macht aus 5 V etwa 3,3 V.
 - Header-Pin **G** → GND des Aufbaus.
 - Header-Pin **5V** bleibt frei. Die LEDs bekommen ihren Strom weiter vom eigenen Netzteil.
 
@@ -211,9 +215,10 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
-| `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO2 mit |
+| `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO23 mit |
 | `web/index.html` | Weboberfläche (Quelle) |
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |
 | `src/webui.h` | Einrichtungsseite |
-| `src/display.cpp` | Anzeige auf dem LCD |
+| `src/display.cpp` | Anzeige auf dem LCD, passt sich an Hoch- und Querformat an |
+| `src/touch.cpp` | Touch: Tippen erkennen |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |
