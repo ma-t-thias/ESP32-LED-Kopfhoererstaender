@@ -28,7 +28,7 @@ Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau 
 
 Beim ESP32-C6-Touch-LCD-1.9 sind GPIO1 und GPIO2 mit der Lagesensor-IMU verbunden. Deshalb liegen LED-Daten und ARGB-Eingang hier auf **GPIO3** (Leiste mit 1, 2, 3) und **GPIO23** (Leiste mit 22, 23). Das alte ESP32-C6-LCD-1.3 nutzt weiter GPIO1 und GPIO2, siehe `env:esp32-c6-lcd-13`.
 
-Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html`](docs/hardware/schaltung.html). Die Zeichnung zeigt noch das ESP32-C6-LCD-1.3, also GPIO1/GPIO2; die übrige Schaltung bleibt gleich. Im Browser öffnen. Die Seite wird mit `python3 docs/hardware/gen_schaltung.py` aus der Vorlage neu erzeugt.
+Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html`](docs/hardware/schaltung.html). Die Zeichnung zeigt das ESP32-C6-Touch-LCD-1.9 (VBUS = J4 Pin 1, GPIO3 = J3 Pin 7, GPIO23 = J4 Pin 9). Im Browser öffnen. Die Seite wird mit `python3 docs/hardware/gen_schaltung.py` aus der Vorlage neu erzeugt.
 
 ## Bauen und flashen
 
