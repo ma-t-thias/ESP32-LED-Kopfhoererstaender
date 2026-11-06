@@ -1,6 +1,6 @@
 # ESP32-LED-Kopfhoererstaender
 
-WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau. Tippen aufs Display schaltet zum nächsten Effekt.
+WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau. Tippen in die obere Hälfte oder Wischen nach rechts schaltet zum nächsten Effekt, Wischen nach links zum vorherigen. Tippen in die untere Hälfte wechselt die Palette.
 
 <p align="center">
   <img src="docs/images/weboberflaeche-handy-licht.jpg" alt="Seite Licht mit Presets, Tempo und Effekten, heller Modus" width="250">
@@ -66,7 +66,7 @@ Findet der Controller das gespeicherte WLAN nach dem Einschalten 20 Sekunden lan
 
 - **Weboberfläche:** Live-Vorschau des Streifens, Ein/Aus, Helligkeit, Presets, Farbrad für zwei Farben, Paletten, Effekte mit animierter Vorschau, Tempo, Intensität, Aura und PC-Sync, Stromgrenze, Anzeige drehen, WLAN neu einrichten. Hell- und Dunkelmodus folgen dem Gerät. Auf dem iPhone lässt sich die Seite über *Teilen → Zum Home-Bildschirm* wie eine App ablegen.
 - **Presets:** Tippen lädt ein Preset, „Speichern“ legt die aktuelle Einstellung als neues an (bis zu 12). Gedrückt halten bzw. Rechtsklick löscht eins. Presets liegen im Flash des Controllers und gelten für alle Geräte im Heimnetz.
-- **BOOT-Taster kurz drücken oder aufs Display tippen:** nächster Effekt.
+- **BOOT-Taster kurz drücken, in die obere Displayhälfte tippen oder nach rechts wischen:** nächster Effekt. **Nach links wischen:** vorheriger Effekt. **In die untere Hälfte tippen:** nächste Palette. Oben, unten, links und rechts gelten im angezeigten Bild, also passend zur Drehung.
 - **BOOT-Taster 5 s halten:** WLAN-Daten löschen, Neustart ins Einrichtungs-WLAN.
 - **Anzeige drehen** (Einstellungen): 0° und 180° ergeben Hochformat, 90° und 270° Querformat, passend zur Gehäusevariante. Die Anzeige ordnet sich selbst neu an.
 
@@ -220,6 +220,6 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |
 | `src/webui.h` | Einrichtungsseite |
 | `src/display.cpp` | Anzeige auf dem LCD, passt sich an Hoch- und Querformat an |
-| `src/touch.cpp` | Touch: Tippen erkennen |
+| `src/touch.cpp` | Touch: Tippen (oben/unten) und Wischen erkennen |
 | `src/imu.cpp` | Lagesensor: Displaydrehung „Auto“ nach der Schwerkraft |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |

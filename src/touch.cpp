@@ -11,6 +11,7 @@ namespace touch {
 namespace {
 bool present = false;
 bool wasDown = false;
+int x = 0, y = 0, x0 = 0, y0 = 0;  // aktuelle Position und Startpunkt des Fingers
 uint32_t lastPoll = 0;
 
 bool writeReg(uint8_t reg, uint8_t val) {
@@ -32,16 +33,48 @@ void begin() {
   Serial.println(present ? "Touch gefunden" : "Touch nicht gefunden");
 }
 
-bool tapped() {
-  if (!present || millis() - lastPoll < 30) return false;
+Gesture read(uint8_t rotation) {
+  if (!present || millis() - lastPoll < 30) return NONE;
   lastPoll = millis();
+  uint8_t b[7];  // Register 0..6: Modus, Geste, Fingerzahl, X hoch, X tief, Y hoch, Y tief
   Wire.beginTransmission(TOUCH_ADDR);
-  Wire.write(0x02);  // Register 2: Anzahl der Finger
-  if (Wire.endTransmission(false) != 0 || Wire.requestFrom(TOUCH_ADDR, 1) != 1) return false;
-  bool down = Wire.read() > 0;
-  bool tap = wasDown && !down;
+  Wire.write(0x00);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom(TOUCH_ADDR, 7) != 7) return NONE;
+  for (auto &v : b) v = Wire.read();
+  bool down = b[2] > 0;
+  if (down) {
+    x = ((b[3] & 0x0F) << 8) | b[4];
+    y = ((b[5] & 0x0F) << 8) | b[6];
+    if (!wasDown) {
+      x0 = x;
+      y0 = y;
+    }
+  }
+  bool released = wasDown && !down;
   wasDown = down;
-  return tap;
+  if (!released) return NONE;
+
+  // Bewegung in Panel-Koordinaten (hochkant) in Bildkoordinaten umrechnen
+  int dx = x - x0, dy = y - y0, h, v;
+  switch (rotation & 3) {
+    case 0: h = dx;  v = dy;  break;
+    case 1: h = dy;  v = -dx; break;
+    case 2: h = -dx; v = -dy; break;
+    default: h = -dy; v = dx; break;
+  }
+  if (abs(h) > 40 && abs(h) > abs(v)) return h > 0 ? SWIPE_RIGHT : SWIPE_LEFT;
+  if (abs(h) < 20 && abs(v) < 20) {
+    // untere Haelfte des angezeigten Bilds (Panel hochkant LCD_W x LCD_H)
+    bool bottom;
+    switch (rotation & 3) {
+      case 0: bottom = y > LCD_H / 2; break;
+      case 1: bottom = x < LCD_W / 2; break;
+      case 2: bottom = y < LCD_H / 2; break;
+      default: bottom = x > LCD_W / 2; break;
+    }
+    return bottom ? TAP_BOTTOM : TAP_TOP;
+  }
+  return NONE;  // senkrecht gewischt: ignorieren
 }
 }  // namespace touch
 
@@ -49,7 +82,7 @@ bool tapped() {
 
 namespace touch {
 void begin() {}
-bool tapped() { return false; }
+Gesture read(uint8_t) { return NONE; }
 }  // namespace touch
 
 #endif

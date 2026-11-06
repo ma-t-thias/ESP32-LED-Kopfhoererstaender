@@ -40,10 +40,16 @@ void onWebChange(bool effectChanged) {
 }
 
 // Naechster Effekt (und einschalten): kurzer Tastendruck oder Tippen aufs Display
-void nextEffect() {
+void nextEffect(int step = 1) {
   state.on = true;
-  state.effect = (state.effect + 1) % effects::COUNT;
+  state.effect = (state.effect + effects::COUNT + step) % effects::COUNT;
   effects::reset();
+  settings::markDirty();
+}
+
+void nextPalette() {
+  state.on = true;
+  state.palette = (state.palette + 1) % effects::PALETTE_COUNT;
   settings::markDirty();
 }
 
@@ -91,7 +97,13 @@ void loop() {
   realtime::loop(state.syncEnabled);
   argb::loop(state.argbEnabled);
   handleButton();
-  if (touch::tapped()) nextEffect();
+  switch (touch::read(display::currentRotation())) {
+    case touch::TAP_TOP:
+    case touch::SWIPE_RIGHT: nextEffect(); break;
+    case touch::TAP_BOTTOM: nextPalette(); break;
+    case touch::SWIPE_LEFT: nextEffect(-1); break;
+    default: break;
+  }
   imu::loop();
   settings::loop(state);
 
