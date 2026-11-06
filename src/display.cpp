@@ -200,6 +200,8 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   }
 }
 
+uint8_t currentRotation() { return rotation; }
+
 void message(const char *line1, const char *line2) {
   if (!ok) return;
   gfx->fillScreen(BG);

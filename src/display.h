@@ -17,6 +17,8 @@ struct NetInfo {
 bool begin();
 // Zeichnet geaenderte Texte neu und aktualisiert die LED-Vorschau (max. 10x/s).
 void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n);
+// Aktuell angezeigte Drehung 0..3, auch bei Auto
+uint8_t currentRotation();
 // Grosse Meldung, z. B. vor einem Neustart
 void message(const char *line1, const char *line2);
 
