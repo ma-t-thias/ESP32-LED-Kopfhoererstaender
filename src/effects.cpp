@@ -37,6 +37,13 @@ const char *const PALETTE_NAMES[] = {
 };
 const uint8_t PALETTE_COUNT = sizeof(PALETTE_NAMES) / sizeof(PALETTE_NAMES[0]);
 
+bool usesColor(uint8_t effect) {
+  switch (effect) {
+    case 0: case 2: case 4: case 5: case 7: case 8: case 14: case 20: case 21: return true;
+    default: return false;
+  }
+}
+
 namespace {
 
 uint32_t phase = 0;       // laeuft abhaengig von "speed" hoch; 0 = Stillstand

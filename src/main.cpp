@@ -47,9 +47,22 @@ void nextEffect(int step = 1) {
   settings::markDirty();
 }
 
-void nextPalette() {
+// Tippen unten: bei Farbeffekten die naechste Farbe, sonst die naechste Palette
+void nextColorOrPalette() {
+  static const CRGB COLORS[] = {CRGB(255, 0, 0),   CRGB(255, 120, 0), CRGB(255, 220, 0), CRGB(0, 255, 0),
+                                CRGB(0, 255, 200), CRGB(0, 80, 255),  CRGB(160, 0, 255), CRGB(255, 0, 120),
+                                CRGB(255, 255, 255)};
+  constexpr uint8_t N = sizeof(COLORS) / sizeof(COLORS[0]);
   state.on = true;
-  state.palette = (state.palette + 1) % effects::PALETTE_COUNT;
+  if (effects::usesColor(state.effect)) {
+    uint8_t i = 0;
+    while (i < N && COLORS[i] != state.color1) i++;
+    if (i == N) i = N - 1;  // eigene Farbe aus der Weboberflaeche: mit Rot beginnen
+    state.color1 = COLORS[(i + 1) % N];
+    state.color2 = COLORS[(i + 1 + N / 2) % N];  // zweite Farbe gegenueber, fuer Verlauf/Scanner
+  } else {
+    state.palette = (state.palette + 1) % effects::PALETTE_COUNT;
+  }
   settings::markDirty();
 }
 
@@ -100,7 +113,7 @@ void loop() {
   switch (touch::read(display::currentRotation())) {
     case touch::TAP_TOP:
     case touch::SWIPE_RIGHT: nextEffect(); break;
-    case touch::TAP_BOTTOM: nextPalette(); break;
+    case touch::TAP_BOTTOM: nextColorOrPalette(); break;
     case touch::SWIPE_LEFT: nextEffect(-1); break;
     default: break;
   }
