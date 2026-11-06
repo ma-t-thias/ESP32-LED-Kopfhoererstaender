@@ -204,7 +204,7 @@ input[type=number]{width:90px;text-align:right;border:0;background:none;color:va
    <div class="group"><h2>Einstellungen</h2>
     <section class="glass list">
      <div class="li"><label for="ma">Stromgrenze</label><span class="val"><input id="ma" type="number" min="200" step="100"> mA</span></div>
-     <div class="li"><span id="rotL">Anzeige drehen</span><div class="seg" id="rot" role="group" aria-labelledby="rotL" style="min-width:210px"></div></div>
+     <div class="li"><span id="rotL">Anzeige drehen</span><div class="seg" id="rot" role="group" aria-labelledby="rotL" style="min-width:260px"></div></div>
     </section>
     <p class="foot" id="maHint"></p>
    </div>
@@ -421,7 +421,7 @@ function build(){
    b.onpointerleave=()=>{ b.style.transform=''; }; } });
  info.palettes.forEach((name,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='pal';
   b.innerHTML=`<i></i><span>${name}</span>`; b.onclick=()=>send({pal:i}); $('pals').appendChild(b); });
- ['0°','90°','180°','270°'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
+ ['0°','90°','180°','270°','Auto'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
  $('meta').innerHTML=[['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
