@@ -39,15 +39,14 @@ Voraussetzung: VS Code mit PlatformIO.
 3. Board per USB-C anschließen, **Upload** in der PlatformIO-Leiste klicken.
 4. Serieller Monitor mit 115200 Baud zeigt Verbindung und IP-Adresse.
 
-Es gibt drei Umgebungen, auswählbar unten in der VS-Code-Statusleiste:
+Es gibt zwei Umgebungen, auswählbar unten in der VS-Code-Statusleiste:
 
 | Umgebung | Inhalt | Update per WLAN |
 |---|---|---|
-| `esp32-c6-lcd` (Standard) | alles außer Matter | möglich, siehe unten |
-| `esp32-c6-lcd-matter` | zusätzlich Matter für Apple Home & Co. | nein, Matter braucht den Platz beider Update-Slots |
-| `esp32-c6-lcd-13` | wie Standard, für das alte ESP32-C6-LCD-1.3 | möglich |
+| `esp32-c6-lcd` (Standard) | alles, mit Matter für Apple Home & Co. | möglich, siehe unten |
+| `esp32-c6-lcd-13` | für das alte ESP32-C6-LCD-1.3 (4 MB), ohne Matter | möglich |
 
-Die Partitionstabelle (`partitions.csv` bzw. `partitions_matter.csv`) wird nur per USB geschrieben. Ein Wechsel zwischen den Umgebungen geht deshalb nur per USB. Die Einstellungen liegen in beiden Tabellen an derselben Stelle und bleiben erhalten.
+Die Partitionstabelle (`partitions_8mb.csv` bzw. `partitions.csv` beim 1.3er) wird nur per USB geschrieben. Nach dem Wechsel auf eine neue Tabelle deshalb einmal per USB flashen. Die Einstellungen und WLAN-Daten liegen in beiden Tabellen an derselben Stelle und bleiben erhalten.
 
 Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
 
@@ -141,7 +140,7 @@ Damit lassen sich Automationen bauen, z. B. „Ständer auf Kerze, wenn abends d
 
 Der Ständer kann sich per Matter über WLAN in Apple Home einbinden, ebenso in Google Home, Alexa oder SmartThings. Das ist ein **Prototyp** und ab Werk aus.
 
-0. Die Umgebung `esp32-c6-lcd-matter` per USB flashen (siehe *Bauen und flashen*). In der normalen Firmware fehlt der Matter-Abschnitt in der Weboberfläche.
+0. Die Standard-Umgebung `esp32-c6-lcd` enthält Matter. Nur das alte 1.3er-Board (`esp32-c6-lcd-13`) hat keinen Matter-Abschnitt in der Weboberfläche.
 1. Weboberfläche → *Einstellungen* → *Apple Home · Matter* einschalten. Der Ständer startet neu.
 2. Das Display zeigt jetzt einen QR-Code und den Koppel-Code `3497-011-2332`. Beides steht auch in der Weboberfläche.
 3. In der Home-App *Gerät hinzufügen* wählen und den QR-Code scannen, oder unter *Weitere Optionen* den Code eingeben. iPhone und Ständer müssen im selben WLAN sein.
@@ -194,7 +193,7 @@ Findet der PC `led-kopfhoerer.local` nicht, in `test_ota.ini` bei `host` die IP-
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3), `matter` (0/1, startet neu) |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu) |
 | GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |

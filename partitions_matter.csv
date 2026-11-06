@@ -1,8 +1,0 @@
-# Name,   Type, SubType, Offset,   Size,     Flags
-# Fuer env:esp32-c6-lcd-matter: ein grosser App-Bereich ohne Update per WLAN.
-# NVS liegt an derselben Stelle wie in partitions.csv, Einstellungen bleiben
-# beim Wechsel zwischen den Umgebungen erhalten.
-fctry,    data, nvs,     0x9000,   0x7000,
-factory,  app,  factory, 0x10000,  0x3C0000,
-nvs,      data, nvs,     0x3D0000, 0x20000,
-coredump, data, coredump,0x3F0000, 0x10000,
