@@ -79,6 +79,22 @@
 #define TOUCH_SDA 18
 #define TOUCH_SCL 8
 #define TOUCH_ADDR 0x15
+// Lagesensor QMI8658 am selben Bus. Anzeige "Auto" dreht das Bild nach der Schwerkraft.
+#define IMU_ADDR 0x6B
+// Welche Drehung (0..3) passt, wenn die Schwerkraft entlang +X/-X/+Y/-Y des Sensors zeigt.
+// Am Board ermittelt; bei falscher Lage die Werte tauschen (Serial zeigt ax/ay).
+#define IMU_ROT_XPOS 2
+#define IMU_ROT_XNEG 0
+#define IMU_ROT_YPOS 1
+#define IMU_ROT_YNEG 3
+#endif
+
+// Anzeige-Drehung 4 = automatisch ueber den Lagesensor (nur mit IMU_ADDR)
+#define ROT_AUTO 4
+#ifdef IMU_ADDR
+#define ROT_DEFAULT ROT_AUTO
+#else
+#define ROT_DEFAULT LCD_ROTATION
 #endif
 
 // ---------------- Taster ----------------

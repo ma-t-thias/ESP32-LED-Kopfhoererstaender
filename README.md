@@ -12,7 +12,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
   <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht mit allen Effekten" width="800">
 </p>
 
-Die Weboberfläche hat drei Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten) und **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung, Gerätedaten, WLAN). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`), und der Browser merkt sich die zuletzt offene.
+Die Weboberfläche hat drei Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten) und **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Gerätedaten, WLAN). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`), und der Browser merkt sich die zuletzt offene.
 
 Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
 
@@ -221,4 +221,5 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/webui.h` | Einrichtungsseite |
 | `src/display.cpp` | Anzeige auf dem LCD, passt sich an Hoch- und Querformat an |
 | `src/touch.cpp` | Touch: Tippen erkennen |
+| `src/imu.cpp` | Lagesensor: Displaydrehung „Auto“ nach der Schwerkraft |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |

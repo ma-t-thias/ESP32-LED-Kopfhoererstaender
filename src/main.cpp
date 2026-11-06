@@ -7,6 +7,7 @@
 #include "config.h"
 #include "display.h"
 #include "touch.h"
+#include "imu.h"
 #include "effects.h"
 #include "net.h"
 #include "argb_in.h"
@@ -79,6 +80,7 @@ void setup() {
 
   if (!display::begin()) Serial.println("Display nicht gefunden - laeuft ohne Anzeige weiter");
   touch::begin();
+  imu::begin();  // nach touch::begin, das den I2C-Bus startet
 
   net::setLeds(leds, LED_COUNT);
   net::begin(state, onWebChange);
@@ -90,6 +92,7 @@ void loop() {
   argb::loop(state.argbEnabled);
   handleButton();
   if (touch::tapped()) nextEffect();
+  imu::loop();
   settings::loop(state);
 
   if (state.matterEnabled && matterdev::available() && !matterdev::started() && net::info().connected) matterdev::begin(state);

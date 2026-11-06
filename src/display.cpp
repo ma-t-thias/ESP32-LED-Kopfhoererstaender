@@ -7,6 +7,7 @@
 #include "argb_in.h"
 #include "realtime.h"
 #include "matter_dev.h"
+#include "imu.h"
 
 extern "C" {
 #include <qrcode.h>
@@ -150,8 +151,10 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (!ok) return;
 
   bool wantPairing = matterdev::started() && !matterdev::paired() && net.connected;
-  if ((s.displayRotation & 3) != rotation) {
-    rotation = s.displayRotation & 3;
+  uint8_t want = s.displayRotation;
+  if (want == ROT_AUTO) want = imu::rotation() >= 0 ? imu::rotation() : LCD_ROTATION;
+  if ((want & 3) != rotation) {
+    rotation = want & 3;
     if (wantPairing) drawPairing(net);
     else drawStatic();
   }

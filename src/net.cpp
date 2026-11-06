@@ -197,7 +197,7 @@ void handleSetState() {
   v = argInt("ma", 200, LED_MAX_MILLIAMPS_LIMIT, p); if (p) s.maxMilliamps = v;
   v = argInt("sync", 0, 1, p);         if (p) s.syncEnabled = v;
   v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
-  v = argInt("rot", 0, 3, p);          if (p) s.displayRotation = v;
+  v = argInt("rot", 0, ROT_AUTO, p);          if (p) s.displayRotation = v;
   v = argInt("matter", 0, 1, p);
   if (p && matterdev::available() && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
     s.matterEnabled = v;
