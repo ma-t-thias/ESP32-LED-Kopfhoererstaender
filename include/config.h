@@ -3,8 +3,15 @@
 // Hardware abhaengt. WLAN-Zugangsdaten stehen NICHT hier: die gibt man beim
 // ersten Start im Einrichtungs-WLAN ein (siehe README).
 
+// Board: Standard ist das Waveshare ESP32-C6-Touch-LCD-1.9.
+// Das alte ESP32-C6-LCD-1.3 baut die Umgebung env:esp32-c6-lcd-13 (setzt BOARD_LCD_13).
+
 // ---------------- LED-Streifen ----------------
+#ifdef BOARD_LCD_13
 #define LED_PIN 1            // GPIO1 -> 74AHCT125 Pin 2 (1A)
+#else
+#define LED_PIN 3            // GPIO3 -> 74AHCT125 Pin 2 (1A); GPIO1/2 sind hier die IMU-Interrupts
+#endif
 #define LED_COUNT 144        // WS2812B, 1 m, 144 LEDs
 #define LED_COLOR_ORDER GRB  // WS2812B ist fast immer GRB
 
@@ -26,7 +33,11 @@
 
 // ---------------- ARGB-Eingang (Mainboard, z. B. ASUS Aura) ----------------
 // Daten-Pin des Mainboard-ARGB-Headers ueber Spannungsteiler 1 kOhm / 2 kOhm.
+#ifdef BOARD_LCD_13
 #define ARGB_IN_PIN 2
+#else
+#define ARGB_IN_PIN 23
+#endif
 // Ohne gueltiges Signal so lange laufen danach wieder die eigenen Effekte.
 #define ARGB_TIMEOUT_MS 2000
 // Byte-Reihenfolge, die das Mainboard sendet. WS2812-Standard ist G, R, B.
@@ -34,18 +45,41 @@
 #define ARGB_IN_ORDER_G 0
 #define ARGB_IN_ORDER_B 2
 
-// ---------------- Display (Waveshare ESP32-C6-LCD-1.3) ----------------
+// ---------------- Display ----------------
+#ifdef BOARD_LCD_13
+// Waveshare ESP32-C6-LCD-1.3: 240x240, Hintergrundlicht HIGH = an
 #define LCD_SCK 7
 #define LCD_MOSI 6
 #define LCD_DC 15
 #define LCD_CS 14
 #define LCD_RST 21
 #define LCD_BL 22
+#define LCD_BL_ON HIGH
 #define LCD_W 240
 #define LCD_H 240
 #define LCD_ROTATION 1  // Startwert, in der Weboberflaeche einstellbar (0..3 = 0/90/180/270 Grad)
 // 240x240-Panel am 240x320-Controller: bei 180 und 270 Grad liegt das Bild 80 Zeilen versetzt
-#define LCD_ROW_OFFSET2 80
+#define LCD_OFFSETS 0, 0, 0, 80
+#else
+// Waveshare ESP32-C6-Touch-LCD-1.9: 170x320 hochkant, Hintergrundlicht LOW = an
+// (P-Kanal-FET). Pins und Offsets aus dem Waveshare-Beispiel 07_Hello_World_GFX.
+#define LCD_SCK 5
+#define LCD_MOSI 4
+#define LCD_DC 6
+#define LCD_CS 7
+#define LCD_RST 14
+#define LCD_BL 15
+#define LCD_BL_ON LOW
+#define LCD_W 170
+#define LCD_H 320
+#define LCD_ROTATION 0  // 0/2 = hochkant, 1/3 = quer; in der Weboberflaeche einstellbar
+// 170 Spalten mittig im 240er Controller
+#define LCD_OFFSETS 35, 0, 35, 0
+// Touch CST816D am I2C-Bus (teilt ihn mit der IMU). Tippen = naechster Effekt.
+#define TOUCH_SDA 18
+#define TOUCH_SCL 8
+#define TOUCH_ADDR 0x15
+#endif
 
 // ---------------- Taster ----------------
 // BOOT-Taster auf dem Board. Kurz druecken: naechster Effekt.

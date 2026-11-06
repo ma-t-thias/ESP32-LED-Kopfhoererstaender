@@ -47,8 +47,8 @@ def text(tx, ty, s, size=11, anchor="middle", weight=400, fill="currentColor", e
       f'font-weight="{weight}" fill="{fill}" {extra}>{s}</text>')
 
 W, H = 960, 470 + OY
-A(f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Breadboard-Belegung: ESP32-C6 in Reihe 5 bis 10, '
-  f'74AHCT125 in Reihe 16 bis 22, 330-Ohm-Widerstand zur Datenleitung, Netzteil und LED-Streifen rechts '
+A(f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Breadboard-Belegung: ESP32-C6-Touch-LCD-1.9 in Reihe 1 bis 20, '
+  f'74AHCT125 in Reihe 23 bis 29, 330-Ohm-Widerstand zur Datenleitung, Netzteil und LED-Streifen rechts '
   f'außerhalb des Breadboards" class="bb" font-family="var(--mono)">')
 
 # Breadboard-Koerper
@@ -77,52 +77,54 @@ for c, yy in COLS.items():
     text(bx1 + 9, yy + 4, c, 10, fill="var(--muted)")
     text(bx2 - 9, yy + 4, c, 10, fill="var(--muted)")
 
-# --- ESP32-C6-LCD-1.3 (Display nach oben, USB-C Richtung Reihe 1) ---
-ex1, ex2 = x(5) - 87, x(10) + 39
-ey1, ey2 = COLS["i"] - 14, COLS["b"] + 14
+# --- ESP32-C6-Touch-LCD-1.9 (Display nach oben, USB-C Richtung Reihe 1) ---
+# Stiftleisten im Abstand 17,78 mm = 7 Raster: J4 in Spalte h, J3 in Spalte c, Pin 1 jeweils in Reihe 1.
+# Frei zugaenglich bleiben pro Reihe nur i/j (oben) und a/b (unten).
+ex1, ex2 = x(1) - 12, x(20) + 14
+ey1, ey2 = COLS["h"] - 14, COLS["c"] + 14
 A(f'<rect x="{ex1}" y="{ey1}" width="{ex2-ex1}" height="{ey2-ey1}" rx="6" fill="var(--pcb)" '
   f'fill-opacity=".88" stroke="var(--pcbedge)" stroke-width="1.5"/>')
 # Display-Flaeche
-A(f'<rect x="{ex1+14}" y="{ey1+30}" width="{ex2-ex1-28}" height="{ey2-ey1-60}" rx="3" fill="#0b0d12" opacity=".75"/>')
-text((ex1 + ex2) / 2, (ey1 + ey2) / 2 - 6, "ESP32-C6", 12, weight=700, fill="#e8ecf2")
-text((ex1 + ex2) / 2, (ey1 + ey2) / 2 + 10, "LCD 1.3″", 11, fill="#c9d1dc")
-text((ex1 + ex2) / 2, (ey1 + ey2) / 2 + 26, "Display oben", 9.5, fill="#9aa6b5")
+A(f'<rect x="{ex1+22}" y="{ey1+22}" width="{ex2-ex1-44}" height="{ey2-ey1-44}" rx="3" fill="#0b0d12" opacity=".75"/>')
+text((ex1 + ex2) / 2, (ey1 + ey2) / 2 - 8, "ESP32-C6-Touch-LCD-1.9", 12, weight=700, fill="#e8ecf2")
+text((ex1 + ex2) / 2, (ey1 + ey2) / 2 + 10, "Display oben, Pins J3/J4 in c und h", 9.5, fill="#9aa6b5")
 # USB-C
-A(f'<rect x="{ex1-12}" y="{(ey1+ey2)/2-18}" width="18" height="36" rx="4" fill="#b9c0c9" stroke="#7d8692"/>')
-text(ex1 + 20, ey1 + 48, "◀ USB-C", 9.5, anchor="start", fill="#9aa6b5")
-# Header-Pins
-top_labels = ["5V", "GND", "3V3", "IO1", "IO2", "IO3"]
-bot_labels = ["12", "13", "16", "17", "20", "23"]
-for k, r in enumerate(range(5, 11)):
-    xx, yy = hole(r, "i")
-    hl = k in (0, 1, 3)
-    A(f'<rect x="{xx-5}" y="{yy-5}" width="10" height="10" rx="2" fill="{"#f4c542" if hl else "#c8a64a"}" stroke="#6b5a1f"/>')
-    text(xx, yy + 20, top_labels[k], 9, weight=700 if hl else 400, fill="#ffffff" if hl else "#c9d1dc")
-    xx, yy = hole(r, "b")
-    A(f'<rect x="{xx-5}" y="{yy-5}" width="10" height="10" rx="2" fill="#c8a64a" stroke="#6b5a1f"/>')
-    text(xx, yy - 11, bot_labels[k], 9, fill="#9aa6b5")
+A(f'<rect x="{ex1-16}" y="{(ey1+ey2)/2-18}" width="18" height="36" rx="4" fill="#b9c0c9" stroke="#7d8692"/>')
+# Header-Pins: Pin 1 jeweils am USB-Ende (Reihe 1)
+j4 = ["VBUS", "SYS", "GND", "EN", "3V3", "VREF", "22", "GND", "23", "EX0",
+      "RUN", "EX1", "GND", "EX2", "EX3", "EX4", "EX5", "GND", "EX6", "EX7"]
+j3 = ["16", "17", "GND", "0", "1", "2", "3", "GND", "8", "9",
+      "12", "13", "GND", "14", "15", "18", "19", "GND", "20", "21"]
+used_j4, used_j3 = (1, 3, 9), (7, 8)
+for r in range(1, 21):
+    for col, labels, used, dy in (("h", j4, used_j4, 18), ("c", j3, used_j3, -11)):
+        xx, yy = hole(r, col)
+        hl = r in used
+        A(f'<rect x="{xx-5}" y="{yy-5}" width="10" height="10" rx="2" fill="{"#f4c542" if hl else "#c8a64a"}" stroke="#6b5a1f"/>')
+        text(xx, yy + dy, labels[r - 1], 8 if not hl else 9, weight=700 if hl else 400,
+             fill="#ffffff" if hl else "#9aa6b5")
 
-# --- 74AHCT125 (Kerbe Richtung Reihe 22) ---
-cx1, cx2 = x(16) - 9, x(22) + 9
+# --- 74AHCT125 (Reihen 23 bis 29, Kerbe Richtung Reihe 29) ---
+cx1, cx2 = x(23) - 9, x(29) + 9
 cy1, cy2 = COLS["f"] + 6, COLS["e"] - 6
 A(f'<rect x="{cx1}" y="{cy1}" width="{cx2-cx1}" height="{cy2-cy1}" rx="3" fill="var(--ic)" stroke="#000" stroke-opacity=".4"/>')
 A(f'<path d="M{cx2},{(cy1+cy2)/2-7} a7,7 0 0,0 0,14" fill="var(--board)"/>')
 text((cx1 + cx2) / 2 - 4, (cy1 + cy2) / 2 + 4, "74AHCT125", 11, weight=700, fill="#e8ecf2")
-A(f'<circle cx="{x(22)}" cy="{cy1+8}" r="2.6" fill="#e8ecf2"/>')
-for r in range(16, 23):
+A(f'<circle cx="{x(29)}" cy="{cy1+8}" r="2.6" fill="#e8ecf2"/>')
+for r in range(23, 30):
     for c in ("f", "e"):
         xx, yy = hole(r, c)
         A(f'<rect x="{xx-4}" y="{yy-4}" width="8" height="8" fill="#b9c0c9"/>')
 # Pinnummern
-for i, r in enumerate(range(22, 15, -1)):
+for i, r in enumerate(range(29, 22, -1)):
     text(x(r), COLS["f"] - 9, i + 1, 8.5, fill="var(--muted)")
-for i, r in enumerate(range(16, 23)):
+for i, r in enumerate(range(23, 30)):
     text(x(r), COLS["e"] + 17, i + 8, 8.5, fill="var(--muted)")
 
 # --- Verdrahtung oben (Spalten f-j) ---
-# D1 Schottky: Anode an + Schiene (Reihe 5), Kathode (Ring) in j5
-xa, ya = x(5), TOP_P
-xk, yk = hole(5, "j")
+# D1 Schottky: Anode an + Schiene (Reihe 1), Kathode (Ring) in j1 (VBUS)
+xa, ya = x(1), TOP_P
+xk, yk = hole(1, "j")
 A(f'<line x1="{xa}" y1="{ya}" x2="{xk}" y2="{yk}" stroke="#9aa3ad" stroke-width="2"/>')
 A(f'<rect x="{xa-6}" y="{ya+14}" width="12" height="28" rx="3" fill="#1c1f24"/>')
 A(f'<rect x="{xa-6}" y="{ya+34}" width="12" height="5" fill="#d7dbe0"/>')
@@ -130,25 +132,26 @@ for px, py in ((xa, ya), (xk, yk)):
     A(f'<circle cx="{px}" cy="{py}" r="3" fill="#9aa3ad"/>')
 text(xa - 12, ya + 32, "D1", 10, anchor="end", weight=700)
 
-# GND ESP: j6 -> - Schiene oben
-wire([hole(6, "j"), (x(6), TOP_M)], BLU)
-# GPIO1: j8 -> g21 (1A)
-curve(hole(8, "j"), hole(21, "g"), YEL, lift=60)
-# Pin 7 GND (f16) -> j16 -> -
-wire([hole(16, "j"), (x(16), TOP_M)], BLU)
-# Pin 5 2A (f18) -> j18 -> -
-wire([hole(18, "j"), (x(18), TOP_M)], BLU)
-# Pin 4 2OE (f19) -> j19 -> +
-wire([hole(19, "j"), (x(19), TOP_P)], RED)
-# Pin 1 1OE (f22) -> j22 -> -
-wire([hole(22, "j"), (x(22), TOP_M)], BLU)
-# R1 330 Ohm: h20 -> h25
-rx1, ry = hole(20, "h")
-rx2, _ = hole(25, "h")
+# GND ESP (J4 Pin 3): j3 -> - Schiene oben
+wire([hole(3, "j"), (x(3), TOP_M)], BLU)
+# GPIO3 (J3 Pin 7, unten): b7 -> unter dem Board entlang -> g28 (U1 Pin 2, 1A)
+wire([hole(7, "b"), (x(7), COLS["a"] + 12), (x(22), COLS["a"] + 12), (x(22), COLS["g"]),
+      hole(28, "g")], YEL)
+# Pin 7 GND (f23) -> j23 -> -
+wire([hole(23, "j"), (x(23), TOP_M)], BLU)
+# Pin 5 2A (f25) -> j25 -> -
+wire([hole(25, "j"), (x(25), TOP_M)], BLU)
+# Pin 4 2OE (f26) -> j26 -> +
+wire([hole(26, "j"), (x(26), TOP_P)], RED)
+# Pin 1 1OE (f29) -> j29 -> -
+wire([hole(29, "j"), (x(29), TOP_M)], BLU)
+# R1 330 Ohm: h27 (1Y) -> h30
+rx1, ry = hole(27, "h")
+rx2, _ = hole(30, "h")
 A(f'<line x1="{rx1}" y1="{ry}" x2="{rx2}" y2="{ry}" stroke="#9aa3ad" stroke-width="2"/>')
-A(f'<rect x="{rx1+24}" y="{ry-7}" width="{rx2-rx1-48}" height="14" rx="6" fill="#d9c49a" stroke="#8a7650"/>')
+A(f'<rect x="{rx1+14}" y="{ry-7}" width="{rx2-rx1-28}" height="14" rx="6" fill="#d9c49a" stroke="#8a7650"/>')
 for i, col in enumerate(("#f58220", "#f58220", "#7a4a1d", "#c9a227")):
-    A(f'<rect x="{rx1+32+i*8}" y="{ry-7}" width="3.5" height="14" fill="{col}"/>')
+    A(f'<rect x="{rx1+18+i*7}" y="{ry-7}" width="3.5" height="14" fill="{col}"/>')
 for px in (rx1, rx2):
     A(f'<circle cx="{px}" cy="{ry}" r="3" fill="#9aa3ad"/>')
 text((rx1 + rx2) / 2, ry + 22, "R1 330 Ω", 10, weight=700)
@@ -164,43 +167,46 @@ text(ex - 22, ey + 16, "1000 µF", 9, anchor="end", fill="var(--muted)")
 for px, py in ((x(11), TOP_P), (x(12), TOP_M)):
     A(f'<circle cx="{px}" cy="{py}" r="3" fill="#9aa3ad"/>')
 
-# --- ARGB-Eingang vom Mainboard: R3 1 k (j9 -> j13), R4 2 k (h13 -> h15), h15 -> GND ---
-def resistor(r1, r2, col, label, bands):
-    xa, yy = hole(r1, col)
-    xb, _ = hole(r2, col)
-    A(f'<line x1="{xa}" y1="{yy}" x2="{xb}" y2="{yy}" stroke="#9aa3ad" stroke-width="2"/>')
-    A(f'<rect x="{xa+16}" y="{yy-6}" width="{xb-xa-32}" height="12" rx="5" fill="#d9c49a" stroke="#8a7650"/>')
+# --- ARGB-Eingang vom Mainboard (Reihe 21 = Knoten an GPIO23, Reihe 22 = D vom Mainboard) ---
+def vres(xa, ya, xb, yb, bands):
+    """Widerstand stehend/schraeg zwischen zwei Punkten."""
+    A(f'<line x1="{xa}" y1="{ya}" x2="{xb}" y2="{yb}" stroke="#9aa3ad" stroke-width="2"/>')
+    mx, my = (xa + xb) / 2, (ya + yb) / 2
+    A(f'<rect x="{mx-6}" y="{my-11}" width="12" height="22" rx="5" fill="#d9c49a" stroke="#8a7650"/>')
     for i, c in enumerate(bands):
-        A(f'<rect x="{xa+22+i*7}" y="{yy-6}" width="3" height="12" fill="{c}"/>')
-    for px in (xa, xb):
-        A(f'<circle cx="{px}" cy="{yy}" r="3" fill="#9aa3ad"/>')
-resistor(9, 13, "j", "R3", ("#7a4a1d", "#111111", "#d22f2f"))
-resistor(13, 15, "h", "R4", ("#d22f2f", "#111111", "#d22f2f"))
-text(x(11), COLS["j"] - 8, "R3 1 k", 9, weight=700)
-text(x(14), COLS["h"] + 16, "R4 2 k", 9, weight=700)
-wire([hole(15, "j"), (x(15), TOP_M)], BLU)
-# Kabel vom Mainboard-ARGB-Header: D -> g13, G -> - Schiene (Reihe 17)
-wire([(x(13) + 10, 12), (x(13) + 10, COLS["g"]), hole(13, "g")], PUR, 3)
-wire([(x(17), 12), (x(17), TOP_M)], "#555b63", 3)
-text(x(13) + 14, 10, "ARGB vom Mainboard: D (lila), G (grau), 5V nicht anschließen", 9.5, anchor="start", fill=PUR, weight=700)
+        A(f'<rect x="{mx-6}" y="{my-8+i*6}" width="12" height="2.6" fill="{c}"/>')
+    for px, py in ((xa, ya), (xb, yb)):
+        A(f'<circle cx="{px}" cy="{py}" r="3" fill="#9aa3ad"/>')
+# GPIO23 (J4 Pin 9): i9 -> Bruecke ueber das Board -> h21
+curve(hole(9, "i"), hole(21, "h"), PUR, lift=34, w=2.6)
+# R4 2 k: j21 -> obere - Schiene
+vres(*hole(21, "j"), x(21), TOP_M, ("#d22f2f", "#111111", "#d22f2f"))
+text(x(21) - 10, (COLS["j"] + TOP_M) / 2 + 4, "R4 2 k", 9, anchor="end", weight=700)
+# R3 1 k: g21 -> g22 (stehend)
+vres(*hole(21, "g"), *hole(22, "g"), ("#7a4a1d", "#111111", "#d22f2f"))
+text(x(22) + 8, COLS["g"] + 18, "R3 1 k", 9, anchor="start", weight=700)
+# Kabel vom Mainboard-ARGB-Header: D -> i22, G -> - Schiene (Reihe 24)
+wire([(x(22) + 6, 12), (x(22) + 6, COLS["i"] - 10), hole(22, "i")], PUR, 3)
+wire([(x(24), 12), (x(24), TOP_M)], "#555b63", 3)
+text(x(24) + 6, 10, "ARGB vom Mainboard: D (lila), G (grau), 5V frei", 9.5, anchor="start", fill=PUR, weight=700)
 
 # --- Verdrahtung unten (Spalten a-e) ---
-wire([hole(22, "a"), (x(22), BOT_P)], RED)   # VCC pin 14
-wire([hole(17, "a"), (x(17), BOT_M)], BLU)   # 3A pin 9
-wire([hole(18, "a"), (x(18), BOT_P)], RED)   # 3OE pin 10
-wire([hole(20, "a"), (x(20), BOT_M)], BLU)   # 4A pin 12
-wire([hole(21, "a"), (x(21), BOT_P)], RED)   # 4OE pin 13
-# C2 100 nF: b22 -> - Schiene unten bei Reihe 24
-c2x, c2y = hole(22, "b")
-A(f'<path d="M{c2x},{c2y} L{x(23)+4},{c2y+20} M{x(24)},{BOT_M} L{x(23)+10},{c2y+30}" stroke="#9aa3ad" stroke-width="2" fill="none"/>')
-A(f'<ellipse cx="{x(23)+8}" cy="{c2y+25}" rx="8" ry="6" fill="#d98b2b" stroke="#8f5714"/>')
-for px, py in ((c2x, c2y), (x(24), BOT_M)):
+wire([hole(29, "a"), (x(29), BOT_P)], RED)   # VCC pin 14
+wire([hole(24, "a"), (x(24), BOT_M)], BLU)   # 3A pin 9
+wire([hole(25, "a"), (x(25), BOT_P)], RED)   # 3OE pin 10
+wire([hole(27, "a"), (x(27), BOT_M)], BLU)   # 4A pin 12
+wire([hole(28, "a"), (x(28), BOT_P)], RED)   # 4OE pin 13
+# C2 100 nF: b29 -> - Schiene unten bei Reihe 30
+c2x, c2y = hole(29, "b")
+A(f'<path d="M{c2x},{c2y} L{x(30)-4},{c2y+20} M{x(30)},{BOT_M} L{x(30)-2},{c2y+30}" stroke="#9aa3ad" stroke-width="2" fill="none"/>')
+A(f'<ellipse cx="{x(30)-2}" cy="{c2y+25}" rx="8" ry="6" fill="#d98b2b" stroke="#8f5714"/>')
+for px, py in ((c2x, c2y), (x(30), BOT_M)):
     A(f'<circle cx="{px}" cy="{py}" r="3" fill="#9aa3ad"/>')
-text(x(24) + 12, c2y + 29, "C2 100 nF", 10, anchor="start", weight=700)
+text(x(30) + 12, c2y + 29, "C2", 10, anchor="start", weight=700)
 
 # Schienen-Bruecken oben <-> unten (rechts um das Board herum)
 wire([(x(30), TOP_P), (bx2 + 14, TOP_P), (bx2 + 14, BOT_P), (x(30), BOT_P)], RED, 2.6)
-wire([(x(29), TOP_M), (bx2 + 6, TOP_M), (bx2 + 6, BOT_M), (x(29), BOT_M)], BLU, 2.6)
+wire([(x(30), TOP_M), (bx2 + 6, TOP_M), (bx2 + 6, BOT_M), (x(30) + 8, BOT_M)], BLU, 2.6)
 
 # --- Extern: Netzteil, WAGO, Streifen ---
 nx = 760
@@ -219,8 +225,8 @@ text(nx + 29, 269, "Buchse CC 5,1k", 9, fill="var(--muted)")
 wire([(nx + 12, 215), (nx + 12, 200), (nx - 14, 200), (nx - 14, 60), (nx, 60)], RED, 4.5)
 wire([(nx + 46, 215), (nx + 46, 190), (nx + 70, 190), (nx + 70, 150), (nx + 58, 150)], BLU, 4.5)
 # duenne Leitungen zum Breadboard
-wire([(nx, 48), (x(26), 48), (x(26), TOP_P)], RED, 2.4)
-wire([(nx, 150), (nx - 30, 150), (nx - 30, 64), (x(28), 64), (x(28), TOP_M)], BLU, 2.4)
+wire([(nx, 48), (x(28), 48), (x(28), TOP_P)], RED, 2.4)
+wire([(nx, 150), (nx - 30, 150), (nx - 30, 64), (x(27), 64), (x(27), TOP_M)], BLU, 2.4)
 # LED-Streifen
 sx = 880
 A(f'<rect x="{sx}" y="20" width="44" height="{H-40}" rx="4" fill="#15171b" stroke="#000"/>')
@@ -235,8 +241,8 @@ for (py, col, lab) in ((60, RED, "+5V"), (95, GRN, "DIN"), (130, BLU, "GND")):
     text(sx + 22, py + 4, lab, 8.5, weight=700, fill="#15171b")
 wire([(nx + 58, 52), (sx + 6, 60)], RED, 4.5)
 wire([(nx + 58, 142), (sx + 6, 130)], BLU, 4.5)
-# DIN von j25
-wire([hole(25, "j"), (x(25), 86), (840, 86), (840, 95), (sx + 6, 95)], GRN, 3)
+# DIN von j30
+wire([hole(30, "j"), (x(30) + 10, COLS["j"]), (x(30) + 10, 86), (840, 86), (840, 95), (sx + 6, 95)], GRN, 3)
 text(842, 108, "Daten", 9.5, anchor="start", fill=GRN, weight=700)
 
 A('</svg>')
@@ -247,7 +253,7 @@ out = []
 A = out.append
 SW, SH = 960, 510
 A(f'<svg viewBox="0 0 {SW} {SH}" role="img" aria-label="Schaltplan: 5-V-Netzteil versorgt LED-Streifen direkt; '
-  f'ESP32-C6 über Schottky-Diode; GPIO1 über 74AHCT125 und 330 Ohm an DIN; gemeinsame Masse" class="sch" '
+  f'ESP32-C6 über Schottky-Diode; GPIO3 über 74AHCT125 und 330 Ohm an DIN; gemeinsame Masse" class="sch" '
   f'font-family="var(--mono)">')
 A('<defs><marker id="dot" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="6" markerHeight="6">'
   '<circle cx="3" cy="3" r="3" fill="currentColor"/></marker></defs>')
@@ -290,12 +296,12 @@ t(dx + 16, 130, "Schottky", 10, anchor="start", fill="var(--muted)")
 
 # ESP-Block
 A('<rect x="280" y="160" width="150" height="150" rx="6" fill="var(--pcb2)" stroke="currentColor" stroke-width="1.4"/>')
-t(355, 186, "ESP32-C6-LCD-1.3", 12, weight=700)
+t(355, 186, "ESP32-C6-Touch-LCD-1.9", 11, weight=700)
 t(355, 202, "(Waveshare)", 10, fill="var(--muted)")
 t(290, 172 + 0, "", 1)
 t(dx, 176, "", 1)
-t(300, 228, "5V", 11, anchor="start"); t(300, 296, "GND", 11, anchor="start")
-t(420, 252, "GPIO1", 11, anchor="end", weight=700)
+t(300, 228, "VBUS", 11, anchor="start"); t(300, 296, "GND", 11, anchor="start")
+t(420, 252, "GPIO3", 11, anchor="end", weight=700)
 t(355, 272, "USB-C nur zum", 9.5, fill="var(--muted)"); t(355, 284, "Flashen/Debuggen", 9.5, fill="var(--muted)")
 L([(330, 310), (330, YG)]); J(330, YG, BLU)
 L([(430, 248), (520, 248)], YEL, 2.4)
@@ -344,8 +350,8 @@ L([(900, 340), (900, YG)], BLU, 2.6); J(900, YG, BLU)
 t(906, 130, "+5V", 10, anchor="start", fill=RED, weight=700)
 t(906, 356, "GND", 10, anchor="start", fill=BLU, weight=700)
 
-# ARGB-Eingang: Header D -> R3 -> GPIO2, Knoten -> R4 -> GND
-t(392, 300, "GPIO2", 11, weight=700)
+# ARGB-Eingang: Header D -> R3 -> GPIO23, Knoten -> R4 -> GND
+t(392, 300, "GPIO23", 11, weight=700)
 L([(392, 310), (392, 326)], PUR, 2.4); J(392, 326, PUR)
 A('<rect x="383" y="334" width="18" height="40" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>')
 t(378, 358, "R3 1 k", 10, anchor="end", weight=700)
