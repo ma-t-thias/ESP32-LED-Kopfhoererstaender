@@ -47,6 +47,12 @@ void nextEffect(int step = 1) {
   settings::markDirty();
 }
 
+void nextPalette() {
+  state.on = true;
+  state.palette = (state.palette + 1) % effects::PALETTE_COUNT;
+  settings::markDirty();
+}
+
 void handleButton() {
   bool pressed = digitalRead(BUTTON_PIN) == LOW;
   uint32_t now = millis();
@@ -92,8 +98,9 @@ void loop() {
   argb::loop(state.argbEnabled);
   handleButton();
   switch (touch::read(display::currentRotation())) {
-    case touch::TAP:
+    case touch::TAP_TOP:
     case touch::SWIPE_RIGHT: nextEffect(); break;
+    case touch::TAP_BOTTOM: nextPalette(); break;
     case touch::SWIPE_LEFT: nextEffect(-1); break;
     default: break;
   }

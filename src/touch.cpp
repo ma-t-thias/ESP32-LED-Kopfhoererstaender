@@ -63,7 +63,17 @@ Gesture read(uint8_t rotation) {
     default: h = -dy; v = dx; break;
   }
   if (abs(h) > 40 && abs(h) > abs(v)) return h > 0 ? SWIPE_RIGHT : SWIPE_LEFT;
-  if (abs(h) < 20 && abs(v) < 20) return TAP;
+  if (abs(h) < 20 && abs(v) < 20) {
+    // untere Haelfte des angezeigten Bilds (Panel hochkant LCD_W x LCD_H)
+    bool bottom;
+    switch (rotation & 3) {
+      case 0: bottom = y > LCD_H / 2; break;
+      case 1: bottom = x < LCD_W / 2; break;
+      case 2: bottom = y < LCD_H / 2; break;
+      default: bottom = x > LCD_W / 2; break;
+    }
+    return bottom ? TAP_BOTTOM : TAP_TOP;
+  }
   return NONE;  // senkrecht gewischt: ignorieren
 }
 }  // namespace touch
