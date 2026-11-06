@@ -1,0 +1,10 @@
+# Name,   Type, SubType, Offset,   Size,     Flags
+# 8 MB Flash (ESP32-C6-Touch-LCD-1.9): Matter und Update per WLAN zusammen.
+# Zwei App-Slots mit je 3,75 MB. NVS liegt an derselben Stelle wie in
+# partitions.csv, damit WLAN-Daten und Einstellungen beim Umstieg erhalten bleiben.
+otadata,  data, ota,     0x9000,   0x2000,
+fctry,    data, nvs,     0xB000,   0x5000,
+app0,     app,  ota_0,   0x10000,  0x3C0000,
+nvs,      data, nvs,     0x3D0000, 0x20000,
+coredump, data, coredump,0x3F0000, 0x10000,
+app1,     app,  ota_1,   0x400000, 0x3C0000,

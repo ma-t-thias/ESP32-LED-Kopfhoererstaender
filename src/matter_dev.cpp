@@ -1,7 +1,7 @@
 #include "matter_dev.h"
 
-// Matter belegt rund 600 KB Flash und passt nicht neben zwei Update-Slots.
-// Deshalb nur in der Umgebung env:esp32-c6-lcd-matter (ohne Update per WLAN).
+// Matter belegt rund 600 KB Flash. Auf dem 8-MB-Board (env:esp32-c6-lcd) immer dabei,
+// auf dem alten 4-MB-Board (env:esp32-c6-lcd-13) nicht.
 #ifdef WITH_MATTER
 #include <Matter.h>
 
