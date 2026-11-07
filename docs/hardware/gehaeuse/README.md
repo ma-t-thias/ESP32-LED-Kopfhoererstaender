@@ -62,6 +62,20 @@ Waveshare liefert auf der [Seite zum ESP32-C6-LCD-1.9](https://docs.waveshare.co
 - **Vertiefung für die Diffuser_box:** Die drei Diffusorscheiben liegen in einer 0,5 mm tiefen Vertiefung im Boden (Spiel ca. 0,25 mm, Restboden 1,0 mm).
 - **Optionale Antennen-Durchführung:** Das Feature `Antenna_Feedthrough` setzt ein Loch mit 6 mm Durchmesser in die Rückwand über den Deckplatten, für eine externe U.FL-Antenne (beim Touch-Board per Lötbrücke umschaltbar). Es ist in beiden Varianten unterdrückt, die STL-Dateien haben das Loch also nicht. In SolidCraft lässt es sich einschalten, danach STL neu exportieren.
 
+## Rastdeckel v2
+
+Der Deckel wird von oben aufgesteckt und rastet ein. Kleben ist nicht nötig. Stand nach dem Probedruck, die Passung ist bestätigt.
+
+- **Kragen:** 22,70 mm tief, quer 55,45 mm und hochkant 31,85 mm lang. Die Öffnung im Gehäuse ist 22,85 × 55,6 bzw. 22,85 × 32,0 mm, das Spiel liegt also bei ca. 0,075 mm pro Seite. Der Kragen läuft über die ganze Tiefe, der Deckel kann nicht nach hinten rutschen.
+- **2 Rastzungen** an der Rückwand, je 1,2 × 6 × 9 mm (quer bei x ±15, hochkant bei x ±9). Die Rastnase greift 0,8 mm in eine Nut in der Rückwand (7 mm breit, 0,9 mm tief).
+- **Hebelkerbe:** 8 × 0,8 mm an der hinteren Deckelkante. Zum Öffnen dort einen kleinen Schraubendreher ansetzen.
+- **Drucken:** Deckel mit 100 % Infill drucken, die Oberseite liegt auf dem Bett, die Rastzungen zeigen nach oben. Die STL-Dateien in `drucken/` sind schon so ausgerichtet. Stützmaterial ist nicht nötig. Ist der Sitz zu stramm, im Slicer die XY-Kompensation für den Deckel auf −0,05 mm setzen.
+
+| Hochkant | Quer |
+|---|---|
+| <img src="c6-touch-1.9/hochkant/bilder/hochkant_v2_schnitt.png" alt="Hochkant: Schnitt durch eine Rastzunge" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_v2_schnitt.png" alt="Quer: Schnitt durch eine Rastzunge" width="400"> |
+| <img src="c6-touch-1.9/hochkant/bilder/hochkant_v2_iso.png" alt="Hochkant mit Rastdeckel v2" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_v2_iso.png" alt="Quer mit Rastdeckel v2" width="400"> |
+
 ## Dateien
 
 ```
@@ -82,7 +96,7 @@ Die CAD-Dateien enthalten kein Board-Modell. Das STEP gibt es auf der Waveshare-
 
 - Alles ist ohne Stützmaterial druckbar.
 - **Grundkörper:** wie das Original mit dem Boden nach unten. Das Displaygehäuse ist oben offen. Die Fensteroberkante und die Decke des Trichters sind Brücken zwischen festen Wänden (bis 55 mm bei quer).
-- **Deckel:** In Bambu Studio mit „Auf Fläche legen" auf die Oberseite legen.
+- **Deckel:** Die STL liegt schon druckfertig auf der Oberseite, mit 100 % Infill drucken (siehe [Rastdeckel v2](#rastdeckel-v2)).
 - **Material:** Kein metall- oder carbonhaltiges Filament verwenden, sonst wird die WLAN-Antenne abgeschirmt.
 
 ## Montage
@@ -90,7 +104,7 @@ Die CAD-Dateien enthalten kein Board-Modell. Das STEP gibt es auf der Waveshare-
 1. Litzen an 5V, GND, GPIO1 und GPIO2 anlöten.
 2. Die Litzen durch den Trichter und den Kanal ins Innere des Grundkörpers führen. Nicht direkt über den Antennenbereich der Platine legen.
 3. Das Board mit dem Display nach vorne von oben einschieben, bis es unten aufliegt. Die M2-Bolzen gleiten dabei vor den Halteleisten vorbei.
-4. Den Deckel aufstecken. TF-Karte und die BOOT- und RESET-Taster sind nur bei abgenommenem Deckel und herausgezogenem Board erreichbar.
+4. Den Deckel gerade aufstecken, bis beide Rastzungen hinten hörbar einrasten. TF-Karte und die BOOT- und RESET-Taster sind nur bei abgenommenem Deckel und herausgezogenem Board erreichbar.
 
 ## Benötigte Originalteile und Lizenz
 
@@ -101,7 +115,8 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 ## Offene Punkte
 
 - **Antennenlage am echten Board prüfen.** Die C6-Platine ist anders bestückt als das S3-STEP. Wo die Keramikantenne sitzt, ist noch unbekannt.
-- **Probedruck beider Varianten** (Passung von Board, Deckel und USB-Stecker).
+- **Probedruck beider Varianten** (Passung von Board, Deckel und USB-Stecker). Der Rastdeckel v2 sitzt im Probedruck gut.
+- **Deckel vorne:** Er lässt sich vorne noch leicht anheben, weil die Rastzungen nur hinten sitzen. Eine zusätzliche Fixierung vorne wird untersucht.
 - **Entscheidung hochkant oder quer** nach dem Probedruck.
 - Der Grundkörper ist aus der Original-STL nachgebaut. Die Mulde für den alten Controller entfällt, die Wände sind leicht facettiert (ca. 0,05 mm).
 
