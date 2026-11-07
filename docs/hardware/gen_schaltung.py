@@ -56,8 +56,8 @@ def text(tx, ty, s, size=11, anchor="middle", weight=400, fill="currentColor", e
 
 W, H = 960, 830 + OY
 A(f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Breadboard-Belegung auf zwei Boards: ESP32-C6-Touch-LCD-1.9 ueber beiden Boards in Reihe 1 bis 20, '
-  f'74AHCT125 auf Board 1 in Reihe 23 bis 29, 330-Ohm-Widerstand zur Datenleitung, Netzteil und LED-Streifen rechts '
-  f'außerhalb des Breadboards" class="bb" font-family="var(--mono)">')
+  f'74AHCT125 auf Board 1 in Reihe 23 bis 29, 330-Ohm-Widerstand zur Datenleitung, USB-C-Buchse auf Board 2 in Reihe 23 bis 30, Spalte a, '
+  f'LED-Streifen rechts außerhalb des Breadboards" class="bb" font-family="var(--mono)">')
 
 # Breadboard-Koerper
 bx1, bx2 = x(1) - 22, x(30) + 22
@@ -250,13 +250,27 @@ for (wy, col, lab) in ((40, RED, "+5V"), (130, BLU, "GND")):
         A(f'<rect x="{nx+7+i*17}" y="{wy+6}" width="11" height="14" rx="2" fill="#f2a33a"/>')
     text(nx + 29, wy + 34, lab, 10, weight=700, fill=col)
 text(nx + 29, 32, "WAGO 221", 9.5, fill="var(--muted)")
-# Netzteil
-A(f'<rect x="{nx-10}" y="{215}" width="78" height="62" rx="6" fill="var(--psu)" stroke="var(--line)"/>')
-text(nx + 29, 241, "USB-C", 11, weight=700)
-text(nx + 29, 256, "5 V · 3 A", 10)
-text(nx + 29, 269, "Buchse CC 5,1k", 9, fill="var(--muted)")
-wire([(nx + 12, 215), (nx + 12, 200), (nx - 14, 200), (nx - 14, 60), (nx, 60)], RED, 4.5)
-wire([(nx + 46, 215), (nx + 46, 190), (nx + 70, 190), (nx + 70, 150), (nx + 58, 150)], BLU, 4.5)
+# USB-C-Buchse QUARKZMAN auf Board 2, Spalte a, Reihe 23 (GND) bis 30 (CC2).
+# CC1/CC2 haben 5,1 kOhm auf der Platine. Die Stifte stecken nur zur Halterung im Breadboard,
+# der Strom laeuft ueber Litze, die oben an VBUS und GND angeloetet ist.
+USB_PINS = ("GND", "VBUS", "SBU2", "CC1", "D−", "D+", "SBU1", "CC2")
+ua = COLS2["a"]
+A(f'<rect x="{x(23)-14}" y="{ua-12}" width="{x(30)-x(23)+28}" height="78" rx="7" fill="#1d3f8f" stroke="#0d2766"/>')
+for i, lab in enumerate(USB_PINS):
+    px = x(23 + i)
+    A(f'<circle cx="{px}" cy="{ua}" r="6" fill="#c9a227" stroke="#7a5f10"/>')
+    text(px, ua + 19, lab, 6.6, weight=700, fill="#e8eefc")
+A(f'<rect x="{x(26)-6}" y="{ua+30}" width="52" height="40" rx="5" fill="#b9bec6" stroke="#6b7280"/>')
+A(f'<rect x="{x(26)+2}" y="{ua+40}" width="36" height="12" rx="6" fill="#4b5563"/>')
+text(x(24)-4, ua + 46, "USB-C", 9, weight=700, fill="#e8eefc")
+text(x(24)-4, ua + 58, "5 V · 3 A", 8, fill="#e8eefc")
+text(x(29)+6, ua + 46, "CC", 8, fill="#e8eefc")
+text(x(29)+6, ua + 58, "5,1k", 8, fill="#e8eefc")
+# dicke Litze direkt von den Stiften zu den WAGO-Klemmen
+wire([(x(24), ua), (x(24), COLS2["b"] - 9), (nx - 14, COLS2["b"] - 9), (nx - 14, 60), (nx, 60)], RED, 4.5)
+wire([(x(23), ua), (x(23), COLS2["c"] - 9), (nx + 70, COLS2["c"] - 9), (nx + 70, 150), (nx + 58, 150)], BLU, 4.5)
+A(f'<rect x="{x(13)-4}" y="{COLS2["c"]-17}" width="{x(22)-x(13)+6}" height="14" rx="3" fill="var(--paper)" opacity="0.9"/>')
+text(x(22), COLS2["c"] - 6, "Litze 1 mm², oben an die Stifte gelötet", 9, anchor="end", weight=700)
 # duenne Leitungen zum Breadboard
 wire([(nx, 48), (x(28), 48), (x(28), TOP_P)], RED, 2.4)
 wire([(nx, 150), (nx - 30, 150), (nx - 30, 64), (x(27), 64), (x(27), TOP_M)], BLU, 2.4)
