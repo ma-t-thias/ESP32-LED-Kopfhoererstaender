@@ -98,7 +98,7 @@ footer { font-size: 13px; color: var(--muted); }
 <header>
   <div class="eyebrow">Projekt Arduino Kopfhörer · Schritt 1 Hardware</div>
   <h1>WLED-Steuerung für den Kopfhörerständer: Schaltung und Bauteile</h1>
-  <p class="lead">Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs/m, später auf 60 bis 70 cm gekürzt) per WLAN. Versorgung über ein USB-C-Netzteil 5 V / 3 A. Aufbau auf dem 400-Punkte-Breadboard BB-801. Pinbelegung geprüft gegen den Waveshare-Schaltplan des ESP32-C6-Touch-LCD-1.9 (Stiftleisten J3 und J4).</p>
+  <p class="lead">Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs/m, später auf 60 bis 70 cm gekürzt) per WLAN. Versorgung über ein USB-C-Netzteil 5 V / 3 A. Aufbau auf zwei 400-Punkte-Breadboards BB-801, übereinander gesteckt. Pinbelegung geprüft gegen den Waveshare-Schaltplan des ESP32-C6-Touch-LCD-1.9 (Stiftleisten J3 und J4).</p>
 </header>
 
 <section>
@@ -121,7 +121,7 @@ footer { font-size: 13px; color: var(--muted); }
 </section>
 
 <section>
-  <h2>Breadboard-Belegung BB-801</h2>
+  <h2>Breadboard-Belegung (2 × BB-801)</h2>
   <div class="legend">
     <span><i style="background:var(--plus)"></i>+5 V</span>
     <span><i style="background:var(--minus)"></i>GND</span>
@@ -132,17 +132,17 @@ footer { font-size: 13px; color: var(--muted); }
   </div>
   <figure>
     <div class="svgwrap">{{BB_SVG}}</div>
-    <figcaption>Reihen 1–30 von links nach rechts, Spalten j (oben) bis a (unten). Jede Reihe ist pro Hälfte (a–e und f–j) leitend verbunden. Der ESP belegt die Reihen 1 bis 20: Display nach oben, USB-C-Anschluss Richtung Reihe 1, Stiftleiste J4 in Spalte h, J3 in Spalte c. Der 74AHCT125 sitzt in den Reihen 23 bis 29 und überbrückt den Mittelkanal mit der Kerbe Richtung Reihe 29. Reihe 21 und 22 tragen den Spannungsteiler für das ARGB-Signal.</figcaption>
+    <figcaption>Zwei Breadboards übereinander, Board 1 oben, Board 2 darunter. Reihen 1–30 von links nach rechts, Spalten j (oben) bis a (unten). Jede Reihe ist pro Hälfte (a–e und f–j) leitend verbunden. Der ESP überspannt beide Boards in den Reihen 1 bis 20: Display nach oben, USB-C-Anschluss Richtung Reihe 1, Stiftleiste J4 in Board 1 Spalte a, J3 in Board 2 Spalte j. Unter dem Display bleiben pro Reihe nur die freien Löcher Board 1 e (für J4) und Board 2 f (für J3) erreichbar, gelb markiert. Alles andere sitzt auf Board 1. Der 74AHCT125 sitzt in den Reihen 23 bis 29 und überbrückt den Mittelkanal mit der Kerbe Richtung Reihe 29. Reihe 21 und 22 tragen den Spannungsteiler für das ARGB-Signal.</figcaption>
   </figure>
-  <div class="warn"><b>Vor dem Einstecken prüfen:</b> Die beiden Stiftleisten liegen 17,78 mm (7 Rastermaße) auseinander, das Board passt also genau in Spalte c und h. Die M2-Abstandsbolzen (4 mm) auf der Rückseite begrenzen die Einstecktiefe, die Stifte greifen trotzdem sicher. Wenn es nicht sauber sitzt: Board neben das Breadboard legen und nur VBUS, GND, IO3 und IO23 mit vier Dupont-Kabeln (Buchse–Stecker) in j1, j3, b7 und i9 führen. Elektrisch ist das identisch. Kontrolliere außerdem die Aufschrift: In Reihe 1, Spalte h muss der Pin „VBUS“ stecken (J4 Pin 1, direkt neben der USB-C-Buchse).</div>
+  <div class="warn"><b>Vor dem Einstecken prüfen:</b> Die beiden Stiftleisten liegen 17,78 mm (7 Rastermaße) auseinander, das passt genau auf Board 1 Spalte a und Board 2 Spalte j, wenn die Boards direkt aneinander stecken. Die M2-Abstandsbolzen (4 mm) auf der Rückseite begrenzen die Einstecktiefe, die Stifte greifen trotzdem sicher. Wenn es nicht sauber sitzt: Board neben das Breadboard legen und nur VBUS, GND, IO3 und IO23 mit vier Dupont-Kabeln (Buchse–Stecker) in Board 1 e1, e3, e9 und Board 2 f7 führen. Elektrisch ist das identisch. Kontrolliere außerdem die Aufschrift: In Board 1, Reihe 1, Spalte a muss der Pin „VBUS“ stecken (J4 Pin 1, direkt neben der USB-C-Buchse). Steckt die USB-C-Buchse (Power-Breakout) mit auf dem Breadboard, führe den LED-Strom trotzdem nicht über dessen Kontakte, sondern mit Litze direkt von den Lötpads oder der Schraubklemme der Buchse zu den WAGO-Klemmen.</div>
 
   <div class="tablewrap">
   <table>
     <thead><tr><th>Von</th><th>Nach</th><th>Leitung</th><th>Zweck</th></tr></thead>
     <tbody>
-      <tr><td class="mono">ESP VBUS (J4/1, h1)</td><td class="mono">D1 Kathode (Ring) in j1, Anode in obere + Schiene</td><td>Diode</td><td>ESP-Versorgung ohne Rückspeisung</td></tr>
-      <tr><td class="mono">ESP GND (J4/3, h3)</td><td class="mono">j3 → obere − Schiene</td><td>blau</td><td>Gemeinsame Masse</td></tr>
-      <tr><td class="mono">ESP IO3 (J3/7, c7)</td><td class="mono">b7 → unter dem Board entlang → g28 (U1 Pin 2, 1A)</td><td>gelb</td><td>Datensignal 3,3 V</td></tr>
+      <tr><td class="mono">ESP VBUS (J4/1, Board 1 a1)</td><td class="mono">D1 Kathode (Ring) in e1, Anode in f1 (über den Mittelkanal), j1 → obere + Schiene</td><td>Diode</td><td>ESP-Versorgung ohne Rückspeisung</td></tr>
+      <tr><td class="mono">ESP GND (J4/3, Board 1 a3)</td><td class="mono">e3 → obere − Schiene</td><td>blau</td><td>Gemeinsame Masse</td></tr>
+      <tr><td class="mono">ESP IO3 (J3/7, Board 2 j7)</td><td class="mono">Board 2 f7 → rechts am Display vorbei → Board 1 g28 (U1 Pin 2, 1A)</td><td>gelb</td><td>Datensignal 3,3 V</td></tr>
       <tr><td class="mono">U1 Pin 3, 1Y (f27)</td><td class="mono">R1 330 Ω von h27 nach h30</td><td>Widerstand</td><td>Dämpft Reflexionen, schützt DIN</td></tr>
       <tr><td class="mono">j30</td><td class="mono">Streifen DIN</td><td>grün</td><td>Datensignal 5 V</td></tr>
       <tr><td class="mono">U1 Pin 1, 1OE̅ (f29)</td><td class="mono">j29 → obere − Schiene</td><td>blau</td><td>Kanal 1 dauerhaft aktiv</td></tr>
@@ -152,7 +152,7 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td class="mono">U1 Pin 4 (f26) / 10 (e25) / 13 (e28)</td><td class="mono">j26, a25, a28 → + Schiene</td><td>rot</td><td>Unbenutzte Kanäle abschalten</td></tr>
       <tr><td class="mono">U1 Pin 5 (f25) / 9 (e24) / 12 (e27)</td><td class="mono">j25, a24, a27 → − Schiene</td><td>blau</td><td>Unbenutzte Eingänge nicht offen lassen</td></tr>
       <tr><td class="mono">C1 1000 µF</td><td class="mono">+ Bein in obere + Schiene, − Bein (Streifen) in obere − Schiene (Reihe 11/12)</td><td>Elko</td><td>Puffert Einschaltstrom und Lastsprünge</td></tr>
-      <tr><td class="mono">ESP IO23 (J4/9, h9)</td><td class="mono">i9 → h21</td><td>lila</td><td>ARGB-Eingang, Knoten des Spannungsteilers</td></tr>
+      <tr><td class="mono">ESP IO23 (J4/9, Board 1 a9)</td><td class="mono">e9 → h21</td><td>lila</td><td>ARGB-Eingang, Knoten des Spannungsteilers</td></tr>
       <tr><td class="mono">Mainboard-ARGB D</td><td class="mono">i22, dann R3 1 kΩ von g22 nach g21</td><td>lila</td><td>Aura-Signal, 5 V auf ca. 3,3 V geteilt</td></tr>
       <tr><td class="mono">R4 2 kΩ</td><td class="mono">j21 → obere − Schiene</td><td>Widerstand</td><td>Unterer Teil des Spannungsteilers</td></tr>
       <tr><td class="mono">Mainboard-ARGB G</td><td class="mono">obere − Schiene (Reihe 24)</td><td>grau</td><td>Gemeinsame Masse mit dem PC. Den 5V-Pin des Headers nicht anschließen.</td></tr>
@@ -172,7 +172,7 @@ footer { font-size: 13px; color: var(--muted); }
     <tbody>
       <tr><td>1</td><td>Mikrocontroller <span class="tag have">vorhanden</span></td><td>Waveshare ESP32-C6-Touch-LCD-1.9 (Art.-Nr. 30941), Stiftleisten eingelötet</td><td class="num">1</td><td>Zieht mit WLAN-Spitzen bis ca. 0,35 A.</td></tr>
       <tr><td>2</td><td>LED-Streifen <span class="tag have">vorhanden</span></td><td>WS2812B, 5 V, 144 LEDs/m, 1 m, IP30</td><td class="num">1</td><td>Wird auf 60 bis 70 cm gekürzt (ca. 86 bis 101 LEDs), nur an den Schnittmarken trennen. Max. ca. 60 mA pro LED bei vollem Weiß, ca. 1 mA pro LED auch im ausgeschalteten Zustand.</td></tr>
-      <tr><td>3</td><td>Breadboard <span class="tag have">vorhanden</span></td><td>BB-801, 400 Kontakte</td><td class="num">1</td><td>Kontakte vertragen ca. 1 A. Deshalb kein LED-Strom über das Breadboard.</td></tr>
+      <tr><td>3</td><td>Breadboard <span class="tag have">vorhanden</span></td><td>BB-801, 400 Kontakte</td><td class="num">2</td><td>Übereinander gesteckt, weil das Display seitlich übersteht. Kontakte vertragen ca. 1 A. Deshalb kein LED-Strom über das Breadboard.</td></tr>
       <tr><td>4</td><td>USB-C-Netzteil</td><td>5 V / 3 A (15 W), USB-C, z. B. offizielles Raspberry-Pi-4-Netzteil (5,1 V / 3 A)</td><td class="num">1</td><td>Ein normales USB-C-Ladegerät mit 5 V / 3 A geht auch. Wichtig ist 3 A bei 5 V, viele Handy-Ladegeräte liefern bei 5 V nur 2 A. Strombegrenzung in der Firmware auf 2400 mA.</td></tr>
       <tr><td>5</td><td>Pegelwandler U1</td><td>74AHCT125N (DIP-14)</td><td class="num">1</td><td>Gleichwertig: 74HCT125N oder 74HCT245N. Kein 74HC125 (falsche Eingangsschwelle) und kein MOSFET-Modul für I²C (zu langsam für 800 kHz).</td></tr>
       <tr><td>6</td><td>Widerstand R1</td><td>330 Ω, 0,25 W</td><td class="num">1</td><td>Zulässig 220 bis 470 Ω. Im Endaufbau möglichst nah an den Streifen setzen.</td></tr>
@@ -208,7 +208,7 @@ footer { font-size: 13px; color: var(--muted); }
   <ol>
     <li>Ohne ESP, IC und Streifen: USB-C-Netzteil einstecken und an den Schienen messen. Erwartet sind 4,9 bis 5,25 V. Liegt 0 V an, fehlen der Buchse die CC-Widerstände. Plus oben und unten an der roten Linie.</li>
     <li>74AHCT125 einsetzen: Pin 14 gegen Pin 7 muss 5 V zeigen. Kerbe zeigt Richtung Reihe 29.</li>
-    <li>D1 kontrollieren: Ring in j1. Mit USB-C-Netzteil an und ohne USB am ESP misst du an j1 ca. 4,7 V.</li>
+    <li>D1 kontrollieren: Ring in Board 1 e1, Anode in f1. Mit USB-C-Netzteil an und ohne USB am ESP misst du an e1 ca. 4,7 V.</li>
     <li>C1-Polung kontrollieren: Minus-Streifen auf der blauen Schiene.</li>
     <li>Streifen am Eingang anschließen: Die Pfeile auf dem Streifen zeigen vom DIN-Ende weg.</li>
     <li>Reihenfolge beim Anschließen: zuerst GND und +5 V, dann die Datenleitung. Das Datensignal nie an einen unversorgten Streifen legen.</li>
@@ -222,15 +222,15 @@ footer { font-size: 13px; color: var(--muted); }
   <table>
     <thead><tr><th>Leiste</th><th>Pins</th><th>Verwendung hier</th></tr></thead>
     <tbody>
-      <tr><td>J4 (Spalte h)</td><td class="mono">1 VBUS · 2 VSYS · 3 GND · 4 3V3_EN · 5 3V3 · 6 ADC_VREF · 7 IO22 · 8 GND · 9 IO23 · 10 EXIO0 · 11 RUN · 12 EXIO1 · 13 GND · 14–17 EXIO2–5 · 18 GND · 19–20 EXIO6–7</td><td>Pin 1 VBUS über D1, Pin 3 GND, Pin 9 IO23 = ARGB-Eingang vom Mainboard. EXIO sind Ausgänge des I²C-Expanders TCA9554, für WS2812B nicht geeignet.</td></tr>
-      <tr><td>J3 (Spalte c)</td><td class="mono">1 IO16 · 2 IO17 · 3 GND · 4 IO0 · 5 IO1 · 6 IO2 · 7 IO3 · 8 GND · 9 IO8 · 10 IO9 · 11 IO12 · 12 IO13 · 13 GND · 14 IO14 · 15 IO15 · 16 IO18 · 17 IO19 · 18 GND · 19 IO20 · 20 IO21</td><td>Pin 7 IO3 = LED-Daten. 16/17 UART0, 12/13 USB, 0 Akku-ADC, 1/2 IMU-Interrupt, 8/18 Touch-I²C, 9/15 Strapping, 14/15 LCD, 19/20 SD-Karte. Nicht benutzen.</td></tr>
+      <tr><td>J4 (Board 1 Spalte a)</td><td class="mono">1 VBUS · 2 VSYS · 3 GND · 4 3V3_EN · 5 3V3 · 6 ADC_VREF · 7 IO22 · 8 GND · 9 IO23 · 10 EXIO0 · 11 RUN · 12 EXIO1 · 13 GND · 14–17 EXIO2–5 · 18 GND · 19–20 EXIO6–7</td><td>Pin 1 VBUS über D1, Pin 3 GND, Pin 9 IO23 = ARGB-Eingang vom Mainboard. EXIO sind Ausgänge des I²C-Expanders TCA9554, für WS2812B nicht geeignet.</td></tr>
+      <tr><td>J3 (Board 2 Spalte j)</td><td class="mono">1 IO16 · 2 IO17 · 3 GND · 4 IO0 · 5 IO1 · 6 IO2 · 7 IO3 · 8 GND · 9 IO8 · 10 IO9 · 11 IO12 · 12 IO13 · 13 GND · 14 IO14 · 15 IO15 · 16 IO18 · 17 IO19 · 18 GND · 19 IO20 · 20 IO21</td><td>Pin 7 IO3 = LED-Daten. 16/17 UART0, 12/13 USB, 0 Akku-ADC, 1/2 IMU-Interrupt, 8/18 Touch-I²C, 9/15 Strapping, 14/15 LCD, 19/20 SD-Karte. Nicht benutzen.</td></tr>
       <tr><td>Intern belegt</td><td class="mono">LCD 4/5/6/7/14/15 · Touch + IMU I²C 8/18 · IMU-INT 1/2 · SD 19/20 · BOOT 9</td><td>Pin 1 beider Leisten liegt an der USB-C-Seite.</td></tr>
     </tbody>
   </table>
   </div>
 </section>
 
-<footer>Stand 6. November 2026. Board: ESP32-C6-Touch-LCD-1.9, LED-Daten an GPIO3, ARGB-Eingang an GPIO23.</footer>
+<footer>Stand 7. November 2026. Board: ESP32-C6-Touch-LCD-1.9, LED-Daten an GPIO3, ARGB-Eingang an GPIO23.</footer>
 </main>
 </body>
 </html>
