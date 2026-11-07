@@ -12,8 +12,9 @@ def x(r):
 COLS = {"j": 100, "i": 120, "h": 140, "g": 160, "f": 180,
         "e": 240, "d": 260, "c": 280, "b": 300, "a": 320}
 COLS = {k: v + OY for k, v in COLS.items()}
-TOP_P, TOP_M = 40 + OY, 62 + OY      # obere Schiene: + aussen, - innen
-BOT_P, BOT_M = 358 + OY, 380 + OY    # untere Schiene: + innen, - aussen
+TOP_M, TOP_P = 40 + OY, 62 + OY      # obere Schiene: - aussen, + innen (neben j)
+BOT_M, BOT_P = 358 + OY, 380 + OY    # untere Schiene: - innen (neben a), + aussen
+TOP_OUT, BOT_OUT = TOP_M, BOT_P
 
 # Zweites Breadboard darunter (Board 2): Reihe j liegt 7 Raster (17,78 mm) unter Reihe a von Board 1,
 # genau der Abstand der beiden Stiftleisten des ESP. Board 2 hat nur unten eine Stromschiene.
@@ -61,14 +62,14 @@ A(f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Breadboard-Belegung auf zw
 
 # Breadboard-Koerper
 bx1, bx2 = x(1) - 22, x(30) + 22
-A(f'<rect x="{bx1}" y="{TOP_P-16}" width="{bx2-bx1}" height="{BOT_M-TOP_P+32}" rx="8" '
+A(f'<rect x="{bx1}" y="{TOP_OUT-16}" width="{bx2-bx1}" height="{BOT_OUT-TOP_OUT+32}" rx="8" '
   f'fill="var(--board)" stroke="var(--line)"/>')
 # Mittelkanal
 A(f'<rect x="{bx1+6}" y="{COLS["f"]+14}" width="{bx2-bx1-12}" height="{COLS["e"]-COLS["f"]-28}" '
   f'rx="3" fill="var(--channel)"/>')
 # Schienen-Linien
-for yy, col, sign in ((TOP_P - 10, RED, "+"), (TOP_M + 10, BLU, "−"),
-                      (BOT_P - 10, RED, "+"), (BOT_M + 10, BLU, "−")):
+for yy, col, sign in ((TOP_M - 10, BLU, "−"), (TOP_P + 10, RED, "+"),
+                      (BOT_M - 10, BLU, "−"), (BOT_P + 10, RED, "+")):
     A(f'<line x1="{x(1)-6}" y1="{yy}" x2="{x(30)+6}" y2="{yy}" stroke="{col}" stroke-width="1.4" opacity=".7"/>')
 for yy, col, sign in ((TOP_P, RED, "+"), (TOP_M, BLU, "−"), (BOT_P, RED, "+"), (BOT_M, BLU, "−")):
     text(bx1 + 9, yy + 4, sign, 13, weight=700, fill=col)
@@ -171,13 +172,13 @@ wire([hole(3, "e"), (x(3) + 8, COLS["f"] + 30), (x(3) + 8, TOP_M), (x(3), TOP_M)
 wire([hole2(7, "f"), (x(7), COLS2["f"] + 30), (x(22) + 10, COLS2["f"] + 30), (x(22) + 10, COLS["g"]),
       hole(28, "g")], YEL)
 # Pin 7 GND (f23) -> j23 -> -
-wire([hole(23, "j"), (x(23), TOP_M)], BLU)
+wire([hole(23, "j"), (x(23), TOP_P + 10), (x(23) + 10, TOP_P + 10), (x(23) + 10, TOP_M), (x(23), TOP_M)], BLU)
 # Pin 5 2A (f25) -> j25 -> -
-wire([hole(25, "j"), (x(25), TOP_M)], BLU)
+wire([hole(25, "j"), (x(25), TOP_P + 10), (x(25) + 10, TOP_P + 10), (x(25) + 10, TOP_M), (x(25), TOP_M)], BLU)
 # Pin 4 2OE (f26) -> j26 -> +
 wire([hole(26, "j"), (x(26), TOP_P)], RED)
 # Pin 1 1OE (f29) -> j29 -> -
-wire([hole(29, "j"), (x(29), TOP_M)], BLU)
+wire([hole(29, "j"), (x(29), TOP_P + 10), (x(29) + 10, TOP_P + 10), (x(29) + 10, TOP_M), (x(29), TOP_M)], BLU)
 # R1 330 Ohm: h27 (1Y) -> h30
 rx1, ry = hole(27, "h")
 rx2, _ = hole(30, "h")
@@ -213,7 +214,7 @@ def vres(xa, ya, xb, yb, bands):
 # GPIO23 (J4 Pin 9): e9 -> durch den Mittelkanal -> h21
 wire([hole(9, "e"), (x(9), COLS["f"] + 30), (x(21) - 8, COLS["f"] + 30), (x(21) - 8, COLS["h"]), hole(21, "h")], PUR, 2.6)
 # R4 2 k: j21 -> obere - Schiene
-vres(*hole(21, "j"), x(21), TOP_M, ("#d22f2f", "#111111", "#d22f2f"))
+vres(*hole(21, "j"), x(21) + 10, TOP_M, ("#d22f2f", "#111111", "#d22f2f"))
 text(x(21) - 10, (COLS["j"] + TOP_M) / 2 + 4, "R4 2 k", 9, anchor="end", weight=700)
 # R3 1 k: g21 -> g22 (stehend)
 vres(*hole(21, "g"), *hole(22, "g"), ("#7a4a1d", "#111111", "#d22f2f"))
@@ -224,11 +225,11 @@ wire([(x(24), 12), (x(24), TOP_M)], "#555b63", 3)
 text(x(24) + 6, 10, "ARGB vom Mainboard: D (lila), G (grau), 5V frei", 9.5, anchor="start", fill=PUR, weight=700)
 
 # --- Verdrahtung unten (Spalten a-e) ---
-wire([hole(29, "a"), (x(29), BOT_P)], RED)   # VCC pin 14
+wire([hole(29, "a"), (x(29), BOT_M - 10), (x(29) - 10, BOT_M - 10), (x(29) - 10, BOT_P), (x(29), BOT_P)], RED)   # VCC pin 14
 wire([hole(24, "a"), (x(24), BOT_M)], BLU)   # 3A pin 9
-wire([hole(25, "a"), (x(25), BOT_P)], RED)   # 3OE pin 10
+wire([hole(25, "a"), (x(25), BOT_M - 10), (x(25) + 10, BOT_M - 10), (x(25) + 10, BOT_P), (x(25), BOT_P)], RED)   # 3OE pin 10
 wire([hole(27, "a"), (x(27), BOT_M)], BLU)   # 4A pin 12
-wire([hole(28, "a"), (x(28), BOT_P)], RED)   # 4OE pin 13
+wire([hole(28, "a"), (x(28), BOT_M - 10), (x(28) - 10, BOT_M - 10), (x(28) - 10, BOT_P), (x(28), BOT_P)], RED)   # 4OE pin 13
 # C2 100 nF: b29 -> - Schiene unten bei Reihe 30
 c2x, c2y = hole(29, "b")
 A(f'<path d="M{c2x},{c2y} L{x(30)-4},{c2y+20} M{x(30)},{BOT_M} L{x(30)-2},{c2y+30}" stroke="#9aa3ad" stroke-width="2" fill="none"/>')
@@ -272,7 +273,7 @@ wire([(x(23), ua), (x(23), COLS2["c"] - 9), (nx + 70, COLS2["c"] - 9), (nx + 70,
 A(f'<rect x="{x(13)-4}" y="{COLS2["c"]-17}" width="{x(22)-x(13)+6}" height="14" rx="3" fill="var(--paper)" opacity="0.9"/>')
 text(x(22), COLS2["c"] - 6, "Litze 1 mm², oben an die Stifte gelötet", 9, anchor="end", weight=700)
 # duenne Leitungen zum Breadboard
-wire([(nx, 48), (x(28), 48), (x(28), TOP_P)], RED, 2.4)
+wire([(nx, 48), (x(28) + 10, 48), (x(28) + 10, TOP_P), (x(28), TOP_P)], RED, 2.4)
 wire([(nx, 150), (nx - 30, 150), (nx - 30, 64), (x(27), 64), (x(27), TOP_M)], BLU, 2.4)
 # LED-Streifen
 sx = 880
