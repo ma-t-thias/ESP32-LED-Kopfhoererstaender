@@ -31,7 +31,7 @@ def pad(name, x, y, net, d=1.9, drill=0.9, shape="round"):
     pads[name] = dict(x=x, y=y, d=d, drill=drill, net=net, shape=shape)
 
 # U1 74AHCT125, DIP-14, um 180 Grad gedreht (Kerbe rechts, Pin 1 oben rechts)
-UX, UY = 10.0, -3.0
+UX, UY = 10.0, -2.5
 U1 = {}
 for i in range(7):
     U1[1 + i] = (UX + 3 * P - i * P, UY + 3.81)     # Pins 1..7 oben, von rechts nach links
@@ -42,21 +42,21 @@ for n, (x, y) in U1.items():
     pad(f"U1.{n}", x, y, u1_net[n], d=1.8, drill=0.8, shape="square" if n == 1 else "oval")
 
 # D1 1N5819 stehend: Anode unten (+5V), Kathode oben (VESP)
-pad("D1.A", -1.0, -4.4, "+5V", d=2.0, drill=1.0)
-pad("D1.K", -1.0, 0.68, "VESP", d=2.0, drill=1.0, shape="square")
-# C2 100 nF
-pad("C2.1", 20.16, -6.81, "+5V")
-pad("C2.2", 22.70, -6.81, "GND")
+pad("D1.A", -1.0, -3.9, "+5V", d=2.0, drill=1.0)
+pad("D1.K", -1.0, 1.18, "VESP", d=2.0, drill=1.0, shape="square")
+# C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), liegend ueber U1
+pad("C2.1", 17.16, -9.0, "+5V", d=1.9, drill=1.0)
+pad("C2.2", 7.0, -9.0, "GND", d=1.9, drill=1.0)
 # R1 330 Ohm stehend
-pad("R1.1", 20.5, -1.6, "OUT")
-pad("R1.2", 20.5, 0.94, "DIN")
+pad("R1.1", 20.5, -1.3, "OUT")
+pad("R1.2", 20.5, 1.24, "DIN")
 # Anschluesse LED-Streifen (rechts) und USB-C (links): grosse Pads fuer Litze 1 mm2
 SX = 23.5
 pad("STRIP.GND", SX, 3.4, "GND", d=2.6, drill=1.3, shape="square")
 pad("STRIP.DIN", SX, -0.4, "DIN", d=2.0, drill=1.0)
 pad("STRIP.5V", SX, -4.2, "+5V", d=2.6, drill=1.3)
-pad("USB.GND", -11.5, 4.0, "GND", d=2.6, drill=1.3, shape="square")
-pad("USB.5V", -11.5, 0.4, "+5V", d=2.6, drill=1.3)
+pad("USB.GND", -10.0, 4.0, "GND", d=2.6, drill=1.3, shape="square")
+pad("USB.5V", -10.0, 0.4, "+5V", d=2.6, drill=1.3)
 # Zunge: ARGB-Eingang, R3/R4-Spannungsteiler, Anschluss ESP (2,54-mm-Raster)
 pad("ARGB.G", 1.46, 8.0, "GND", shape="square")
 pad("ARGB.D", 4.0, 8.0, "ARGB_D")
@@ -76,12 +76,12 @@ def at(n):
 # Leiterbahnen: (Netz, Breite, Punkte)
 tracks = [
     ("+5V", W_PWR, [at("USB.5V"), at("D1.A")]),
-    ("+5V", W_PWR, [at("D1.A"), (UX + 3 * P + 1.6, -4.4), (SX - 1.4, -4.4), at("STRIP.5V")]),
-    ("+5V", 1.0, [U1[14], (U1[14][0], -4.4)]),
-    ("+5V", 1.0, [at("C2.1"), (20.16, -4.4)]),
-    ("VESP", W_SIG + 0.2, [at("D1.K"), (-3.81, 0.68), at("ESP.VBUS")]),
-    ("IO3", W_SIG, [U1[2], (U1[2][0], 3.0), (-1.27, 3.0), at("ESP.IO3")]),
-    ("OUT", W_SIG, [U1[3], (U1[3][0], -1.6), at("R1.1")]),
+    ("+5V", 1.2, [at("D1.A"), (UX + 3 * P + 1.6, -3.9), (SX - 1.4, -3.9), at("STRIP.5V")]),
+    ("+5V", 1.0, [U1[14], (U1[14][0], -3.9)]),
+    ("+5V", 1.0, [at("C2.1"), U1[14]]),
+    ("VESP", W_SIG + 0.2, [at("D1.K"), (-3.81, 1.18), at("ESP.VBUS")]),
+    ("IO3", W_SIG, [U1[2], (U1[2][0], 3.5), (-1.27, 3.5), at("ESP.IO3")]),
+    ("OUT", W_SIG, [U1[3], (U1[3][0], -1.3), at("R1.1")]),
     ("DIN", W_SIG, [at("R1.2"), at("STRIP.DIN")]),
     ("ARGB_D", W_SIG, [at("ARGB.D"), at("R3.1")]),
     ("IO23", W_SIG, [at("R3.2"), at("R4.1"), at("ESP.IO23")]),
@@ -343,7 +343,7 @@ box(UX - 9.6, UY - 3.0, UX + 9.6, UY + 3.0, "U1 74AHCT125")
 X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
 label(-3.0, -2.0, "D1", f1)
-label(21.5, -5.3, "C2", f1)
+label(12.0, -9.0, "C2 (liegend über U1)", f2)
 label(21.9, 0.0, "R1", f1)
 label(5.3, 11.8, "R3", f1)
 label(2.7, 17.0, "R4", f1)

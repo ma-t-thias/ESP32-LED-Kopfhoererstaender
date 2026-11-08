@@ -29,12 +29,12 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 
 | Teil | Wert | Montage |
 |---|---|---|
-| U1 | 74AHCT125 (DIP-14) | Kerbe zeigt nach rechts (zu den Streifen-Anschlüssen). Pin 1 oben rechts, eckiges Pad. Eine IC-Fassung passt in der Höhe. |
+| U1 | 74AHCT125 (DIP-14) | Kerbe zeigt nach rechts (zu den Streifen-Anschlüssen). Pin 1 oben rechts, eckiges Pad. Direkt einlöten, ohne IC-Fassung, weil C2 darauf liegt. |
 | D1 | 1N5819 | **stehend**, Ring (Kathode) ins eckige Pad oben |
 | R1 | 330 Ω | stehend |
 | R3 | 1 kΩ | stehend |
 | R4 | 2 kΩ | stehend |
-| C2 | 100 nF | 2,54-mm-Raster, direkt neben U1 Pin 14 |
+| C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm. **Liegend über U1** einlöten: Beine 90° abwinkeln, Körper flach auf den IC legen. Das Pad rechts (an U1 Pin 14) ist +5 V. |
 | C1 | 1000 µF | **nicht auf der Platine**, siehe unten |
 
 Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auch):
@@ -55,4 +55,5 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 ## Einbau
 
 - Drei Befestigungslöcher M2,5 passen zu den Domen im Sockel-Vorschlag (`ESP32-Umbau\Passprobe\Vorschlag_Platine\`). Die Unterseite der Platine liegt 4 mm über dem Sockelboden.
-- Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm.
+- Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. C2 liegt auf U1, die Oberkante kommt dann auf etwa 10,5 mm. Mit IC-Fassung wären es etwa 14 mm, das ist zu hoch.
+- Statt CY630 passt auch ein Keramik-Vielschichtkondensator 100 nF, 50 V, X7R mit Raster 5,08 mm (z. B. KEMET C320C104K5R5TA). Dessen Beine auf 10,16 mm aufbiegen oder die Pads anpassen.
