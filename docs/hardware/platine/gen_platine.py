@@ -42,8 +42,8 @@ for n, (x, y) in U1.items():
     pad(f"U1.{n}", x, y, u1_net[n], d=1.8, drill=0.8, shape="square" if n == 1 else "oval")
 
 # D1 1N5819 stehend oben in der Zunge: Anode unten (+5V), Kathode oben (VESP)
-pad("D1.A", -5.9, 23.2, "+5V", d=2.0, drill=1.0)
-pad("D1.K", -5.9, 28.28, "VESP", d=2.0, drill=1.0, shape="square")
+pad("D1.A", -5.9, 22.9, "+5V", d=2.0, drill=1.0)
+pad("D1.K", -5.9, 27.98, "VESP", d=2.0, drill=1.0, shape="square")
 # C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), stehend unter U1
 pad("C2.1", 17.16, -10.0, "+5V", d=1.9, drill=1.0)
 pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
@@ -85,7 +85,7 @@ tracks = [
     ("+5V", 1.2, [(-1.0, -3.9), (UX + 3 * P + 1.6, -3.9), (SX - 1.4, -3.9), at("STRIP.5V")]),
     ("+5V", 1.0, [U1[14], (U1[14][0], -3.9)]),
     ("+5V", 1.0, [at("C2.1"), U1[14]]),
-    ("VESP", W_SIG + 0.2, [at("D1.K"), (-3.81, 28.28), at("ESP.VBUS")]),
+    ("VESP", W_SIG + 0.2, [at("D1.K"), (-3.81, 27.98), at("ESP.VBUS")]),
     ("IO3", W_SIG, [U1[2], (U1[2][0], 4.9), (-1.27, 4.9), at("ESP.IO3")]),
     ("OUT", W_SIG, [U1[3], (U1[3][0], -1.3), at("R1.1")]),
     ("DIN", W_SIG, [at("R1.2"), at("STRIP.DIN")]),
