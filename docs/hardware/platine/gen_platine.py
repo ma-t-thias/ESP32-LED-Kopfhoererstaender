@@ -17,7 +17,7 @@ os.makedirs(OUT, exist_ok=True)
 
 # ---------------- Vorgaben ----------------
 OUTLINE = [(-7.5, -10.5), (4.5, -10.5), (7.0, -13.0), (21.0, -13.0), (23.5, -10.5), (30.5, 0), (33, 4), (33, 7.2),
-           (19.5, 7.7), (14.5, 10.2), (10.2, 14.5), (7.5, 20.5), (7.5, 33), (-7.5, 33), (-7.5, 6), (-13.5, 6), (-13.5, 0)]
+           (19.5, 7.7), (14.5, 10.2), (10.2, 14.5), (7.5, 20.5), (7.5, 33), (-10.5, 33), (-10.5, 19.0), (-7.5, 19.0), (-7.5, 6), (-13.5, 6), (-13.5, 0)]
 MOUNT = [(-5, -6), (27.5, -1), (0, 30)]      # M2,5
 MOUNT_DRILL, MOUNT_KEEP = 2.7, 2.4         # Kupfer-Freiraum um die Befestigungsloecher (Radius)
 CLEAR = 0.5                                # Abstand Masseflaeche zu fremden Netzen
@@ -31,7 +31,7 @@ def pad(name, x, y, net, d=1.9, drill=0.9, shape="round"):
     pads[name] = dict(x=x, y=y, d=d, drill=drill, net=net, shape=shape)
 
 # U1 74AHCT125, DIP-14, um 180 Grad gedreht (Kerbe rechts, Pin 1 oben rechts)
-UX, UY = 10.0, -2.5
+UX, UY = 8.5, -2.5
 U1 = {}
 for i in range(7):
     U1[1 + i] = (UX + 3 * P - i * P, UY + 3.81)     # Pins 1..7 oben, von rechts nach links
@@ -41,15 +41,16 @@ u1_net = {1: "GND", 2: "IO3", 3: "OUT", 4: "GND", 5: "GND", 6: None, 7: "GND",
 for n, (x, y) in U1.items():
     pad(f"U1.{n}", x, y, u1_net[n], d=1.8, drill=0.8, shape="square" if n == 1 else "oval")
 
-# D1 1N5819 stehend oben in der Zunge: Anode unten (+5V), Kathode oben (VESP)
-pad("D1.A", -5.9, 22.9, "+5V", d=2.0, drill=1.0)
-pad("D1.K", -5.9, 27.98, "VESP", d=2.0, drill=1.0, shape="square")
+# D1 1N5819 stehend links in der verbreiterten Zunge, ca. 3,5 mm neben der ESP-Stiftleiste:
+# Koerper ueber der Anode (unten, +5V), Kathode oben (VESP)
+pad("D1.A", -8.7, 22.9, "+5V", d=2.0, drill=1.0)
+pad("D1.K", -8.7, 27.98, "VESP", d=2.0, drill=1.0, shape="square")
 # C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), stehend unter U1
 pad("C2.1", 17.16, -10.0, "+5V", d=1.9, drill=1.0)
 pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
 # R1 330 Ohm stehend
-pad("R1.1", 20.5, -1.3, "OUT")
-pad("R1.2", 20.5, 1.24, "DIN")
+pad("R1.1", 21.0, -1.3, "OUT")
+pad("R1.2", 21.0, 1.24, "DIN")
 # Anschluesse LED-Streifen (rechts) und USB-C (links): grosse Pads fuer Litze 1 mm2
 SX = 23.5
 pad("STRIP.GND", SX, 3.4, "GND", d=2.6, drill=1.3, shape="square")
@@ -81,7 +82,7 @@ def at(n):
 tracks = [
     ("+5V", W_PWR, [at("USB.5V"), (-1.0, -3.9)]),
     ("+5V", 1.2, [at("C1.+"), at("USB.5V")]),
-    ("+5V", 1.2, [at("C1.+"), (-5.15, 21.5), at("D1.A")]),
+    ("+5V", 1.2, [at("C1.+"), (-5.15, 21.0), (-8.7, 21.0), at("D1.A")]),
     ("+5V", 1.2, [(-1.0, -3.9), (UX + 3 * P + 1.6, -3.9), (SX - 1.4, -3.9), at("STRIP.5V")]),
     ("+5V", 1.0, [U1[14], (U1[14][0], -3.9)]),
     ("+5V", 1.0, [at("C2.1"), U1[14]]),
@@ -348,12 +349,12 @@ def box(x0, y0, x1, y1, t, col="#ffffff"):
 box(UX - 9.6, UY - 3.0, UX + 9.6, UY + 3.0, "U1 74AHCT125")
 X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
-label(-3.6, 22.0, "D1", f1)
+label(-6.4, 22.9, "D1", f1)
 box(6.4, -12.7, 17.9, -7.3, "C2")
 box(-7.5, 4.5, 0.7, 21.2, "")
 label(-3.4, 12.5, "C1 1000µF", f2)
 label(-3.4, 1.4, "+  C1  −", f2)
-label(21.9, 0.0, "R1", f1)
+label(19.4, -0.1, "R1", f1)
 label(AX + 0.2, 11.8, "R3", f1)
 label(AX - 1.3, 17.0, "R4", f1)
 for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):

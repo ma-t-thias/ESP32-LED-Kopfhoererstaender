@@ -21,7 +21,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 ## Ätzen
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
-- **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge). Nach dem Drucken mit dem Messschieber kontrollieren.
+- **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
 - **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben einen kleinen freien Punkt als Körnung.
 - **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,3 mm (Litze 1 mm² für USB-C und Streifen), 2,7 mm (Befestigung M2,5).
 
@@ -30,8 +30,8 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 | Teil | Wert | Montage |
 |---|---|---|
 | U1 | 74AHCT125 (DIP-14) | Kerbe zeigt nach rechts (zu den Streifen-Anschlüssen). Pin 1 oben rechts, eckiges Pad. Eine IC-Fassung passt in der Höhe. |
-| D1 | 1N5819 | **stehend**, Ring (Kathode) ins eckige Pad oben |
-| R1 | 330 Ω | stehend |
+| D1 | 1N5819 | **stehend** links oben in der verbreiterten Zunge, Körper über dem runden Pad (Anode), Ring (Kathode) ins eckige Pad oben. Abstand zur ESP-Stiftleiste ca. 3,5 mm. |
+| R1 | 330 Ω | stehend, rechts neben U1 (ca. 1 mm Luft zu einer IC-Fassung) |
 | R3 | 1 kΩ | stehend |
 | R4 | 2 kΩ | stehend |
 | C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm, **stehend** direkt unter U1. Das Pad rechts (an U1 Pin 14) ist +5 V, die Polung ist bei Folienkondensatoren aber egal. |
@@ -49,7 +49,7 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 ## Unterschiede zum Breadboard-Plan
 
 - **Unbenutzte Kanäle des 74AHCT125:** Hier liegen OE und A der Kanäle 2 bis 4 auf GND, auf dem Breadboard liegen die OE-Pins auf +5 V. Beides ist zulässig. Auf GND aktiviert die Ausgänge, die dann fest auf Low liegen und nirgends angeschlossen sind. So spart die einseitige Platine Brücken.
-- **C1 (1000 µF):** sitzt direkt an der USB-C-Einspeisung. Stehend wäre er zu hoch, deshalb liegt er in der verlängerten Zunge. D1 ist dafür nach oben neben den ESP-Anschluss gewandert.
+- **C1 (1000 µF):** sitzt direkt an der USB-C-Einspeisung. Stehend wäre er zu hoch, deshalb liegt er in der verlängerten Zunge. D1 ist dafür nach oben in die links verbreiterte Zungenspitze gewandert, mit Abstand zum ESP-Anschluss.
 - Die WAGO-Klemmen entfallen. Die Platine verteilt +5 V und GND.
 
 ## Einbau
