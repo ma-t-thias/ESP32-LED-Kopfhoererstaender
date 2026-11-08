@@ -35,7 +35,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 | R3 | 1 kΩ | stehend |
 | R4 | 2 kΩ | stehend |
 | C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm. **Liegend über U1** einlöten: Beine 90° abwinkeln, Körper flach auf den IC legen. Das Pad rechts (an U1 Pin 14) ist +5 V. |
-| C1 | 1000 µF | **nicht auf der Platine**, siehe unten |
+| C1 | 1000 µF, 6,3 V, Low-ESR, **Ø 8 × 11,5 mm** (kurze Bauform) | **liegend** in der Zunge links, Körper nach oben Richtung ESP-Anschluss. Beine abwinkeln: Plus ins eckige Pad neben USB +5V, Minus ins runde Pad neben USB GND. Ein längerer Elko (z. B. Ø 8 × 16) passt nicht in den Sockel. |
 
 Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auch):
 
@@ -49,7 +49,7 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 ## Unterschiede zum Breadboard-Plan
 
 - **Unbenutzte Kanäle des 74AHCT125:** Hier liegen OE und A der Kanäle 2 bis 4 auf GND, auf dem Breadboard liegen die OE-Pins auf +5 V. Beides ist zulässig. Auf GND aktiviert die Ausgänge, die dann fest auf Low liegen und nirgends angeschlossen sind. So spart die einseitige Platine Brücken.
-- **C1 (1000 µF):** Ein 1000-µF-Elko steht 16 bis 20 mm hoch, im Sockel sind aber nur 13 mm frei. Deshalb sitzt C1 nicht auf der Platine, sondern direkt am Streifen-Eingang: Plus an +5V, Minus an GND des Streifens, so kurz wie möglich. Dort wirkt er sowieso am besten.
+- **C1 (1000 µF):** sitzt direkt an der USB-C-Einspeisung. Stehend wäre jeder 1000-µF-Elko zu hoch, deshalb liegt er. Nur die kurze Bauform Ø 8 × 11,5 mm hat liegend zwischen den Bauteilen und den Diffusorscheiben Platz.
 - Die WAGO-Klemmen entfallen. Die Platine verteilt +5 V und GND.
 
 ## Einbau

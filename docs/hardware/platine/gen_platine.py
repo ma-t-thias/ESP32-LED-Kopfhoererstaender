@@ -57,6 +57,9 @@ pad("STRIP.DIN", SX, -0.4, "DIN", d=2.0, drill=1.0)
 pad("STRIP.5V", SX, -4.2, "+5V", d=2.6, drill=1.3)
 pad("USB.GND", -10.0, 4.0, "GND", d=2.6, drill=1.3, shape="square")
 pad("USB.5V", -10.0, 0.4, "+5V", d=2.6, drill=1.3)
+# C1 1000 uF, Elko Ø8 x 11,5 liegend in der Zunge links (Koerper ueber x -8,6..-0,4 / y 4,5..16,5), Beine nach unten abgewinkelt
+pad("C1.+", -6.8, 1.7, "+5V", d=1.9, drill=0.9, shape="square")
+pad("C1.-", -8.0, 4.4, "GND", d=1.9, drill=0.9)
 # Zunge: ARGB-Eingang, R3/R4-Spannungsteiler, Anschluss ESP (2,54-mm-Raster)
 pad("ARGB.G", 1.46, 8.0, "GND", shape="square")
 pad("ARGB.D", 4.0, 8.0, "ARGB_D")
@@ -76,6 +79,7 @@ def at(n):
 # Leiterbahnen: (Netz, Breite, Punkte)
 tracks = [
     ("+5V", W_PWR, [at("USB.5V"), at("D1.A")]),
+    ("+5V", 1.2, [at("C1.+"), at("USB.5V")]),
     ("+5V", 1.2, [at("D1.A"), (UX + 3 * P + 1.6, -3.9), (SX - 1.4, -3.9), at("STRIP.5V")]),
     ("+5V", 1.0, [U1[14], (U1[14][0], -3.9)]),
     ("+5V", 1.0, [at("C2.1"), U1[14]]),
@@ -344,13 +348,14 @@ X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
 label(-3.0, -2.0, "D1", f1)
 label(12.0, -9.0, "C2 (liegend über U1)", f2)
+label(-5.2, 2.6, "C1", f2)
 label(21.9, 0.0, "R1", f1)
 label(5.3, 11.8, "R3", f1)
 label(2.7, 17.0, "R4", f1)
 for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
     label(pads[n]["x"] + 3.6, pads[n]["y"], t)
 label(-11.5, 6.9, "USB-C", f2, "black")
-label(-8.6, 4.0, "GND"); label(-8.6, 0.4, "+5V")
+label(-11.0, 2.2, "GND/+5V")
 label(2.7, 6.6, "ARGB G  D")
 label(0, 21.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(29.5, 5.0, "LED", f2)
