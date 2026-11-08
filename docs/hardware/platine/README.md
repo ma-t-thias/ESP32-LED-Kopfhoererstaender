@@ -21,7 +21,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 ## Ätzen
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
-- **Prüfmaß:** Die Platine ist 46,5 × 36,5 mm groß (Außenmaß inkl. Zunge). Nach dem Drucken mit dem Messschieber kontrollieren.
+- **Prüfmaß:** Die Platine ist 46,5 × 37,8 mm groß (Außenmaß inkl. Zunge). Nach dem Drucken mit dem Messschieber kontrollieren.
 - **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben einen kleinen freien Punkt als Körnung.
 - **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,3 mm (Litze 1 mm² für USB-C und Streifen), 2,7 mm (Befestigung M2,5).
 
@@ -29,12 +29,12 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 
 | Teil | Wert | Montage |
 |---|---|---|
-| U1 | 74AHCT125 (DIP-14) | Kerbe zeigt nach rechts (zu den Streifen-Anschlüssen). Pin 1 oben rechts, eckiges Pad. Direkt einlöten, ohne IC-Fassung, weil C2 darauf liegt. |
+| U1 | 74AHCT125 (DIP-14) | Kerbe zeigt nach rechts (zu den Streifen-Anschlüssen). Pin 1 oben rechts, eckiges Pad. Eine IC-Fassung passt in der Höhe. |
 | D1 | 1N5819 | **stehend**, Ring (Kathode) ins eckige Pad oben |
 | R1 | 330 Ω | stehend |
 | R3 | 1 kΩ | stehend |
 | R4 | 2 kΩ | stehend |
-| C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm. **Liegend über U1** einlöten: Beine 90° abwinkeln, Körper flach auf den IC legen. Das Pad rechts (an U1 Pin 14) ist +5 V. |
+| C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm, **stehend** direkt unter U1. Das Pad rechts (an U1 Pin 14) ist +5 V, die Polung ist bei Folienkondensatoren aber egal. |
 | C1 | 1000 µF, 6,3 V, Low-ESR, **Ø 8 × 11,5 mm** (kurze Bauform) | **liegend** in der Zunge links, Körper nach oben Richtung ESP-Anschluss. Beine abwinkeln: Plus ins eckige Pad neben USB +5V, Minus ins runde Pad neben USB GND. Ein längerer Elko (z. B. Ø 8 × 16) passt nicht in den Sockel. |
 
 Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auch):
@@ -55,5 +55,5 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 ## Einbau
 
 - Drei Befestigungslöcher M2,5 passen zu den Domen im Sockel-Vorschlag (`ESP32-Umbau\Passprobe\Vorschlag_Platine\`). Die Unterseite der Platine liegt 4 mm über dem Sockelboden.
-- Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. C2 liegt auf U1, die Oberkante kommt dann auf etwa 10,5 mm. Mit IC-Fassung wären es etwa 14 mm, das ist zu hoch.
-- Statt CY630 passt auch ein Keramik-Vielschichtkondensator 100 nF, 50 V, X7R mit Raster 5,08 mm (z. B. KEMET C320C104K5R5TA). Dessen Beine auf 10,16 mm aufbiegen oder die Pads anpassen.
+- Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. Am höchsten ist C2 mit 10,3 mm.
+- Statt CY630 passt auch ein Keramik-Vielschichtkondensator 100 nF, 50 V, X7R mit Raster 5,08 mm (z. B. KEMET C320C104K5R5TA). Dessen Beine auf 10,16 mm aufbiegen.

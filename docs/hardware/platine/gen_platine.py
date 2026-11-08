@@ -16,7 +16,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 os.makedirs(OUT, exist_ok=True)
 
 # ---------------- Vorgaben ----------------
-OUTLINE = [(-7.5, -10.5), (23.5, -10.5), (30.5, 0), (33, 4), (33, 6), (6, 6), (6, 26),
+OUTLINE = [(-7.5, -10.5), (4.5, -10.5), (5.5, -11.8), (21.0, -11.8), (23.5, -10.5), (30.5, 0), (33, 4), (33, 6), (6, 6), (6, 26),
            (-6, 26), (-6, 6), (-13.5, 6), (-13.5, 0)]
 MOUNT = [(-5, -6), (27.5, -1), (0, 23)]      # M2,5
 MOUNT_DRILL, MOUNT_KEEP = 2.7, 2.4         # Kupfer-Freiraum um die Befestigungsloecher (Radius)
@@ -44,9 +44,9 @@ for n, (x, y) in U1.items():
 # D1 1N5819 stehend: Anode unten (+5V), Kathode oben (VESP)
 pad("D1.A", -1.0, -3.9, "+5V", d=2.0, drill=1.0)
 pad("D1.K", -1.0, 1.18, "VESP", d=2.0, drill=1.0, shape="square")
-# C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), liegend ueber U1
-pad("C2.1", 17.16, -9.0, "+5V", d=1.9, drill=1.0)
-pad("C2.2", 7.0, -9.0, "GND", d=1.9, drill=1.0)
+# C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), stehend unter U1
+pad("C2.1", 17.16, -10.0, "+5V", d=1.9, drill=1.0)
+pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
 # R1 330 Ohm stehend
 pad("R1.1", 20.5, -1.3, "OUT")
 pad("R1.2", 20.5, 1.24, "DIN")
@@ -347,7 +347,9 @@ box(UX - 9.6, UY - 3.0, UX + 9.6, UY + 3.0, "U1 74AHCT125")
 X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
 label(-3.0, -2.0, "D1", f1)
-label(12.0, -9.0, "C2 (liegend über U1)", f2)
+box(6.4, -12.7, 17.9, -7.3, "C2")
+box(-9.1, 4.5, -0.9, 16.0, "")
+label(-5.0, 12.5, "C1", f1)
 label(-5.2, 2.6, "C1", f2)
 label(21.9, 0.0, "R1", f1)
 label(5.3, 11.8, "R3", f1)
