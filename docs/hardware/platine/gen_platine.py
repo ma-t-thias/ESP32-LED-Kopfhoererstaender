@@ -16,9 +16,9 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 os.makedirs(OUT, exist_ok=True)
 
 # ---------------- Vorgaben ----------------
-OUTLINE = [(-7.5, -10.5), (4.5, -10.5), (5.5, -11.8), (21.0, -11.8), (23.5, -10.5), (30.5, 0), (33, 4), (33, 6), (6, 6), (6, 26),
-           (-6, 26), (-6, 6), (-13.5, 6), (-13.5, 0)]
-MOUNT = [(-5, -6), (27.5, -1), (0, 23)]      # M2,5
+OUTLINE = [(-7.5, -10.5), (4.5, -10.5), (7.0, -13.0), (21.0, -13.0), (23.5, -10.5), (30.5, 0), (33, 4), (33, 7.2),
+           (19.5, 7.7), (14.5, 10.2), (10.2, 14.5), (7.5, 20.5), (7.5, 33), (-7.5, 33), (-7.5, 6), (-13.5, 6), (-13.5, 0)]
+MOUNT = [(-5, -6), (27.5, -1), (0, 30)]      # M2,5
 MOUNT_DRILL, MOUNT_KEEP = 2.7, 2.4         # Kupfer-Freiraum um die Befestigungsloecher (Radius)
 CLEAR = 0.5                                # Abstand Masseflaeche zu fremden Netzen
 EDGE = 0.6                                 # Kupfer-Abstand zum Rand
@@ -41,9 +41,9 @@ u1_net = {1: "GND", 2: "IO3", 3: "OUT", 4: "GND", 5: "GND", 6: None, 7: "GND",
 for n, (x, y) in U1.items():
     pad(f"U1.{n}", x, y, u1_net[n], d=1.8, drill=0.8, shape="square" if n == 1 else "oval")
 
-# D1 1N5819 stehend: Anode unten (+5V), Kathode oben (VESP)
-pad("D1.A", -1.0, -3.9, "+5V", d=2.0, drill=1.0)
-pad("D1.K", -1.0, 1.18, "VESP", d=2.0, drill=1.0, shape="square")
+# D1 1N5819 stehend oben in der Zunge: Anode unten (+5V), Kathode oben (VESP)
+pad("D1.A", -5.9, 23.2, "+5V", d=2.0, drill=1.0)
+pad("D1.K", -5.9, 28.28, "VESP", d=2.0, drill=1.0, shape="square")
 # C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), stehend unter U1
 pad("C2.1", 17.16, -10.0, "+5V", d=1.9, drill=1.0)
 pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
@@ -57,17 +57,18 @@ pad("STRIP.DIN", SX, -0.4, "DIN", d=2.0, drill=1.0)
 pad("STRIP.5V", SX, -4.2, "+5V", d=2.6, drill=1.3)
 pad("USB.GND", -10.0, 4.0, "GND", d=2.6, drill=1.3, shape="square")
 pad("USB.5V", -10.0, 0.4, "+5V", d=2.6, drill=1.3)
-# C1 1000 uF, Elko Ø8 x 11,5 liegend in der Zunge links (Koerper ueber x -8,6..-0,4 / y 4,5..16,5), Beine nach unten abgewinkelt
-pad("C1.+", -6.8, 1.7, "+5V", d=1.9, drill=0.9, shape="square")
-pad("C1.-", -8.0, 4.4, "GND", d=1.9, drill=0.9)
+# C1 1000 uF, Elko Ø8,2 x 16,7 liegend in der Zunge (Koerper x -7,5..0,7 / y 4,5..21,2), Beine nach unten abgewinkelt, Raster 3,5
+pad("C1.+", -5.15, 3.0, "+5V", d=1.9, drill=0.9, shape="square")
+pad("C1.-", -1.65, 3.0, "GND", d=1.9, drill=0.9)
 # Zunge: ARGB-Eingang, R3/R4-Spannungsteiler, Anschluss ESP (2,54-mm-Raster)
-pad("ARGB.G", 1.46, 8.0, "GND", shape="square")
-pad("ARGB.D", 4.0, 8.0, "ARGB_D")
-pad("R3.1", 4.0, 10.54, "ARGB_D")
-pad("R3.2", 4.0, 13.08, "IO23")
-pad("R4.1", 4.0, 15.62, "IO23")
-pad("R4.2", 1.46, 15.62, "GND")
-EY = 19.5
+AX = 5.34
+pad("ARGB.G", AX - P, 8.0, "GND", shape="square")
+pad("ARGB.D", AX, 8.0, "ARGB_D")
+pad("R3.1", AX, 10.54, "ARGB_D")
+pad("R3.2", AX, 13.08, "IO23")
+pad("R4.1", AX, 15.62, "IO23")
+pad("R4.2", AX - P, 15.62, "GND")
+EY = 25.5
 pad("ESP.VBUS", -3.81, EY, "VESP", shape="square")
 pad("ESP.IO3", -1.27, EY, "IO3")
 pad("ESP.GND", 1.27, EY, "GND")
@@ -78,17 +79,18 @@ def at(n):
 
 # Leiterbahnen: (Netz, Breite, Punkte)
 tracks = [
-    ("+5V", W_PWR, [at("USB.5V"), at("D1.A")]),
+    ("+5V", W_PWR, [at("USB.5V"), (-1.0, -3.9)]),
     ("+5V", 1.2, [at("C1.+"), at("USB.5V")]),
-    ("+5V", 1.2, [at("D1.A"), (UX + 3 * P + 1.6, -3.9), (SX - 1.4, -3.9), at("STRIP.5V")]),
+    ("+5V", 1.2, [at("C1.+"), (-5.15, 21.5), at("D1.A")]),
+    ("+5V", 1.2, [(-1.0, -3.9), (UX + 3 * P + 1.6, -3.9), (SX - 1.4, -3.9), at("STRIP.5V")]),
     ("+5V", 1.0, [U1[14], (U1[14][0], -3.9)]),
     ("+5V", 1.0, [at("C2.1"), U1[14]]),
-    ("VESP", W_SIG + 0.2, [at("D1.K"), (-3.81, 1.18), at("ESP.VBUS")]),
-    ("IO3", W_SIG, [U1[2], (U1[2][0], 3.5), (-1.27, 3.5), at("ESP.IO3")]),
+    ("VESP", W_SIG + 0.2, [at("D1.K"), (-3.81, 28.28), at("ESP.VBUS")]),
+    ("IO3", W_SIG, [U1[2], (U1[2][0], 4.9), (-1.27, 4.9), at("ESP.IO3")]),
     ("OUT", W_SIG, [U1[3], (U1[3][0], -1.3), at("R1.1")]),
     ("DIN", W_SIG, [at("R1.2"), at("STRIP.DIN")]),
     ("ARGB_D", W_SIG, [at("ARGB.D"), at("R3.1")]),
-    ("IO23", W_SIG, [at("R3.2"), at("R4.1"), at("ESP.IO23")]),
+    ("IO23", W_SIG, [at("R3.2"), at("R4.1"), (AX, 23.5), at("ESP.IO23")]),
 ]
 
 # ---------------- Geometrie ----------------
@@ -346,20 +348,20 @@ def box(x0, y0, x1, y1, t, col="#ffffff"):
 box(UX - 9.6, UY - 3.0, UX + 9.6, UY + 3.0, "U1 74AHCT125")
 X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
-label(-3.0, -2.0, "D1", f1)
+label(-3.6, 22.0, "D1", f1)
 box(6.4, -12.7, 17.9, -7.3, "C2")
-box(-9.1, 4.5, -0.9, 16.0, "")
-label(-5.0, 12.5, "C1", f1)
-label(-5.2, 2.6, "C1", f2)
+box(-7.5, 4.5, 0.7, 21.2, "")
+label(-3.4, 12.5, "C1 1000µF", f2)
+label(-3.4, 1.4, "+  C1  −", f2)
 label(21.9, 0.0, "R1", f1)
-label(5.3, 11.8, "R3", f1)
-label(2.7, 17.0, "R4", f1)
+label(AX + 0.2, 11.8, "R3", f1)
+label(AX - 1.3, 17.0, "R4", f1)
 for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
     label(pads[n]["x"] + 3.6, pads[n]["y"], t)
 label(-11.5, 6.9, "USB-C", f2, "black")
 label(-11.0, 2.2, "GND/+5V")
-label(2.7, 6.6, "ARGB G  D")
-label(0, 21.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
+label(AX - 1.3, 6.6, "ARGB G  D")
+label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(29.5, 5.0, "LED", f2)
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
 print("ok", OUT)
