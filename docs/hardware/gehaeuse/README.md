@@ -76,6 +76,22 @@ Der Deckel wird von oben aufgesteckt und rastet ein. Kleben ist nicht nötig. St
 | <img src="c6-touch-1.9/hochkant/bilder/hochkant_v2_schnitt.png" alt="Hochkant: Schnitt durch eine Rastzunge" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_v2_schnitt.png" alt="Quer: Schnitt durch eine Rastzunge" width="400"> |
 | <img src="c6-touch-1.9/hochkant/bilder/hochkant_v2_iso.png" alt="Hochkant mit Rastdeckel v2" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_v2_iso.png" alt="Quer mit Rastdeckel v2" width="400"> |
 
+## Frontfixierung (7.11.2026)
+
+Ersetzt die Rastzungen an der Rückwand aus Rastdeckel v2. Mit ihnen ließ sich der Deckel vorne leicht anheben. Der Kragen (22,70 mm, Spiel ca. 0,075 mm pro Seite) und die Hebelkerbe bleiben.
+
+- **Einhängenase vorne:** 2 Nasen am Kragen vorne, je 5 mm breit (quer bei x ±20–25, hochkant bei x ±8–13), 0,5 mm vorstehend, mit 0,15-mm-Fase. Sie greifen in eine Tasche innen in der Frontwand über dem Display (5,4 × 0,85 mm, 0,55 mm tief).
+- **Rastzungen an den Stirnwänden:** hinten in den Ecken, je 1,2 mm dick, 5 mm breit (2,5–7,5 mm vor der Rückwand), ca. 9 mm frei federnd, Rastnase 0,8 mm. Die passende Nut in der Stirnwand ist ca. 1 mm tief. Die alten Zungen hinten sind im Modell unterdrückt.
+- **Montage:** Deckel vorne schräg mit den Nasen einhängen, dann hinten herunterdrücken, bis die Zungen einrasten. Beim Einschwenken federn die Zungen höchstens ca. 0,75 mm, die Frontnase streift 0,08 mm. Zum Öffnen hinten an der Hebelkerbe anheben und nach hinten herausschwenken.
+- **Getestet:** Der Druck hochkant rastet hörbar ein und hat kein Spiel, auch vorne nicht. Quer ist gleich aufgebaut und rechnerisch geprüft (Kollisionen und Schwenkweg), aber noch nicht gedruckt.
+- **Drucken:** Deckel mit 100 % Infill, Oberseite aufs Bett. Die STL in `drucken/` sind so ausgerichtet.
+
+| Hochkant | Quer |
+|---|---|
+| <img src="c6-touch-1.9/hochkant/bilder/hochkant_frontb_iso.png" alt="Hochkant mit Frontfixierung" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_frontb_iso.png" alt="Quer mit Frontfixierung" width="400"> |
+| <img src="c6-touch-1.9/hochkant/bilder/hochkant_frontb_schnitt_clip.png" alt="Hochkant: Schnitt durch die Rastzungen an den Stirnwänden" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_frontb_schnitt_clip.png" alt="Quer: Schnitt durch die Rastzungen an den Stirnwänden" width="400"> |
+| <img src="c6-touch-1.9/hochkant/bilder/hochkant_frontb_schnitt_nase.png" alt="Hochkant: Schnitt durch die Einhängenase vorne" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_frontb_schnitt_nase.png" alt="Quer: Schnitt durch die Einhängenase vorne" width="400"> |
+
 ## Dateien
 
 ```
@@ -104,7 +120,7 @@ Die CAD-Dateien enthalten kein Board-Modell. Das STEP gibt es auf der Waveshare-
 1. Litzen an 5V, GND, GPIO1 und GPIO2 anlöten.
 2. Die Litzen durch den Trichter und den Kanal ins Innere des Grundkörpers führen. Nicht direkt über den Antennenbereich der Platine legen.
 3. Das Board mit dem Display nach vorne von oben einschieben, bis es unten aufliegt. Die M2-Bolzen gleiten dabei vor den Halteleisten vorbei.
-4. Den Deckel gerade aufstecken, bis beide Rastzungen hinten hörbar einrasten. TF-Karte und die BOOT- und RESET-Taster sind nur bei abgenommenem Deckel und herausgezogenem Board erreichbar.
+4. Den Deckel vorne einhängen und hinten herunterdrücken, bis die Rastzungen an den Stirnwänden hörbar einrasten (siehe [Frontfixierung](#frontfixierung-7112026)). TF-Karte und die BOOT- und RESET-Taster sind nur bei abgenommenem Deckel und herausgezogenem Board erreichbar.
 
 ## Benötigte Originalteile und Lizenz
 
@@ -116,7 +132,7 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 
 - **Antennenlage am echten Board prüfen.** Die C6-Platine ist anders bestückt als das S3-STEP. Wo die Keramikantenne sitzt, ist noch unbekannt.
 - **Probedruck beider Varianten** (Passung von Board, Deckel und USB-Stecker). Der Rastdeckel v2 sitzt im Probedruck gut.
-- **Deckel vorne:** Er lässt sich vorne noch leicht anheben, weil die Rastzungen nur hinten sitzen. Eine zusätzliche Fixierung vorne wird untersucht.
+- **Probedruck quer** mit der Frontfixierung steht noch aus. Hochkant ist getestet.
 - **Entscheidung hochkant oder quer** nach dem Probedruck.
 - Der Grundkörper ist aus der Original-STL nachgebaut. Die Mulde für den alten Controller entfällt, die Wände sind leicht facettiert (ca. 0,05 mm).
 
