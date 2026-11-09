@@ -1,6 +1,8 @@
 %FSLAX46Y46*%
 %MOMM*%
+%TF.GenerationSoftware,gen_platine.py*%
 %TF.FileFunction,Profile,NP*%
+%TF.FilePolarity,Positive*%
 %TF.Part,Single*%
 %ADD10C,0.150*%
 G01*

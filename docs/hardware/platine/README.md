@@ -1,4 +1,4 @@
-# Platine für den Sockel (einseitig, bedrahtet)
+# Platine für den Sockel (bedrahtet, zum Bestellen oder Selbstätzen)
 
 Die Platine ersetzt den Breadboard-Aufbau und die WAGO-Klemmen. Sie sitzt im Sockel (Base_Box) in der Mitte zwischen den drei Diffusorscheiben, mit einer Zunge Richtung ESP-Gehäuse. Die Lichtöffnungen bleiben frei.
 
@@ -13,16 +13,34 @@ Ansicht von der Bauteilseite. Gelb ist die Massefläche (GND), die farbigen Bahn
 | `out/platine_aetzvorlage_A4.pdf` | Ätzvorlage 1:1, zwei Kopien auf A4. Mit 100 % drucken, nicht „an Seite anpassen“. |
 | `out/platine_aetzvorlage_600dpi.png` | Dieselbe Vorlage als Bild |
 | `out/platine_bestueckung.png` | Bestückungsplan |
-| `out/platine-B_Cu.gbl`, `out/platine-Edge_Cuts.gm1`, `out/platine.drl` | Gerber und Bohrdatei, falls die Platine doch bestellt oder gefräst wird |
+| `out/platine_gerber.zip` | **Fertigungsdaten zum Hochladen beim Leiterplatten-Shop** (Gerber + Bohrdateien, siehe unten) |
+| `out/platine_gerber_vorschau.png` | So sieht die bestellte Platine aus (links oben, rechts unten) |
 | `gen_platine.py` | Erzeugt alles neu: `pip install shapely pillow`, dann `python3 docs/hardware/platine/gen_platine.py` |
 
 Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,45 mm), zum Rand und zu den Befestigungslöchern. Außerdem prüft es, dass alle GND-Pads an einer zusammenhängenden Massefläche hängen.
 
-## Ätzen
+## Online bestellen
+
+`out/platine_gerber.zip` beim Shop hochladen (z. B. AISLER, JLCPCB). Inhalt:
+
+| Datei | Lage |
+|---|---|
+| `platine-F_Cu.gtl` | Kupfer oben: nur Lötaugen (damit die Bohrungen durchkontaktiert sind) |
+| `platine-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
+| `platine-F_Mask.gts`, `platine-B_Mask.gbs` | Lötstopplack oben/unten |
+| `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Umrisse, Polung) |
+| `platine-Edge_Cuts.gm1` | Umriss |
+| `platine-PTH.drl`, `platine-NPTH.drl` | Bohrungen durchkontaktiert / ohne Kupfer (3 × M2,5) |
+
+Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstopp grün, Bestückungsdruck weiß**. Größe 46,5 × 46,0 mm, kleinste Bohrung 0,8 mm, kleinster Abstand 0,45 mm, Bahnbreite ab 0,8 mm. Das schafft jeder Standardprozess.
+
+![Gerber-Vorschau](out/platine_gerber_vorschau.png)
+
+## Selbst ätzen
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
 - **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
-- **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben einen kleinen freien Punkt als Körnung.
+- **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
 - **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,3 mm (Litze 1 mm² für USB-C und Streifen), 2,7 mm (Befestigung M2,5).
 
 ## Bauteile

@@ -1,0 +1,15 @@
+M48
+; DRILL file gen_platine.py, NPTH
+; #@! TF.FileFunction,NonPlated,1,2,NPTH
+METRIC,TZ
+FMAT,2
+G90
+T1C2.700
+%
+G05
+T1
+X-5.000Y-6.000
+X27.500Y-1.000
+X0.000Y30.000
+T0
+M30
