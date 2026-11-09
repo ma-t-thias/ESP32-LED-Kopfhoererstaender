@@ -117,7 +117,7 @@ Der Ständer kann direkt von Armoury Crate/Aura gesteuert werden, ohne Zusatzsof
 
 Stürzt der ESP ab, während der ARGB-Empfang läuft, bleibt der Eingang beim nächsten Start gesperrt. WLAN und eigene Effekte laufen dann normal weiter, und die Weboberfläche zeigt einen Hinweis. Nach einem Aus- und Einschalten wird es erneut versucht.
 
-Vorrang: Mainboard-Kabel vor PC-Sync per WLAN vor eigenen Effekten.
+Vorrang: Mainboard-Kabel vor PC-Sync (USB oder WLAN) vor eigenen Effekten.
 
 ## Home Assistant und WLED-App
 
@@ -173,6 +173,18 @@ Damit Sync-Programme den Controller als WLED-Gerät erkennen, meldet er sich per
 
 Die Helligkeit aus der Weboberfläche und die Stromgrenze gelten auch im PC-Sync. Für die vollen Farben vom PC stellst du die Helligkeit auf 100 %.
 
+### PC-Sync über USB (ein Kabel für Strom und Steuerung)
+
+Statt per WLAN nimmt der Controller die Farben auch über USB an, mit den Protokollen **Adalight** und **TPM2**. Das klappt über die USB-C-Buchse des ESP-Boards und, wenn auf der Sockel-Platine die Lötbrücken **SJ1/SJ2** geschlossen und D+/D− der Sockel-Buchse angeschlossen sind, über die USB-C-Buchse im Sockel. Dann reicht ein USB-Kabel zum PC für Strom und Steuerung (siehe `docs/hardware/platine/README.md`). WLAN ist dafür nicht nötig.
+
+**OpenRGB:** *Settings → Serial Devices* (je nach Version *Supported Devices → Serial LED Strip*) ein Gerät anlegen: Port = COM-Port des Ständers (im Geräte-Manager „USB Serial Device“/„USB JTAG/serial debug unit“), Protokoll **Adalight**, Baudrate beliebig (bei USB ohne Bedeutung, z. B. 115200), **144 LEDs**. Danach OpenRGB neu starten. Mit weniger eingestellten LEDs streckt der Ständer das Bild auf alle 144.
+
+Es gilt derselbe Schalter **PC-Sync** und dieselbe Zeitgrenze wie bei WLAN: Kommt 2,5 Sekunden nichts, laufen die eigenen Effekte weiter. Display und Weboberfläche zeigen „USB-Adalight“ bzw. „USB-TPM2“.
+
+**Strom am PC:** Ein PC-Port liefert weniger als das Netzteil. Die Stromgrenze in der Weboberfläche anpassen, z. B. **1300 mA** an einem USB-C-Port mit 5 V / 1,5 A, **2400 mA** an einem USB-C-Port mit 5 V / 3 A, **700 mA** an USB-A 3.x (900 mA), **350 mA** an USB-A 2.0 (500 mA). Die Grenze gilt für die LEDs, der ESP braucht zusätzlich etwa 150 mA.
+
+Nicht gleichzeitig an der Board-Buchse und an der Sockel-Buchse ein Kabel stecken, wenn SJ1/SJ2 geschlossen sind.
+
 ## Stromgrenze
 
 Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 2400 mA (`include/config.h`), passend zum USB-C-Netzteil 5 V / 3 A. Farbige Effekte laufen damit in voller Helligkeit, nur Vollweiß auf allen LEDs wird gedimmt. War schon ein anderer Wert gespeichert, stellst du ihn in der Weboberfläche auf 2400 mA. Mit einem stärkeren Netzteil (z. B. USB-C PD 12 V und Step-down auf 5 V / 6 A) kannst du auf etwa 85 % von dessen Strom erhöhen.
@@ -211,7 +223,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/main.cpp` | Ablauf, Bildrate, Ein-/Ausblenden, BOOT-Taster |
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
-| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
+| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, über USB Adalight und TPM2 |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO23 mit |

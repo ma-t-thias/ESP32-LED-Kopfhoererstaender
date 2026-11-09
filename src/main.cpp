@@ -85,6 +85,9 @@ void handleButton() {
 }  // namespace
 
 void setup() {
+  // Ein Adalight-Bild mit 144 LEDs sind 438 Byte; Puffer fuer einige Bilder, falls die
+  // Schleife kurz haengt (z. B. beim Zeichnen des Displays).
+  Serial.setRxBufferSize(2048);
   Serial.begin(115200);
   delay(200);
   Serial.println("\nLED-Kopfhoererstaender startet");

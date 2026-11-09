@@ -32,7 +32,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 | `platine-Edge_Cuts.gm1` | Umriss |
 | `platine-PTH.drl`, `platine-NPTH.drl` | Bohrungen durchkontaktiert / ohne Kupfer (3 × M2,5) |
 
-Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstopp grün, Bestückungsdruck weiß**. Größe 46,5 × 46,0 mm, kleinste Bohrung 0,8 mm, kleinster Abstand 0,45 mm, Bahnbreite ab 0,8 mm. Das schafft jeder Standardprozess.
+Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstopp grün, Bestückungsdruck weiß**. Größe 46,5 × 46,0 mm, kleinste Bohrung 0,8 mm, kleinster Abstand 0,45 mm, Bahnbreite ab 0,6 mm. Das schafft jeder Standardprozess.
 
 ![Gerber-Vorschau](out/platine_gerber_vorschau.png)
 
@@ -40,7 +40,7 @@ Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstop
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
 - **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
-- **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
+- **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm (USB-Daten 0,6 mm), Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
 - **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,3 mm (Litze 1 mm² für USB-C und Streifen), 2,7 mm (Befestigung M2,5).
 
 ## Bauteile
@@ -63,6 +63,19 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 | LED +5V / DIN / GND (rechts) | Streifen. +5V und GND mit Litze 1 mm². |
 | ESP VBUS / IO3 / GND / IO23 (Zungenspitze) | J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
 | ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Stiftleiste 1×4 einlöten und den dritten Stift (Lücke) ziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
+| USB D− / D+ (Zunge, rechts neben C1, unten) | optional: D− und D+ der USB-C-Buchse, dünne Litze (0,14 mm²), beide Adern verdrillt |
+| IO12 / IO13 (darüber) | optional: J3 Pin 11 (GPIO12) und J3 Pin 12 (GPIO13) des ESP32-C6-Touch-LCD-1.9 |
+
+## PC-Steuerung über die USB-C-Buchse (optional, Lötbrücken SJ1/SJ2)
+
+Mit zwei zusätzlichen Adern lässt sich der Ständer über **ein** USB-Kabel vom PC versorgen und steuern, z. B. mit OpenRGB (Adalight/TPM2, siehe Haupt-README). Die Datenleitungen der Sockel-Buchse gehen dann an den USB-Anschluss des ESP32-C6 (GPIO12 = D−, GPIO13 = D+).
+
+- **SJ1 (D−) und SJ2 (D+)** sind Lötbrücken auf der Kupferseite zwischen den Pad-Paaren. **Offen** (Werkszustand): Die Datenleitungen sind getrennt, die Buchse liefert nur Strom. **Mit Zinn geschlossen:** USB-Daten vom PC. Ohne Brücken kann man die Adern auch einfach weglassen.
+- Wenn die Brücken geschlossen sind, **nicht gleichzeitig** ein Kabel an der USB-C-Buchse des ESP-Boards und an der Sockel-Buchse stecken. Beide hängen dann an denselben Datenleitungen. Zum Flashen also entweder die Board-Buchse oder die Sockel-Buchse nutzen.
+- Die USB-C-Buchsenplatine muss D+ und D− herausführen (bei den üblichen 16-Pin-Breakouts der Fall). CC1/CC2 mit 5,1 kΩ bleiben wie bisher.
+- **Steckbar statt gelötet:** Die Pads USB D−/D+ liegen im 2,54-mm-Raster. Dort passt eine 1×2-Stiftleiste, dazu ein 2-adriges Dupont-Kabel von den Stiften D−/D+ der Buchsenplatine (deren 8-polige Leiste: GND, VBUS, SBU2, CC1, D−, D+, SBU1, CC2). Gesteckt = USB-Daten (bei geschlossenen SJ1/SJ2), abgezogen = nur Strom. VBUS und GND bleiben 1-mm²-Litze: Ein Pin und eine Flachbandader (AWG 28) sind für 2,4 A zu schwach.
+- Die USB-Adern von oben einstecken. Die Pads liegen rechts neben dem liegenden C1, der Abstand zum Elko reicht für dünne Litze.
+- Am PC-Port steht weniger Strom zur Verfügung als am Netzteil. Die Stromgrenze in der Weboberfläche passend einstellen (siehe Haupt-README, Abschnitt Stromgrenze).
 
 ## Unterschiede zum Breadboard-Plan
 

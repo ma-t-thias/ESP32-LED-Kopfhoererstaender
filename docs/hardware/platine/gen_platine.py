@@ -12,6 +12,16 @@ from shapely.geometry import Polygon, Point, LineString
 from shapely.ops import unary_union
 from PIL import Image, ImageDraw, ImageFont
 
+def ttf(size, bold=False):
+    """DejaVu (Linux), sonst Arial (Windows), sonst die eingebaute Schrift."""
+    for f in (("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+              ("C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf")):
+        try:
+            return ImageFont.truetype(f, size)
+        except OSError:
+            pass
+    return ImageFont.load_default()
+
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 os.makedirs(OUT, exist_ok=True)
 
@@ -27,8 +37,9 @@ W_SIG, W_PWR = 0.8, 1.5                    # Leiterbahnbreiten
 # Pads: name -> (x, y, Pad-Durchmesser, Bohrung, Netz, Form)
 P = 2.54
 pads = {}
-def pad(name, x, y, net, d=1.9, drill=0.9, shape="round"):
-    pads[name] = dict(x=x, y=y, d=d, drill=drill, net=net, shape=shape)
+def pad(name, x, y, net, d=1.9, drill=0.9, shape="round", w=None, h=None):
+    # drill=None: SMD-Pad nur auf der Kupferseite (unten), z. B. Loetbruecke; shape "rect" mit w x h
+    pads[name] = dict(x=x, y=y, d=d, drill=drill, net=net, shape=shape, w=w, h=h)
 
 # U1 74AHCT125, DIP-14, um 180 Grad gedreht (Kerbe rechts, Pin 1 oben rechts)
 UX, UY = 8.5, -2.5
@@ -84,6 +95,14 @@ pad("ESP.VBUS", -3.81, EY, "VESP", shape="square")
 pad("ESP.IO3", -1.27, EY, "IO3")
 pad("ESP.GND", 1.27, EY, "GND")
 pad("ESP.IO23", 3.81, EY, "IO23")
+# USB-Daten vom PC (optional): D-/D+ der USB-C-Buchse -> Loetbruecke SJ1/SJ2 -> GPIO12/GPIO13
+# (J3 Pin 11/12). Offen = getrennt (Werkszustand), mit Zinn geschlossen = OpenRGB & Co. per USB.
+# Zwei Spalten rechts neben dem liegenden C1, frei von dessen Koerper.
+for col, (cx, usb, io, lab) in enumerate(((1.1, "USB_DM", "IO12", "D-"), (3.64, "USB_DP", "IO13", "D+"))):
+    pad(f"USB.{lab}", cx, 17.8, usb, d=1.6, drill=0.9)
+    pad(f"SJ{col + 1}.U", cx, 19.45, usb, drill=None, shape="rect", w=1.4, h=0.9)
+    pad(f"SJ{col + 1}.E", cx, 20.85, io, drill=None, shape="rect", w=1.4, h=0.9)
+    pad(f"ESP.{io}", cx, 22.8, io, d=1.6, drill=0.9)
 
 def at(n):
     return (pads[n]["x"], pads[n]["y"])
@@ -102,6 +121,10 @@ tracks = [
     ("DIN", W_SIG, [at("R1.2"), at("STRIP.DIN")]),
     ("ARGB_D", W_SIG, [at("ARGB.D"), at("R3.1")]),
     ("IO23", W_SIG, [at("R3.2"), at("R4.1"), (AX, 23.5), at("ESP.IO23")]),
+    ("USB_DM", 0.6, [at("USB.D-"), at("SJ1.U")]),
+    ("IO12", 0.6, [at("SJ1.E"), at("ESP.IO12")]),
+    ("USB_DP", 0.6, [at("USB.D+"), at("SJ2.U")]),
+    ("IO13", 0.6, [at("SJ2.E"), at("ESP.IO13")]),
 ]
 
 # ---------------- Geometrie ----------------
@@ -109,6 +132,9 @@ board = Polygon(OUTLINE)
 
 def pad_shape(p):
     x, y, d = p["x"], p["y"], p["d"]
+    if p["shape"] == "rect":
+        w, h = p["w"] / 2, p["h"] / 2
+        return Polygon([(x - w, y - h), (x + w, y - h), (x + w, y + h), (x - w, y + h)])
     if p["shape"] == "square":
         return Polygon([(x - d / 2, y - d / 2), (x + d / 2, y - d / 2), (x + d / 2, y + d / 2), (x - d / 2, y + d / 2)])
     if p["shape"] == "oval":   # DIP: laenglich quer zur Reihe
@@ -287,7 +313,10 @@ def silk_rect(x0, y0, x1, y1):
 def silk_circle(x, y, r):
     return Point(x, y).buffer(r + SILK_W / 2, 32).difference(Point(x, y).buffer(r - SILK_W / 2, 32))
 
-pad_all = unary_union([pad_shape(p) for p in pads.values()])
+tht = [p for p in pads.values() if p["drill"]]
+pad_all = unary_union([pad_shape(p) for p in tht])   # oben nur Loetaugen der Bohrungen
+mask_open_top = unary_union([pad_shape(p).buffer(MASK_EXP, 16) for p in tht] +
+                            [Point(m).buffer(MOUNT_DRILL / 2 + 0.1, 32) for m in MOUNT])
 mask_open = unary_union([pad_shape(p).buffer(MASK_EXP, 16) for p in pads.values()] +
                         [Point(m).buffer(MOUNT_DRILL / 2 + 0.1, 32) for m in MOUNT])
 
@@ -319,6 +348,9 @@ silk = unary_union([
     silk_text("ESP", 0.0, 22.6, 0.9),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
     silk_text("G", 1.27, 27.3, 0.8), silk_text("23", 3.81, 27.3, 0.8),
+    # USB-Daten: unten D-/D+ von der Buchse, oben IO12/IO13 zum ESP, dazwischen SJ1/SJ2 (unten)
+    silk_text("USB", 2.37, 16.4, 0.8), silk_text("12", 1.1 - 1.55, 22.8, 0.7), silk_text("13", 3.64 + 1.55, 22.8, 0.7),
+    silk_text("-", 1.1 - 1.45, 17.8, 0.8), silk_text("+", 3.64 + 1.45, 17.8, 0.8),
 ])
 silk = silk.difference(mask_open.buffer(0.15)).intersection(board.buffer(-0.3))
 for m in MOUNT:
@@ -327,7 +359,7 @@ for m in MOUNT:
 # Kupfer unten wie beim Aetzen, aber ohne die Koernerpunkte (der Hersteller bohrt selbst)
 write_layer("platine-B_Cu.gbl", "Copper,L2,Bot", [pour] + [g for k, g in net_cu.items() if k != "GND"])
 write_layer("platine-F_Cu.gtl", "Copper,L1,Top", [pad_all])
-write_layer("platine-F_Mask.gts", "Soldermask,Top", [mask_open])
+write_layer("platine-F_Mask.gts", "Soldermask,Top", [mask_open_top])
 write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open])
 write_layer("platine-F_SilkS.gto", "Legend,Top", [silk])
 write_outline("platine-Edge_Cuts.gm1")
@@ -346,7 +378,7 @@ def write_drill(fname, items, plated):
     E += ["T0", "M30"]
     open(os.path.join(OUT, fname), "w").write("\n".join(E) + "\n")
 
-write_drill("platine-PTH.drl", [(p["drill"], p["x"], p["y"]) for p in pads.values()], True)
+write_drill("platine-PTH.drl", [(p["drill"], p["x"], p["y"]) for p in tht], True)
 write_drill("platine-NPTH.drl", [(MOUNT_DRILL, x, y) for x, y in MOUNT], False)
 old = os.path.join(OUT, "platine.drl")
 if os.path.exists(old):
@@ -391,6 +423,8 @@ def draw_copper_mask(dpi):
         for p in polys(g):
             dr.polygon([tf(*c) for c in p.exterior.coords], fill=0)
     for p in pads.values():
+        if not p["drill"]:
+            continue
         x, y = tf(p["x"], p["y"])
         r = 0.3 * s
         dr.ellipse([x - r, y - r, x + r, y + r], fill=1)
@@ -410,10 +444,7 @@ a4 = Image.new("1", (4961, 7016), 1)
 a4.paste(mask, (600, 600))
 a4.paste(mask, (600 + mask.width + 300, 600))
 d = ImageDraw.Draw(a4)
-try:
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 60)
-except OSError:
-    font = ImageFont.load_default()
+font = ttf(60)
 d.text((600, 600 + mask.height + 120),
        "Kopfhoererstaender Platine, Kupferseite, Ansicht von der Bauteilseite, 1:1 (nicht skalieren).",
        fill=0, font=font)
@@ -429,12 +460,15 @@ dr = ImageDraw.Draw(im)
 dr.polygon([tf(*c) for c in board.exterior.coords], fill="#2f6b3a", outline="black")
 draw_geom(dr, pour, tf, "#c8a24a")
 colors = {"+5V": "#d9534f", "VESP": "#f08a24", "IO3": "#e6c229", "OUT": "#9b6bd6", "DIN": "#2e9e5b",
-          "ARGB_D": "#8e44ad", "IO23": "#6c5ce7"}
+          "ARGB_D": "#8e44ad", "IO23": "#6c5ce7", "USB_DM": "#3b82c4", "USB_DP": "#3bb0c4",
+          "IO12": "#3b82c4", "IO13": "#3bb0c4"}
 for k, g in net_cu.items():
     if k == "GND":
         continue
     draw_geom(dr, g, tf, colors.get(k, "#c8a24a"))
 for p in pads.values():
+    if not p["drill"]:
+        continue
     x, y = tf(p["x"], p["y"])
     r = p["drill"] / 2 * s
     dr.ellipse([x - r, y - r, x + r, y + r], fill="white")
@@ -442,11 +476,8 @@ for m in MOUNT:
     x, y = tf(*m)
     r = MOUNT_DRILL / 2 * s
     dr.ellipse([x - r, y - r, x + r, y + r], fill="white", outline="black", width=3)
-try:
-    f1 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", int(1.3 * s))
-    f2 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.95 * s))
-except OSError:
-    f1 = f2 = ImageFont.load_default()
+f1 = ttf(int(1.3 * s), bold=True)
+f2 = ttf(int(0.95 * s))
 
 def label(x, y, t, f=f2, fill="white"):
     X, Y = tf(x, y)
@@ -473,10 +504,18 @@ for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
 label(-11.5, 6.9, "USB-C", f2, "black")
 label(-11.0, 2.2, "GND/+5V")
 label(9.0, 7.1, "ARGB 90°", f2)
-label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
+label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ttf(int(0.7 * s)))
 label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
 label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
-label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
+label(0, 27.2, "VBUS IO3 GND IO23", ttf(int(0.7 * s)))
 label(29.5, 5.0, "LED", f2)
+# USB-Daten mit Loetbruecken (auf der Kupferseite)
+for n in ("SJ1.U", "SJ1.E", "SJ2.U", "SJ2.E"):
+    p = pads[n]
+    a, b = tf(p["x"] - p["w"] / 2, p["y"] + p["h"] / 2), tf(p["x"] + p["w"] / 2, p["y"] - p["h"] / 2)
+    dr.rectangle([a, b], outline="white", width=3)
+label(2.37, 16.3, "USB D− D+", ttf(int(0.7 * s)))
+label(2.37, 20.15, "SJ1  SJ2", ttf(int(0.6 * s)))
+label(2.37, 24.0, "IO12 IO13", ttf(int(0.7 * s)))
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
 print("ok", OUT)

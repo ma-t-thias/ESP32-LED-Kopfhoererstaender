@@ -6,6 +6,10 @@
 //   - DDP          UDP-Port 4048
 //   - E1.31 (sACN) UDP-Port 5568, Unicast und Multicast, Universum REALTIME_E131_UNIVERSE
 //   - WLED-UDP     UDP-Port 21324 (WARLS, DRGB, DNRGB)
+// und ueber USB (serieller USB-Anschluss des ESP32-C6, auch ohne WLAN):
+//   - Adalight und TPM2, z. B. OpenRGB "Serial LED strip"
+// Der USB-Empfang laeuft ueber die Board-Buchse oder, mit geschlossenen Loetbruecken
+// SJ1/SJ2 auf der Sockel-Platine, ueber die USB-C-Buchse im Sockel.
 // Solange Pakete kommen, zeigt der Streifen die empfangenen Farben. Kommt laenger
 // als die Zeitgrenze nichts mehr, laufen wieder die eigenen Effekte.
 namespace realtime {
