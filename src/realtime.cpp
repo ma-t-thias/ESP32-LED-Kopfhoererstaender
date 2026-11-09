@@ -96,6 +96,39 @@ void handleWled(size_t len) {
   received("WLED-UDP", timeout);
 }
 
+// ---------- Adalight ueber USB (OpenRGB "Serial LED Strip", Prismatik, Hyperion) ----------
+// Rahmen: 'A' 'd' 'a', Anzahl LEDs - 1 (High, Low), Pruefsumme High ^ Low ^ 0x55, dann R, G, B je LED.
+// Kommt ueber die USB-Datenleitungen der Sockel-Buchse (Jumper JP1) oder die USB-C-Buchse am ESP.
+// Die Baudrate ist bei USB egal.
+void handleUsb(bool enabled) {
+  static uint8_t hdr[6];
+  static uint8_t hdrLen = 0, rgbLen = 0;
+  static uint8_t rgb[3];
+  static uint32_t ledsLeft = 0, idx = 0;
+  for (int guard = 0; guard < 2048 && Serial.available() > 0; guard++) {
+    uint8_t c = Serial.read();
+    if (ledsLeft) {
+      rgb[rgbLen++] = c;
+      if (rgbLen < 3) continue;
+      rgbLen = 0;
+      if (enabled && idx < LED_COUNT) frame[idx] = CRGB(rgb[0], rgb[1], rgb[2]);
+      idx++;
+      if (--ledsLeft == 0 && enabled) received("Adalight USB", REALTIME_TIMEOUT_MS);
+      continue;
+    }
+    if (hdrLen < 3) {  // "Ada" suchen
+      hdrLen = (c == "Ada"[hdrLen]) ? hdrLen + 1 : (c == 'A' ? 1 : 0);
+      continue;
+    }
+    hdr[hdrLen++] = c;
+    if (hdrLen < 6) continue;
+    hdrLen = 0;
+    if ((hdr[3] ^ hdr[4] ^ 0x55) != hdr[5]) continue;  // Pruefsumme falsch: weiter suchen
+    ledsLeft = ((uint32_t(hdr[3]) << 8) | hdr[4]) + 1;
+    idx = 0;
+  }
+}
+
 void drain(WiFiUDP &udp, void (*handler)(size_t), bool enabled) {
   for (int guard = 0; guard < 8; guard++) {  // nicht endlos blockieren
     int size = udp.parsePacket();
@@ -116,10 +149,12 @@ void begin() {
 }
 
 void loop(bool enabled) {
-  if (!started) return;
-  drain(ddp, handleDdp, enabled);
-  drain(e131, handleE131, enabled);
-  drain(wledUdp, handleWled, enabled);
+  handleUsb(enabled);  // geht auch ohne WLAN
+  if (started) {
+    drain(ddp, handleDdp, enabled);
+    drain(e131, handleE131, enabled);
+    drain(wledUdp, handleWled, enabled);
+  }
   if (!enabled) lastPacketMs = 0;
 }
 

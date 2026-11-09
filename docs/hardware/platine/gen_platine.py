@@ -84,6 +84,17 @@ pad("ESP.VBUS", -3.81, EY, "VESP", shape="square")
 pad("ESP.IO3", -1.27, EY, "IO3")
 pad("ESP.GND", 1.27, EY, "GND")
 pad("ESP.IO23", 3.81, EY, "IO23")
+# USB-Daten vom PC (optional): D+/D- der USB-C-Buchsenplatine -> Loetbruecken SJ1/SJ2 -> ESP (J3 Pin 12 =
+# GPIO13 = D+, J3 Pin 11 = GPIO12 = D-). Offen sind die Leitungen getrennt (Netzteil-Betrieb, Flashen ueber die
+# ESP-Buchse); mit einem Loetpunkt geschlossen kann der PC ueber die Sockel-Buchse Daten senden.
+pad("USB.DP", 1.6, 7.2, "USB_DP")
+pad("USB.DM", 4.14, 7.2, "USB_DM")
+pad("ESP.DP", 3.3, 28.6, "ESP_DP")
+pad("ESP.DM", 5.9, 29.8, "ESP_DM")
+# Loetbruecken (nur oben, SMD): name -> (x, y, Netz), Pad 1,0 x 1,0 mm, Spalt 0,5 mm
+SJ_SIZE = 1.0
+smd = {"SJ1.1": (1.7, 23.0, "USB_DP"), "SJ1.2": (3.2, 23.0, "ESP_DP"),
+       "SJ2.1": (1.7, 19.5, "USB_DM"), "SJ2.2": (3.2, 19.5, "ESP_DM")}
 
 def at(n):
     return (pads[n]["x"], pads[n]["y"])
@@ -117,6 +128,23 @@ def pad_shape(p):
 
 def track_shape(t):
     return LineString(t[2]).buffer(t[1] / 2, 16, cap_style=1, join_style=1)
+
+# Leiterbahnen oben (Bauteilseite): nur die USB-Datenleitungen, 0,5 mm breit.
+# Beim Selbstaetzen (einseitig) stattdessen mit Draht auf der Bauteilseite verbinden.
+W_USB = 0.5
+def sj(n):
+    return smd[n][:2]
+top_tracks = [
+    ("USB_DP", W_USB, [at("USB.DP"), (-2.0, 7.2), (-2.0, 23.0), sj("SJ1.1")]),
+    ("ESP_DP", W_USB, [sj("SJ1.2"), (5.5, 23.0), (5.5, 27.0), at("ESP.DP")]),
+    ("USB_DM", W_USB, [at("USB.DM"), (4.14, 9.1), (-0.6, 9.1), (-0.6, 19.5), sj("SJ2.1")]),
+    ("ESP_DM", W_USB, [sj("SJ2.2"), (6.5, 19.5), (6.5, 29.8), at("ESP.DM")]),
+]
+
+def smd_shape(n):
+    x, y, _ = smd[n]
+    h = SJ_SIZE / 2
+    return Polygon([(x - h, y - h), (x + h, y - h), (x + h, y + h), (x - h, y + h)])
 
 net_cu = {}
 for name, p in pads.items():
@@ -169,6 +197,25 @@ for n, p in pads.items():
         problems.append(f"Pad {n} zu nah am Rand")
     if p["net"] == "GND" and not pour.intersects(Point(p["x"], p["y"])):
         problems.append(f"GND-Pad {n} nicht an der Masseflaeche")
+# Oberseite: Bahnen gegen alle Pads (die gibt es oben auch) und gegeneinander
+top_cu = {}
+for n, p in pads.items():
+    top_cu.setdefault(p["net"] or n, []).append(pad_shape(p))
+for t in top_tracks:
+    top_cu.setdefault(t[0], []).append(track_shape(t))
+for n, (x, y, net) in smd.items():
+    top_cu.setdefault(net, []).append(smd_shape(n))
+top_cu = {k: unary_union(v) for k, v in top_cu.items()}
+top_nets = {t[0] for t in top_tracks}
+for a in top_nets:
+    for b in top_cu:
+        if b != a and top_cu[a].distance(top_cu[b]) < 0.45:
+            problems.append(f"Oben Abstand {a}-{b}: {top_cu[a].distance(top_cu[b]):.2f} mm")
+    if not board.buffer(-0.4).contains(top_cu[a]):
+        problems.append(f"Oben {a} zu nah am Rand")
+    for m in MOUNT:
+        if top_cu[a].distance(Point(m)) < MOUNT_DRILL / 2 + 1.0:
+            problems.append(f"Oben {a} zu nah an Befestigungsloch {m}")
 print("GND-Inseln:", gnd_islands)
 print("Probleme:", problems or "keine")
 
@@ -249,6 +296,7 @@ FONT = {
     "E": [[(4, 6), (0, 6), (0, 0), (4, 0)], [(0, 3), (3, 3)]],
     "G": [[(4, 5), (3, 6), (1, 6), (0, 5), (0, 1), (1, 0), (3, 0), (4, 1), (4, 3), (2, 3)]],
     "I": [[(1, 6), (3, 6)], [(2, 6), (2, 0)], [(1, 0), (3, 0)]],
+    "J": [[(4, 6), (4, 1), (3, 0), (1, 0), (0, 1)]],
     "K": [[(0, 0), (0, 6)], [(4, 6), (0, 2)], [(1, 3), (4, 0)]],
     "L": [[(0, 6), (0, 0), (4, 0)]],
     "N": [[(0, 0), (0, 6), (4, 0), (4, 6)]],
@@ -288,6 +336,7 @@ def silk_circle(x, y, r):
     return Point(x, y).buffer(r + SILK_W / 2, 32).difference(Point(x, y).buffer(r - SILK_W / 2, 32))
 
 pad_all = unary_union([pad_shape(p) for p in pads.values()])
+mask_open_top_extra = unary_union([smd_shape(n).buffer(MASK_EXP, 4, join_style=2) for n in smd])
 mask_open = unary_union([pad_shape(p).buffer(MASK_EXP, 16) for p in pads.values()] +
                         [Point(m).buffer(MOUNT_DRILL / 2 + 0.1, 32) for m in MOUNT])
 
@@ -306,7 +355,7 @@ silk = unary_union([
     silk_circle(-8.7, 22.9, 1.55), silk_text("D1", -8.7, 25.45),
     LineString([(-9.95, 29.6), (-7.45, 29.6)]).buffer(SILK_W, 8),
     # Widerstaende stehend
-    silk_text("R1", 21.0, -3.1), silk_text("R3", AX + 2.2, 11.8), silk_text("R4", AX + 2.2, 15.62),
+    silk_text("R1", 21.0, -3.1), silk_text("R3", AX - 2.0, 11.8), silk_text("R4", AX + 2.2, 15.62),
     # Anschluesse
     silk_text("5V", SX + 2.6, -4.2), silk_text("D", SX + 1.8, -0.4), silk_text("GND", SX + 3.4, 3.4),
     silk_text("LED", 29.0, 6.0, 0.9),
@@ -316,18 +365,22 @@ silk = unary_union([
     silk_text("D", argb_pos(1)[0] - 1.45, argb_pos(1)[1] - 1.45, 0.8),
     silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
     LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
-    silk_text("ESP", 0.0, 22.6, 0.9),
+    silk_text("ESP", -2.4, 22.6, 0.9),
+    silk_text("D+", 2.87, 5.55, 0.7), silk_text("D-", 4.6, 5.55, 0.7),
+    silk_text("SJ2", 2.45, 18.25, 0.7), silk_text("SJ1", 2.45, 21.75, 0.7),
+    silk_text("D+", 3.3, 30.5, 0.7), silk_text("D-", 5.9, 31.7, 0.7),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
     silk_text("G", 1.27, 27.3, 0.8), silk_text("23", 3.81, 27.3, 0.8),
 ])
-silk = silk.difference(mask_open.buffer(0.15)).intersection(board.buffer(-0.3))
+silk = silk.difference(unary_union([mask_open, mask_open_top_extra]).buffer(0.15)).intersection(board.buffer(-0.3))
 for m in MOUNT:
     silk = silk.difference(Point(m).buffer(MOUNT_DRILL / 2 + 0.3))
 
 # Kupfer unten wie beim Aetzen, aber ohne die Koernerpunkte (der Hersteller bohrt selbst)
 write_layer("platine-B_Cu.gbl", "Copper,L2,Bot", [pour] + [g for k, g in net_cu.items() if k != "GND"])
-write_layer("platine-F_Cu.gtl", "Copper,L1,Top", [pad_all])
-write_layer("platine-F_Mask.gts", "Soldermask,Top", [mask_open])
+write_layer("platine-F_Cu.gtl", "Copper,L1,Top", [unary_union([pad_all] + [track_shape(t) for t in top_tracks] +
+                                                                [smd_shape(n) for n in smd])])
+write_layer("platine-F_Mask.gts", "Soldermask,Top", [unary_union([mask_open, mask_open_top_extra])])
 write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open])
 write_layer("platine-F_SilkS.gto", "Legend,Top", [silk])
 write_outline("platine-Edge_Cuts.gm1")
@@ -434,6 +487,13 @@ for k, g in net_cu.items():
     if k == "GND":
         continue
     draw_geom(dr, g, tf, colors.get(k, "#c8a24a"))
+for t in top_tracks:   # Bahnen oben (Bauteilseite) gestrichelt hellblau
+    line = LineString(t[2])
+    d0 = 0.0
+    while d0 < line.length:
+        seg = [line.interpolate(d0), line.interpolate(min(d0 + 0.8, line.length))]
+        dr.line([tf(seg[0].x, seg[0].y), tf(seg[1].x, seg[1].y)], fill="#7fd3ff", width=int(0.5 * s))
+        d0 += 1.4
 for p in pads.values():
     x, y = tf(p["x"], p["y"])
     r = p["drill"] / 2 * s
@@ -477,6 +537,15 @@ label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/
 label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
 label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
 label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
+fs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s))
+label(2.87, 5.6, "USB D+  D-", fs)
+for n in smd:
+    q = smd_shape(n)
+    dr.polygon([tf(*c) for c in q.exterior.coords], fill="#c8a24a", outline="black")
+label(2.45, 18.2, "SJ2 D-", fs)
+label(2.45, 21.7, "SJ1 D+", fs)
+label(3.3, 30.3, "D+", fs)
+label(5.9, 31.3, "D-", fs)
 label(29.5, 5.0, "LED", f2)
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
 print("ok", OUT)

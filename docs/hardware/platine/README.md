@@ -25,7 +25,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 
 | Datei | Lage |
 |---|---|
-| `platine-F_Cu.gtl` | Kupfer oben: nur Lötaugen (damit die Bohrungen durchkontaktiert sind) |
+| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind), die USB-Datenleitungen und die Lötbrücken SJ1/SJ2 |
 | `platine-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
 | `platine-F_Mask.gts`, `platine-B_Mask.gbs` | Lötstopplack oben/unten |
 | `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Umrisse, Polung) |
@@ -37,6 +37,8 @@ Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstop
 ![Gerber-Vorschau](out/platine_gerber_vorschau.png)
 
 ## Selbst ätzen
+
+Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben; beim Selbstätzen sie bei Bedarf mit isoliertem Draht auf der Bauteilseite ziehen.
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
 - **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
@@ -62,6 +64,9 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 | USB-C +5V / GND (links, große Pads) | Litze 1 mm² zu VBUS und GND der USB-C-Buchse |
 | LED +5V / DIN / GND (rechts) | Streifen. +5V und GND mit Litze 1 mm². |
 | ESP VBUS / IO3 / GND / IO23 (Zungenspitze) | J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
+| USB D+ / D− (über ARGB) | Pins D+ und D− der USB-C-Buchsenplatine (QUARKZMAN), kurze verdrillte Litze. Nur nötig für PC-Sync über USB. |
+| ESP D+ / D− (Zungenspitze rechts) | J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), verdrillt. |
+| SJ1 / SJ2 (Lötbrücken) | Offen: USB-Daten getrennt (Normalfall). Mit Lötpunkt geschlossen: PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README). |
 | ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Stiftleiste 1×4 einlöten und den dritten Stift (Lücke) ziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
 
 ## Unterschiede zum Breadboard-Plan
