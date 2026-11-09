@@ -65,9 +65,16 @@ pad("C1.-", -1.65, 3.0, "GND", d=1.9, drill=0.9)
 AX = 5.34
 # ARGB-Stecker vom Mainboard (3-polig im 4er-Raster): 5V, D, Lücke (Kodierung), G.
 # 5V wird nur mechanisch aufgenommen und ist nicht angeschlossen.
-pad("ARGB.G", AX - P, 8.0, "GND", shape="square")
-pad("ARGB.D", AX + P, 8.0, "ARGB_D")
-pad("ARGB.5V", AX + 2 * P, 8.0, "ARGB_5V_NC")
+# Liegt parallel zur schraegen Kante (x + y = 24,7), 90-Grad-Stiftleiste zeigt nach aussen.
+import math
+AC = (11.71, 10.44)                         # Mitte der Reihe, 1,8 mm von der Kante
+AU = (math.sqrt(0.5), -math.sqrt(0.5))      # Richtung entlang der Kante
+def argb_pos(i):                            # i = 0..3 (5V, D, Luecke, G)
+    t = (i - 1.5) * P
+    return (round(AC[0] + t * AU[0], 3), round(AC[1] + t * AU[1], 3))
+pad("ARGB.5V", *argb_pos(0), "ARGB_5V_NC")
+pad("ARGB.D", *argb_pos(1), "ARGB_D")
+pad("ARGB.G", *argb_pos(3), "GND", shape="square")
 pad("R3.1", AX, 10.54, "ARGB_D")
 pad("R3.2", AX, 13.08, "IO23")
 pad("R4.1", AX, 15.62, "IO23")
@@ -93,7 +100,7 @@ tracks = [
     ("IO3", W_SIG, [U1[2], (U1[2][0], 4.9), (-1.27, 4.9), at("ESP.IO3")]),
     ("OUT", W_SIG, [U1[3], (U1[3][0], -1.3), at("R1.1")]),
     ("DIN", W_SIG, [at("R1.2"), at("STRIP.DIN")]),
-    ("ARGB_D", W_SIG, [at("ARGB.D"), (AX + P, 9.3), (AX + 1.3, 10.54), at("R3.1")]),
+    ("ARGB_D", W_SIG, [at("ARGB.D"), at("R3.1")]),
     ("IO23", W_SIG, [at("R3.2"), at("R4.1"), (AX, 23.5), at("ESP.IO23")]),
 ]
 
@@ -304,9 +311,11 @@ silk = unary_union([
     silk_text("5V", SX + 2.6, -4.2), silk_text("D", SX + 1.8, -0.4), silk_text("GND", SX + 3.4, 3.4),
     silk_text("LED", 29.0, 6.0, 0.9),
     silk_text("USB", -10.0, -1.6, 0.9), silk_text("+", -8.0, 0.4), silk_text("-", -8.0, 4.0),
-    silk_text("ARGB", AX + 4.3, 9.9, 0.9), silk_text("G", AX - P, 6.35, 0.8),
-    silk_text("D", AX + P, 6.35, 0.8), silk_text("5V", AX + 2 * P, 6.35, 0.8),
-    LineString([(AX - 0.6, 8.0), (AX + 0.6, 8.0)]).buffer(SILK_W / 2, 8),
+    silk_text("ARGB", 9.0, 7.3, 0.9),
+    silk_text("5V", argb_pos(0)[0] - 1.45, argb_pos(0)[1] - 1.45, 0.8),
+    silk_text("D", argb_pos(1)[0] - 1.45, argb_pos(1)[1] - 1.45, 0.8),
+    silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
+    LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
     silk_text("ESP", 0.0, 22.6, 0.9),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
     silk_text("G", 1.27, 27.3, 0.8), silk_text("23", 3.81, 27.3, 0.8),
@@ -463,7 +472,10 @@ for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
     label(pads[n]["x"] + 3.6, pads[n]["y"], t)
 label(-11.5, 6.9, "USB-C", f2, "black")
 label(-11.0, 2.2, "GND/+5V")
-label(AX + 1.27, 6.4, "ARGB G  -  D  5V(nc)")
+label(9.0, 7.1, "ARGB 90°", f2)
+label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
+label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
+label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
 label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(29.5, 5.0, "LED", f2)
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
