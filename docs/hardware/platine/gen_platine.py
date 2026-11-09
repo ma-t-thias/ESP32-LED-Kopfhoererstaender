@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Einseitige Platine fuer den Sockel des Kopfhoererstaenders.
 
-Erzeugt Gerber (Kupfer unten, Umriss), Excellon-Bohrdatei, eine 1:1-Aetzvorlage (PNG/PDF)
-und einen Bestueckungsplan. Koordinaten in mm, Draufsicht von der Bauteilseite,
+Erzeugt Fertigungsdaten fuer Leiterplatten-Shops (Gerber-ZIP: Kupfer, Loetstopp, Bestueckungsdruck,
+Umriss, Bohrungen), eine 1:1-Aetzvorlage (PNG/PDF) und einen Bestueckungsplan. Koordinaten in mm, Draufsicht von der Bauteilseite,
 Ursprung = Mitte des Sockels (wie im SolidCraft-Modell), +y Richtung Display.
 
 Aufruf: pip install shapely pillow && python3 docs/hardware/platine/gen_platine.py
@@ -63,8 +63,18 @@ pad("C1.+", -5.15, 3.0, "+5V", d=1.9, drill=0.9, shape="square")
 pad("C1.-", -1.65, 3.0, "GND", d=1.9, drill=0.9)
 # Zunge: ARGB-Eingang, R3/R4-Spannungsteiler, Anschluss ESP (2,54-mm-Raster)
 AX = 5.34
-pad("ARGB.G", AX - P, 8.0, "GND", shape="square")
-pad("ARGB.D", AX, 8.0, "ARGB_D")
+# ARGB-Stecker vom Mainboard (3-polig im 4er-Raster): 5V, D, Lücke (Kodierung), G.
+# 5V wird nur mechanisch aufgenommen und ist nicht angeschlossen.
+# Liegt parallel zur schraegen Kante (x + y = 24,7), 90-Grad-Stiftleiste zeigt nach aussen.
+import math
+AC = (11.71, 10.44)                         # Mitte der Reihe, 1,8 mm von der Kante
+AU = (math.sqrt(0.5), -math.sqrt(0.5))      # Richtung entlang der Kante
+def argb_pos(i):                            # i = 0..3 (5V, D, Luecke, G)
+    t = (i - 1.5) * P
+    return (round(AC[0] + t * AU[0], 3), round(AC[1] + t * AU[1], 3))
+pad("ARGB.5V", *argb_pos(0), "ARGB_5V_NC")
+pad("ARGB.D", *argb_pos(1), "ARGB_D")
+pad("ARGB.G", *argb_pos(3), "GND", shape="square")
 pad("R3.1", AX, 10.54, "ARGB_D")
 pad("R3.2", AX, 13.08, "IO23")
 pad("R4.1", AX, 15.62, "IO23")
@@ -194,59 +204,160 @@ def gerber_poly(lines, poly, dark=True):
 def polys(g):
     return list(g.geoms) if g.geom_type in ("MultiPolygon", "GeometryCollection") else [g]
 
-def write_gerber(fname, func, geom, outline=False):
-    L = ["%FSLAX46Y46*%", "%MOMM*%", f"%TF.FileFunction,{func}*%", "%TF.Part,Single*%",
-         "%ADD10C,0.150*%", "G01*", "G75*"]
-    if outline:
-        L.append("D10*")
-        pts = list(board.exterior.coords)
-        L.append(f"X{fmt(pts[0][0])}Y{fmt(pts[0][1])}D02*")
-        for x, y in pts[1:]:
-            L.append(f"X{fmt(x)}Y{fmt(y)}D01*")
-    else:
-        # Kupfer: alle Polygone (Masseflaeche zuerst, sie hat Loecher fuer die anderen Netze)
-        for p in polys(pour):
-            gerber_poly(L, p)
-        for k, g in net_cu.items():
-            if k == "GND":
-                continue
-            for p in polys(g):
-                gerber_poly(L, p)
-        # Bohrloecher im Kupfer freistellen (hilft beim Aetzen als Koernerpunkt)
-        L.append("%LPC*%")
-        for p in pads.values():
-            c = Point(p["x"], p["y"]).buffer(0.3, 16)
-            L.append("G36*")
-            pts = list(c.exterior.coords)
-            L.append(f"X{fmt(pts[0][0])}Y{fmt(pts[0][1])}D02*")
-            for x, y in pts[1:]:
-                L.append(f"X{fmt(x)}Y{fmt(y)}D01*")
-            L.append("G37*")
-        L.append("%LPD*%")
+# ---------------- Fertigungsdaten (Gerber fuer Leiterplatten-Shops) ----------------
+# Bestellung als 2-lagige Platine: Leiterbahnen und Masseflaeche nur unten (wie beim Aetzen),
+# oben nur Loetaugen, damit die Bohrungen durchkontaktiert werden. Loetstopplack beidseitig,
+# Bestueckungsdruck oben. Befestigungsloecher ohne Durchkontaktierung (NPTH).
+# Alle Gerber-Lagen in Draufsicht von oben (Bauteilseite), wie im Gerber-Format ueblich.
+MASK_EXP = 0.05      # Loetstopp-Freistellung um die Pads
+SILK_W = 0.16        # Linienbreite Bestueckungsdruck
+SILK_H = 1.1         # Schrifthoehe
+
+def gerber_header(func, polarity="Positive"):
+    return ["%FSLAX46Y46*%", "%MOMM*%", f"%TF.GenerationSoftware,gen_platine.py*%",
+            f"%TF.FileFunction,{func}*%", f"%TF.FilePolarity,{polarity}*%", "%TF.Part,Single*%",
+            "%ADD10C,0.150*%", "G01*", "G75*"]
+
+def write_layer(fname, func, geoms):
+    """geoms: Liste von Flaechen, nacheinander gezeichnet; groesste zuerst, damit Aussparungen
+    einer Flaeche keine kleinere Insel darin loeschen."""
+    L = gerber_header(func)
+    allp = []
+    for g in geoms:
+        allp += [p for p in polys(g) if not p.is_empty]
+    for p in sorted(allp, key=lambda q: -q.area):
+        gerber_poly(L, p)
     L.append("M02*")
     open(os.path.join(OUT, fname), "w").write("\n".join(L) + "\n")
 
-write_gerber("platine-B_Cu.gbl", "Copper,L1,Bot", copper)
-write_gerber("platine-Edge_Cuts.gm1", "Profile,NP", None, outline=True)
+def write_outline(fname):
+    L = gerber_header("Profile,NP")
+    L.append("D10*")
+    pts = list(board.exterior.coords)
+    L.append(f"X{fmt(pts[0][0])}Y{fmt(pts[0][1])}D02*")
+    for x, y in pts[1:]:
+        L.append(f"X{fmt(x)}Y{fmt(y)}D01*")
+    L.append("M02*")
+    open(os.path.join(OUT, fname), "w").write("\n".join(L) + "\n")
 
-# Excellon
-tools = sorted({p["drill"] for p in pads.values()} | {MOUNT_DRILL})
-E = ["M48", "METRIC,TZ", "FMAT,2", "G90"]
-for i, d in enumerate(tools, 1):
-    E.append(f"T{i}C{d:.3f}")
-E.append("%")
-E.append("G05")
-for i, d in enumerate(tools, 1):
-    E.append(f"T{i}")
-    for p in pads.values():
-        if p["drill"] == d:
-            E.append(f"X{p['x']:.3f}Y{p['y']:.3f}")
-    if d == MOUNT_DRILL:
-        for x, y in MOUNT:
-            E.append(f"X{x:.3f}Y{y:.3f}")
-E.append("T0")
-E.append("M30")
-open(os.path.join(OUT, "platine.drl"), "w").write("\n".join(E) + "\n")
+# Kleine Strichschrift (Raster 4 x 6) fuer den Bestueckungsdruck
+FONT = {
+    "A": [[(0, 0), (0, 4), (2, 6), (4, 4), (4, 0)], [(0, 3), (4, 3)]],
+    "B": [[(0, 0), (0, 6), (3, 6), (4, 5), (4, 4), (3, 3), (0, 3)], [(3, 3), (4, 2), (4, 1), (3, 0), (0, 0)]],
+    "C": [[(4, 5), (3, 6), (1, 6), (0, 5), (0, 1), (1, 0), (3, 0), (4, 1)]],
+    "D": [[(0, 0), (0, 6), (2, 6), (4, 4), (4, 2), (2, 0), (0, 0)]],
+    "E": [[(4, 6), (0, 6), (0, 0), (4, 0)], [(0, 3), (3, 3)]],
+    "G": [[(4, 5), (3, 6), (1, 6), (0, 5), (0, 1), (1, 0), (3, 0), (4, 1), (4, 3), (2, 3)]],
+    "I": [[(1, 6), (3, 6)], [(2, 6), (2, 0)], [(1, 0), (3, 0)]],
+    "K": [[(0, 0), (0, 6)], [(4, 6), (0, 2)], [(1, 3), (4, 0)]],
+    "L": [[(0, 6), (0, 0), (4, 0)]],
+    "N": [[(0, 0), (0, 6), (4, 0), (4, 6)]],
+    "O": [[(1, 0), (0, 1), (0, 5), (1, 6), (3, 6), (4, 5), (4, 1), (3, 0), (1, 0)]],
+    "P": [[(0, 0), (0, 6), (3, 6), (4, 5), (4, 4), (3, 3), (0, 3)]],
+    "R": [[(0, 0), (0, 6), (3, 6), (4, 5), (4, 4), (3, 3), (0, 3)], [(2, 3), (4, 0)]],
+    "S": [[(4, 5), (3, 6), (1, 6), (0, 5), (0, 4), (1, 3), (3, 3), (4, 2), (4, 1), (3, 0), (1, 0), (0, 1)]],
+    "U": [[(0, 6), (0, 1), (1, 0), (3, 0), (4, 1), (4, 6)]],
+    "V": [[(0, 6), (2, 0), (4, 6)]],
+    "0": [[(1, 0), (0, 1), (0, 5), (1, 6), (3, 6), (4, 5), (4, 1), (3, 0), (1, 0)], [(0, 1), (4, 5)]],
+    "1": [[(1, 5), (2, 6), (2, 0)], [(1, 0), (3, 0)]],
+    "2": [[(0, 5), (1, 6), (3, 6), (4, 5), (4, 4), (0, 0), (4, 0)]],
+    "3": [[(0, 5), (1, 6), (3, 6), (4, 5), (4, 4), (3, 3), (1, 3)], [(3, 3), (4, 2), (4, 1), (3, 0), (1, 0), (0, 1)]],
+    "4": [[(3, 0), (3, 6), (0, 2), (4, 2)]],
+    "5": [[(4, 6), (0, 6), (0, 3), (3, 3), (4, 2), (4, 1), (3, 0), (0, 0)]],
+    "+": [[(2, 1), (2, 5)], [(0, 3), (4, 3)]],
+    "-": [[(0, 3), (4, 3)]],
+    " ": [],
+}
+
+def silk_text(t, x, y, h=SILK_H):
+    """Text mittig um (x, y)."""
+    u = h / 6
+    w = (len(t) * 5.5 - 1.5) * u
+    x0, y0 = x - w / 2, y - h / 2
+    out = []
+    for i, ch in enumerate(t):
+        for stroke in FONT[ch]:
+            pts = [(x0 + (i * 5.5 + a) * u, y0 + b * u) for a, b in stroke]
+            out.append(LineString(pts).buffer(SILK_W / 2, 8))
+    return unary_union(out)
+
+def silk_rect(x0, y0, x1, y1):
+    return LineString([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]).buffer(SILK_W / 2, 8, join_style=2)
+
+def silk_circle(x, y, r):
+    return Point(x, y).buffer(r + SILK_W / 2, 32).difference(Point(x, y).buffer(r - SILK_W / 2, 32))
+
+pad_all = unary_union([pad_shape(p) for p in pads.values()])
+mask_open = unary_union([pad_shape(p).buffer(MASK_EXP, 16) for p in pads.values()] +
+                        [Point(m).buffer(MOUNT_DRILL / 2 + 0.1, 32) for m in MOUNT])
+
+silk = unary_union([
+    # U1 mit Kerbe rechts
+    silk_rect(UX - 9.6, UY - 2.6, UX + 9.6, UY + 2.6),
+    Point(UX + 9.6, UY).buffer(0.9 + SILK_W / 2, 24).difference(Point(UX + 9.6, UY).buffer(0.9 - SILK_W / 2, 24)).intersection(
+        Polygon([(UX + 8.5, UY - 2), (UX + 9.6, UY - 2), (UX + 9.6, UY + 2), (UX + 8.5, UY + 2)])),
+    silk_text("U1", UX - 5.5, UY),
+    # C2 (Folie, stehend) unter U1
+    silk_rect(6.4, -12.6, 17.8, -7.4), silk_text("C2", 12.1, -10.0),
+    # C1 liegend in der Zunge, Plus links
+    silk_rect(-7.0, 4.6, 0.3, 21.0), silk_text("C1", -3.4, 12.8), silk_text("1000", -3.4, 10.6, 0.9),
+    silk_text("+", -5.15, 5.4),
+    # D1 stehend: Kreis um die Anode (Koerper), Strich an der Kathode
+    silk_circle(-8.7, 22.9, 1.55), silk_text("D1", -8.7, 25.45),
+    LineString([(-9.95, 29.6), (-7.45, 29.6)]).buffer(SILK_W, 8),
+    # Widerstaende stehend
+    silk_text("R1", 21.0, -3.1), silk_text("R3", AX + 2.2, 11.8), silk_text("R4", AX + 2.2, 15.62),
+    # Anschluesse
+    silk_text("5V", SX + 2.6, -4.2), silk_text("D", SX + 1.8, -0.4), silk_text("GND", SX + 3.4, 3.4),
+    silk_text("LED", 29.0, 6.0, 0.9),
+    silk_text("USB", -10.0, -1.6, 0.9), silk_text("+", -8.0, 0.4), silk_text("-", -8.0, 4.0),
+    silk_text("ARGB", 9.0, 7.3, 0.9),
+    silk_text("5V", argb_pos(0)[0] - 1.45, argb_pos(0)[1] - 1.45, 0.8),
+    silk_text("D", argb_pos(1)[0] - 1.45, argb_pos(1)[1] - 1.45, 0.8),
+    silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
+    LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
+    silk_text("ESP", 0.0, 22.6, 0.9),
+    silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
+    silk_text("G", 1.27, 27.3, 0.8), silk_text("23", 3.81, 27.3, 0.8),
+])
+silk = silk.difference(mask_open.buffer(0.15)).intersection(board.buffer(-0.3))
+for m in MOUNT:
+    silk = silk.difference(Point(m).buffer(MOUNT_DRILL / 2 + 0.3))
+
+# Kupfer unten wie beim Aetzen, aber ohne die Koernerpunkte (der Hersteller bohrt selbst)
+write_layer("platine-B_Cu.gbl", "Copper,L2,Bot", [pour] + [g for k, g in net_cu.items() if k != "GND"])
+write_layer("platine-F_Cu.gtl", "Copper,L1,Top", [pad_all])
+write_layer("platine-F_Mask.gts", "Soldermask,Top", [mask_open])
+write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open])
+write_layer("platine-F_SilkS.gto", "Legend,Top", [silk])
+write_outline("platine-Edge_Cuts.gm1")
+
+def write_drill(fname, items, plated):
+    tools = sorted({d for d, _, _ in items})
+    E = ["M48", f"; DRILL file gen_platine.py, {'PTH' if plated else 'NPTH'}",
+         f"; #@! TF.FileFunction,{'Plated' if plated else 'NonPlated'},1,2,{'PTH' if plated else 'NPTH'}",
+         "METRIC,TZ", "FMAT,2", "G90"]
+    for i, d in enumerate(tools, 1):
+        E.append(f"T{i}C{d:.3f}")
+    E += ["%", "G05"]
+    for i, d in enumerate(tools, 1):
+        E.append(f"T{i}")
+        E += [f"X{x:.3f}Y{y:.3f}" for dd, x, y in items if dd == d]
+    E += ["T0", "M30"]
+    open(os.path.join(OUT, fname), "w").write("\n".join(E) + "\n")
+
+write_drill("platine-PTH.drl", [(p["drill"], p["x"], p["y"]) for p in pads.values()], True)
+write_drill("platine-NPTH.drl", [(MOUNT_DRILL, x, y) for x, y in MOUNT], False)
+old = os.path.join(OUT, "platine.drl")
+if os.path.exists(old):
+    os.remove(old)
+
+import zipfile
+FAB = ["platine-F_Cu.gtl", "platine-B_Cu.gbl", "platine-F_Mask.gts", "platine-B_Mask.gbs",
+       "platine-F_SilkS.gto", "platine-Edge_Cuts.gm1", "platine-PTH.drl", "platine-NPTH.drl"]
+with zipfile.ZipFile(os.path.join(OUT, "platine_gerber.zip"), "w", zipfile.ZIP_DEFLATED) as z:
+    for f in FAB:
+        z.write(os.path.join(OUT, f), f)
 
 # ---------------- Bilder ----------------
 xmin, ymin, xmax, ymax = board.bounds
@@ -361,7 +472,10 @@ for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
     label(pads[n]["x"] + 3.6, pads[n]["y"], t)
 label(-11.5, 6.9, "USB-C", f2, "black")
 label(-11.0, 2.2, "GND/+5V")
-label(AX - 1.3, 6.6, "ARGB G  D")
+label(9.0, 7.1, "ARGB 90°", f2)
+label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
+label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
+label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
 label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(29.5, 5.0, "LED", f2)
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
