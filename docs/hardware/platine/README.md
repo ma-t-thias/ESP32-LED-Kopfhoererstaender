@@ -79,5 +79,5 @@ Anschlüsse:
 - **Höhe der Stecker:** Auf der Platine passen gerade Stiftleisten mit Dupont-Hülse (ca. 16,5 mm hoch), weil darüber eine Diffusoröffnung liegt. Auf der USB-C-Buchsenplatine ist dafür kein Platz (Diffusor ca. 12 mm darüber), dort die Kabel direkt anlöten.
 
 - Drei Befestigungslöcher M2,5 bei (−5/−6), (27,5/−1) und (0/30) mm, passend zu den Domen im Sockel-Vorschlag (`ESP32-Umbau\Passprobe\Vorschlag_Platine\`). Die Unterseite der Platine liegt 4 mm über dem Sockelboden.
-- Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. Am höchsten ist C2 mit 10,3 mm.
+- Bauhöhe über der Platine höchstens 13 mm, außer an den beiden USB-Stiftleisten (unter der Diffusoröffnung, gesteckt ca. 16,5 mm). Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. Am höchsten ist C2 mit 10,3 mm.
 - Statt CY630 passt auch ein Keramik-Vielschichtkondensator 100 nF, 50 V, X7R mit Raster 5,08 mm (z. B. KEMET C320C104K5R5TA). Dessen Beine auf 10,16 mm aufbiegen.
