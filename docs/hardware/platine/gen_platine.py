@@ -333,12 +333,19 @@ FONT = {
     "(": [[(3, 6), (2, 5), (2, 1), (3, 0)]],
     ")": [[(1, 6), (2, 5), (2, 1), (1, 0)]],
     ".": [[(2, 0), (2, 0.4)]],
+    # Kleinbuchstaben (x-Hoehe 4)
+    "a": [[(0.5, 4), (3, 4), (4, 3), (4, 0)], [(4, 2.2), (1, 2.2), (0, 1.5), (0, 0.7), (1, 0), (4, 0)]],
+    "e": [[(0, 2), (4, 2), (4, 3), (3, 4), (1, 4), (0, 3), (0, 1), (1, 0), (4, 0)]],
+    "h": [[(0, 6), (0, 0)], [(0, 3), (1, 4), (3, 4), (4, 3), (4, 0)]],
+    "i": [[(2, 0), (2, 4)], [(2, 5.4), (2, 5.8)]],
+    "s": [[(4, 4), (1, 4), (0, 3.2), (1, 2), (3, 2), (4, 1), (3, 0), (0, 0)]],
+    "t": [[(1.5, 6), (1.5, 1), (2.5, 0), (3.5, 0)], [(0, 4), (3.5, 4)]],
     "+": [[(2, 1), (2, 5)], [(0, 3), (4, 3)]],
     "-": [[(0, 3), (4, 3)]],
     " ": [],
 }
 
-COPYRIGHT = "(C) 2026 MATTHIAS"     # Bestueckungsdruck unten links (nur Grossbuchstaben, Ziffern, Klammern)
+COPYRIGHT = ("(C) 2026", "Matthias Steis")     # Bestueckungsdruck unten links, zwei Zeilen
 
 def silk_text(t, x, y, h=SILK_H):
     """Text mittig um (x, y)."""
@@ -380,7 +387,7 @@ silk = unary_union([
     # Widerstaende stehend
     silk_text("R1", 20.6, -3.1), silk_text("R3", AX - 2.0, 11.8), silk_text("R4", AX + 2.2, 15.62),
     # Anschluesse
-    silk_text("5V", SX + 1.6, 1.24 - P - 2.0), silk_text("D", SX + 1.8, 1.24), silk_text("GND", SX + 3.4, 1.24 + P),
+    silk_text("5V", SX + 1.6, 1.24 - P - 2.0), silk_text("D", SX + 2.0, 1.24), silk_text("GND", SX + 3.4, 1.24 + P),
     silk_rect(SX - 1.27, 1.24 - 1.5 * P, SX + 1.27, 1.24 + 1.5 * P),
     silk_text("LED", 27.0, 6.0, 1.1),
     silk_rect(-11.67, 0.13, -9.13, 5.21), silk_text("USB-C", -9.9, -2.2, 0.9),
@@ -392,7 +399,7 @@ silk = unary_union([
     silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
     LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
     silk_text("ESP32", -2.4, 22.6, 0.9),
-    silk_text(COPYRIGHT, -0.8, -9.0, 0.8),
+    silk_text(COPYRIGHT[0], -0.8, -8.45, 0.8), silk_text(COPYRIGHT[1], -0.8, -9.6, 0.8),
     silk_text("D+", 3.4, 5.0, 0.7), silk_text("D-", 5.94, 5.0, 0.7),
     silk_text("D+", 3.3, 31.0, 0.7), silk_text("D-", 3.3 + P, 31.0, 0.7),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
