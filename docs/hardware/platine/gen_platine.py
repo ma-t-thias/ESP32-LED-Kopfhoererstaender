@@ -46,11 +46,11 @@ for n, (x, y) in U1.items():
 pad("D1.A", -8.7, 22.9, "+5V", d=2.0, drill=1.0)
 pad("D1.K", -8.7, 27.98, "VESP", d=2.0, drill=1.0, shape="square")
 # C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), stehend unter U1
-pad("C2.1", 17.16, -10.0, "+5V", d=1.9, drill=1.0)
-pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
+pad("C2.1", 17.56, -10.25, "+5V", d=1.9, drill=1.0)
+pad("C2.2", 7.4, -10.25, "GND", d=1.9, drill=1.0)
 # R1 330 Ohm stehend
-pad("R1.1", 20.6, -1.3, "OUT")
-pad("R1.2", 20.6, 1.24, "DIN")
+pad("R1.1", 19.8, -1.3, "OUT")
+pad("R1.2", 19.8, 1.24, "DIN")
 # Anschluesse LED-Streifen (rechts): grosse Pads fuer Litze 1 mm2
 # USB-C (links): Stiftleiste 1x2 im 2,54-mm-Raster (gerade oder 90 Grad), Dupont-Kabel zur Buchsenplatine
 # (VBUS/GND = Pins 1-2 der 8er-Leiste). Bohrung 1,1 mm: alternativ Litze bis 0,75 mm2 direkt einloeten.
@@ -75,26 +75,26 @@ AU = (math.sqrt(0.5), -math.sqrt(0.5))      # Richtung entlang der Kante
 def argb_pos(i):                            # i = 0..3 (5V, D, Luecke, G)
     t = (i - 1.5) * P
     return (round(AC[0] + t * AU[0], 3), round(AC[1] + t * AU[1], 3))
-pad("ARGB.5V", *argb_pos(0), "ARGB_5V_NC")
-pad("ARGB.D", *argb_pos(1), "ARGB_D")
-pad("ARGB.G", *argb_pos(3), "GND", shape="square")
+pad("ARGB.5V", *argb_pos(0), "ARGB_5V_NC", drill=1.0)
+pad("ARGB.D", *argb_pos(1), "ARGB_D", drill=1.0)
+pad("ARGB.G", *argb_pos(3), "GND", shape="square", drill=1.0)
 pad("R3.1", AX, 10.54, "ARGB_D")
 pad("R3.2", AX, 13.08, "IO23")
 pad("R4.1", AX, 15.62, "IO23")
 pad("R4.2", AX - P, 15.62, "GND")
 EY = 25.5
-pad("ESP.VBUS", -3.81, EY, "VESP", shape="square")
-pad("ESP.IO3", -1.27, EY, "IO3")
-pad("ESP.GND", 1.27, EY, "GND")
-pad("ESP.IO23", 3.81, EY, "IO23")
+pad("ESP.VBUS", -3.81, EY, "VESP", shape="square", drill=1.0)
+pad("ESP.IO3", -1.27, EY, "IO3", drill=1.0)
+pad("ESP.GND", 1.27, EY, "GND", drill=1.0)
+pad("ESP.IO23", 3.81, EY, "IO23", drill=1.0)
 # USB-Daten vom PC (optional): Stiftleiste 1x2 (2,54 mm) fuer D+/D- der USB-C-Buchsenplatine (Pins 5-6 der
 # 8er-Leiste) -> ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D-). Das Datenkabel ist der Schalter: gesteckt
 # kann der PC ueber die Sockel-Buchse Daten senden, abgezogen nur Strom (Netzteil-Betrieb, Flashen ueber die ESP-Buchse).
-pad("USBD.DP", 3.4, 6.9, "USB_DP")
-pad("USBD.DM", 5.94, 6.9, "USB_DM")
+pad("USBD.DP", 3.4, 6.9, "USB_DP", drill=1.0)
+pad("USBD.DM", 5.94, 6.9, "USB_DM", drill=1.0)
 # ESP D+/D-: Stiftleiste 1x2 (2,54 mm) an der Zungenspitze, Dupont zu J3 Pin 12 / 11
-pad("ESP.DP", 3.3, 29.2, "USB_DP")
-pad("ESP.DM", 3.3 + P, 29.2, "USB_DM")
+pad("ESP.DP", 3.3, 29.2, "USB_DP", drill=1.0)
+pad("ESP.DM", 3.3 + P, 29.2, "USB_DM", drill=1.0)
 SJ_SIZE = 1.0
 smd = {}
 
@@ -139,9 +139,11 @@ def sj(n):
 top_tracks = [
     ("USB_DP", W_USB, [at("USBD.DP"), (-2.0, 6.9), (-2.0, 23.0), (5.5, 23.0), (5.5, 27.0), at("ESP.DP")]),
     ("USB_DM", W_USB, [at("USBD.DM"), (7.3, 8.3), (7.3, 17.5), (6.5, 18.3), (6.5, 29.2), at("ESP.DM")]),
-    # GND-Bruecke oben: verbindet die Masseflaeche zwischen IO3-, OUT- und +5V-Bahn (U1 Pin 4) mit der restlichen
-    # Masse (U1 Pin 1). Beim Selbstaetzen als Drahtbruecke auf der Bauteilseite.
-    ("GND", 0.8, [U1[4], (U1[4][0], 3.4), (U1[1][0], 3.4), U1[1]]),
+    # GND-Bruecken oben: Die +5V-Bahnen teilen die Masseflaeche unten in Teile. Drei Bruecken verbinden sie
+    # (U1 Pin 4 -> Pin 1, U1 Pin 5 -> Pin 10, USB-GND -> C1-). Beim Selbstaetzen als Drahtbruecken auf der Bauteilseite.
+    ("GND", 1.2, [U1[4], (U1[4][0], 3.7), (U1[1][0], 3.7), U1[1]]),
+    ("GND", 1.0, [U1[5], U1[10]]),                                  # unter dem IC, verbindet mit der Masse unten
+    ("GND", 1.0, [at("USB.GND"), (-8.0, 4.9), (-1.65, 4.9), at("C1.-")]),   # kurzer Rueckweg zur USB-Buchse
 ]
 
 def smd_shape(n):
@@ -219,9 +221,14 @@ for a in top_nets:
     for m in MOUNT:
         if top_cu[a].distance(Point(m)) < MOUNT_DRILL / 2 + 1.0:
             problems.append(f"Oben {a} zu nah an Befestigungsloch {m}")
-_bridged = unary_union([pour] + [track_shape(t) for t in top_tracks if t[0] == "GND"])
-gnd_islands = len(_bridged.geoms) if _bridged.geom_type == "MultiPolygon" else 1
-print("GND-Inseln (mit Bruecke oben):", gnd_islands)
+# Inseln robust zaehlen: Stege unter 0,4 mm Breite gelten als getrennt (fertigt kein Hersteller zuverlaessig)
+_bridged = unary_union([pour.buffer(-0.2, 8).buffer(0.2, 8)] + [track_shape(t) for t in top_tracks if t[0] == "GND"] +
+                       [pad_shape(pads[n]) for n in gnd_pads])
+_parts = list(_bridged.geoms) if _bridged.geom_type == "MultiPolygon" else [_bridged]
+gnd_islands = sum(1 for g in _parts if any(g.intersects(Point(at(n))) for n in gnd_pads))
+print("GND-Inseln (Stege >= 0,4 mm, mit Bruecke oben):", gnd_islands)
+if gnd_islands != 1:
+    problems.append(f"Masseflaeche in {gnd_islands} Teile getrennt")
 print("Probleme:", problems or "keine")
 
 # ---------------- Gerber ----------------
@@ -270,10 +277,10 @@ def gerber_header(func, polarity="Positive"):
             f"%TF.FileFunction,{func}*%", f"%TF.FilePolarity,{polarity}*%", "%TF.Part,Single*%",
             "%ADD10C,0.150*%", "G01*", "G75*"]
 
-def write_layer(fname, func, geoms):
+def write_layer(fname, func, geoms, polarity="Positive"):
     """geoms: Liste von Flaechen, nacheinander gezeichnet; groesste zuerst, damit Aussparungen
     einer Flaeche keine kleinere Insel darin loeschen."""
-    L = gerber_header(func)
+    L = gerber_header(func, polarity)
     allp = []
     for g in geoms:
         allp += [p for p in polys(g) if not p.is_empty]
@@ -377,7 +384,7 @@ silk = unary_union([
         Polygon([(UX + 8.5, UY - 2), (UX + 9.6, UY - 2), (UX + 9.6, UY + 2), (UX + 8.5, UY + 2)])),
     silk_text("U1", UX - 5.5, UY),
     # C2 (Folie, stehend) unter U1
-    silk_rect(6.4, -12.6, 17.8, -7.4), silk_text("C2", 12.1, -10.0),
+    silk_rect(6.83, -12.85, 18.13, -7.65), silk_text("C2", 12.48, -10.25),
     # C1 liegend in der Zunge, Plus links
     silk_rect(-7.0, 4.6, 0.3, 21.0), silk_text("C1", -3.4, 12.8), silk_text("1000", -3.4, 10.6, 0.9),
     silk_text("+", -5.15, 5.4),
@@ -385,9 +392,9 @@ silk = unary_union([
     silk_circle(-8.7, 22.9, 1.55), silk_text("D1", -8.7, 25.45),
     LineString([(-9.95, 29.6), (-7.45, 29.6)]).buffer(SILK_W, 8),
     # Widerstaende stehend
-    silk_text("R1", 20.6, -3.1), silk_text("R3", AX - 2.0, 11.8), silk_text("R4", AX + 2.2, 15.62),
+    silk_text("R1", 19.8, -3.1), silk_text("R3", AX - 2.0, 11.8), silk_text("R4", AX + 2.2, 15.62),
     # Anschluesse
-    silk_text("5V", SX + 1.6, 1.24 - P - 2.0), silk_text("D", SX + 2.0, 1.24), silk_text("GND", SX + 3.4, 1.24 + P),
+    silk_text("5V", SX + 1.6, 1.24 - P - 2.0), silk_text("DIN", SX + 3.0, 1.24), silk_text("GND", SX + 3.4, 1.24 + P),
     silk_rect(SX - 1.27, 1.24 - 1.5 * P, SX + 1.27, 1.24 + 1.5 * P),
     silk_text("LED", 27.0, 6.0, 1.1),
     silk_rect(-11.67, 0.13, -9.13, 5.21), silk_text("USB-C", -9.9, -2.2, 0.9),
@@ -413,8 +420,8 @@ for m in MOUNT:
 write_layer("platine-B_Cu.gbl", "Copper,L2,Bot", [pour] + [g for k, g in net_cu.items() if k != "GND"])
 write_layer("platine-F_Cu.gtl", "Copper,L1,Top", [unary_union([pad_all] + [track_shape(t) for t in top_tracks] +
                                                                 [smd_shape(n) for n in smd])])
-write_layer("platine-F_Mask.gts", "Soldermask,Top", [unary_union([mask_open, mask_open_top_extra])])
-write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open])
+write_layer("platine-F_Mask.gts", "Soldermask,Top", [unary_union([mask_open, mask_open_top_extra])], "Negative")
+write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open], "Negative")
 write_layer("platine-F_SilkS.gto", "Legend,Top", [silk])
 write_outline("platine-Edge_Cuts.gm1")
 
@@ -504,7 +511,7 @@ d.text((600, 600 + mask.height + 120),
        "Kopfhoererstaender Platine, Kupferseite, Ansicht von der Bauteilseite, 1:1 (nicht skalieren).",
        fill=0, font=font)
 d.text((600, 600 + mask.height + 220),
-       "Tonertransfer: so drucken wie hier (nicht spiegeln). Pruefmass: Platine 46,5 x 36,5 mm.",
+       "Tonertransfer: so drucken wie hier (nicht spiegeln). Pruefmass: Platine 46,5 x 46,0 mm.",
        fill=0, font=font)
 a4.convert("L").save(os.path.join(OUT, "platine_aetzvorlage_A4.pdf"), resolution=600)
 
@@ -554,7 +561,7 @@ box(UX - 9.6, UY - 3.0, UX + 9.6, UY + 3.0, "U1 74AHCT125")
 X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
 label(-6.4, 22.9, "D1", f1)
-box(6.4, -12.7, 17.9, -7.3, "C2")
+box(6.83, -12.95, 18.13, -7.55, "C2")
 box(-7.5, 4.5, 0.7, 21.2, "")
 label(-3.4, 12.5, "C1 1000µF", f2)
 label(-3.4, 1.4, "+  C1  −", f2)
