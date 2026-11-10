@@ -28,7 +28,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 | `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind) die USB-Datenleitungen und eine kurze GND-Brücke (U1 Pin 4 → Pin 1) |
 | `platine-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
 | `platine-F_Mask.gts`, `platine-B_Mask.gbs` | Lötstopplack oben/unten |
-| `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Umrisse, Polung) |
+| `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Anschlussnamen, Umrisse, Polung, Copyright) |
 | `platine-Edge_Cuts.gm1` | Umriss |
 | `platine-PTH.drl`, `platine-NPTH.drl` | Bohrungen durchkontaktiert / ohne Kupfer (3 × M2,5) |
 
@@ -62,10 +62,10 @@ Anschlüsse (alle im 2,54-mm-Raster für Stiftleisten und Dupont-Stecker, gerade
 | Pads | Wohin |
 |---|---|
 | USB-C +5V / GND (links, Stiftleiste 1×2, 2,54 mm, gerade) | Dupont-Kabel zu VBUS/GND der USB-C-Buchsenplatine (Pins 1–2 der 8er-Leiste). Für bis zu 2,4 A **kein dünnes Jumperkabel**, sondern Litze ≥ AWG 22 mit selbst gecrimpten Dupont-Hülsen (Kontakte ca. 3 A). Alternativ Litze bis 0,75 mm² direkt einlöten. |
-| LED +5V / DIN / GND (rechts, Stiftleiste 1×3, 2,54 mm) | Dupont zum Streifen. Für +5V und GND Litze ≥ AWG 22 mit gecrimpten Hülsen (bis 2,4 A), kein dünnes Jumperkabel. Alternativ Litze bis 0,75 mm² direkt einlöten. |
-| ESP VBUS / IO3 / GND / IO23 (Zungenspitze, Stiftleiste 1×4) | Dupont zu J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
+| LED +5V / DIN / GND (rechts, 1×3 im 2,54-mm-Raster) | **Im Sockel:** Über dem Anschluss liegt die Diffusorscheibe (nur ca. 13 mm frei), und 90°-Stecker stoßen an Sockelwand bzw. R1/U1. Deshalb ein kurzes Kabel mit dem **JST-SM-Gegenstück** des Streifens anlöten (Pigtail, Litze ≥ AWG 22 für +5V/GND). Der Streifen wird dann dort eingesteckt. Außerhalb des Sockels (Test) passt auch eine Stiftleiste mit Dupont. |
+| ESP VBUS / IO3 / GND / IO23 (Zungenspitze, Stiftleiste 1×4) | Im Sockel ist über der Zungenspitze wenig Höhe: Stiftleiste mit Litze oben angelötet oder Litze direkt einlöten, am ESP-Ende Dupont-Buchse. Zu J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
 | USB D+ / D− (Stiftleiste 1×2, 2,54 mm, rechts neben C1) | Zweites Dupont-Kabel zu D−/D+ der Buchsenplatine (Pins 5–6), verdrillt. **Das Kabel ist der Schalter:** gesteckt PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README), abgezogen nur Strom. Zum Flashen über die ESP-Buchse abziehen. |
-| ESP D+ / D− (Zungenspitze rechts, Stiftleiste 1×2, 2,54 mm) | Dupont zu J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
+| ESP D+ / D− (Zungenspitze rechts, Stiftleiste 1×2, 2,54 mm) | Wie der ESP-Anschluss: auf der Platine gelötet, am ESP-Ende Dupont. Zu J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
 | ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Stiftleiste 1×4 einlöten und den dritten Stift (Lücke) ziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
 
 ## Unterschiede zum Breadboard-Plan
@@ -75,6 +75,8 @@ Anschlüsse (alle im 2,54-mm-Raster für Stiftleisten und Dupont-Stecker, gerade
 - Die WAGO-Klemmen entfallen. Die Platine verteilt +5 V und GND.
 
 ## Einbau
+
+- **USB-C-Buchsenplatine:** Die 8er-Stiftleiste bleibt drauf (Stifte nach oben). GND, VBUS, D− und D+ (Pins 1, 2, 5, 6) oben an die Stifte anlöten und seitlich zur Platine führen, gesteckt ist dort zu hoch. Auf der Platine stecken sie mit Dupont auf den beiden USB-Stiftleisten.
 
 - **Höhe der Stecker:** Auf der Platine passen gerade Stiftleisten mit Dupont-Hülse (ca. 16,5 mm hoch), weil darüber eine Diffusoröffnung liegt. Auf der USB-C-Buchsenplatine ist dafür kein Platz (Diffusor ca. 12 mm darüber), dort die Kabel direkt anlöten.
 
