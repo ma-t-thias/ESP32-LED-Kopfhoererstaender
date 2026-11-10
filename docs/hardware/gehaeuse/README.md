@@ -112,7 +112,7 @@ Im Sockel (`Base_Box_ESP32`) sitzen jetzt die Sockel-Platine (siehe [`../platine
 
 **Lehre aus v1:** Der erste Durchbruch begann genau an der Wandinnenfläche. Dadurch blieb in der STL eine Haut mit 0 mm Dicke stehen, die der Slicer zugedruckt hat. Durchbrüche deshalb ca. 0,2 mm innerhalb der Wand beginnen und außen überstehen lassen, danach die STL prüfen (z. B. Strahlentest durch die Öffnung).
 
-**Anschlüsse:** Alle Anschlüsse der Platine sind 2,54-mm-Stiftleisten. Im Modell stecken an USB-Strom und USB-Daten gerade Dupont-Hülsen; darüber liegt die Diffusoröffnung mit Platz bis ca. 40 mm. Über LED-, ESP- und D+/D−-Leiste liegt die geschlossene Diffusorscheibe nur 13,4 mm über der Platine, ein gerader Dupont-Stecker (ca. 16,5 mm) passt dort nicht (siehe Offene Punkte). An der Buchsenplatine sitzt die 8er-Stiftleiste (GND, VBUS, SBU2, CC1, D−, D+, SBU1, CC2), die Adern sind an Pin 1, 2, 5 und 6 angelötet.
+**Anschlüsse:** Alle Anschlüsse der Platine sind 2,54-mm-Stiftleisten. Im Modell stecken an USB-Strom und USB-Daten gerade Dupont-Hülsen; darüber liegt die Diffusoröffnung mit Platz bis ca. 40 mm. Über LED-, ESP- und D+/D−-Leiste liegt die geschlossene Diffusorscheibe nur 13,4 mm über der Platine, ein gerader Dupont-Stecker (ca. 16,5 mm) passt dort nicht. LED und ESP werden deshalb angelötet (siehe Offene Punkte). An der Buchsenplatine sitzt die 8er-Stiftleiste (GND, VBUS, SBU2, CC1, D−, D+, SBU1, CC2), die Adern sind an Pin 1, 2, 5 und 6 angelötet.
 
 **Elektronik im Modell:**
 - Die Baugruppen (hochkant und quer) haben eine Gruppe **„Elektronik“** mit Platine, Bauteilen, Stiftleisten, Steckern und Buchsenplatine.
@@ -162,8 +162,8 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 - **Probedruck beider Varianten** (Passung von Board, Deckel und USB-Stecker). Der Rastdeckel v2 sitzt im Probedruck gut.
 - **Probedruck quer** mit der Frontfixierung steht noch aus. Hochkant ist getestet.
 - **Entscheidung hochkant oder quer** nach dem Probedruck.
-- **Steckverbinder an LED, ESP und D+/D−:** Über diesen Leisten liegt die Diffusorscheibe nur 13,4 mm über der Platine. Gerade Dupont-Stecker passen nicht, 90°-Stecker (Dupont oder JST SM) stoßen an Sockelwand, U1/R1 oder C1. Möglich sind: Adern direkt einlöten, die Leiste auf der Platine unter die Diffusoröffnung verlegen, eine Tasche in die Diffusorscheibe oder den Sockel erhöhen.
-- **Stops:** Nach dem Kürzen um 0,75 mm stehen sie noch 0,25 mm über die Buchsenplatine. Mit 1,0 mm wären sie bündig.
+- **Steckverbinder an LED, ESP und D+/D− (entschieden 10.11.2026):** Über diesen Leisten liegt die Diffusorscheibe nur 13,4 mm über der Platine, gerade Dupont-Stecker passen dort nicht. Deshalb: LED über ein angelötetes Kabel mit JST-SM-Gegenstück (Pigtail), ESP und ESP-D+/D− auf der Platine angelötet, am ESP-Ende Dupont. Gesteckt sind nur die beiden USB-Leisten unter der Diffusoröffnung. Siehe [Platinen-README](../platine/README.md).
+- **Stops:** Um 0,75 mm gekürzt. Sie stehen noch 0,25 mm über die Buchsenplatine, fixieren sie bei der Montage und sind so gewollt.
 - Der Grundkörper ist aus der Original-STL nachgebaut. Die Mulde für den alten Controller entfällt, die Wände sind leicht facettiert (ca. 0,05 mm).
 
 ## Archiv: ESP32-C6-LCD-1.3
