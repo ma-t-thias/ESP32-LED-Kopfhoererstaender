@@ -364,16 +364,16 @@ silk = unary_union([
     # Anschluesse
     silk_text("5V", SX + 1.6, 1.24 - P - 2.0), silk_text("D", SX + 1.8, 1.24), silk_text("GND", SX + 3.4, 1.24 + P),
     silk_rect(SX - 1.27, 1.24 - 1.5 * P, SX + 1.27, 1.24 + 1.5 * P),
-    silk_text("LED", 29.0, 6.0, 0.9),
-    silk_rect(-11.67, 0.13, -9.13, 5.21), silk_text("USB", -10.4, -2.2, 0.9),
+    silk_text("LED", 27.0, 6.0, 1.1),
+    silk_rect(-11.67, 0.13, -9.13, 5.21), silk_text("USB-C", -9.9, -2.2, 0.9),
     silk_text("+", -12.4, 1.4, 0.9), silk_text("-", -12.4, 3.9, 0.9),
-    silk_rect(2.13, 5.63, 7.21, 8.17), silk_text("USB", 1.0, 9.0, 0.7),
-    silk_text("ARGB", 9.0, 7.3, 0.9),
+    silk_rect(2.13, 5.63, 7.21, 8.17), silk_text("USB-C", 4.67, 9.05, 0.7),
+    silk_text("ARGB", 16.4, 5.9, 0.9),
     silk_text("5V", argb_pos(0)[0] - 1.45, argb_pos(0)[1] - 1.45, 0.8),
     silk_text("D", argb_pos(1)[0] - 1.45, argb_pos(1)[1] - 1.45, 0.8),
     silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
     LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
-    silk_text("ESP", -2.4, 22.6, 0.9),
+    silk_text("ESP32", -2.4, 22.6, 0.9),
     silk_text("D+", 3.4, 5.0, 0.7), silk_text("D-", 5.94, 5.0, 0.7),
     silk_text("D+", 3.3, 31.0, 0.7), silk_text("D-", 3.3 + P, 31.0, 0.7),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
@@ -538,20 +538,21 @@ label(AX - 1.3, 17.0, "R4", f1)
 for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
     label(pads[n]["x"] + 3.2, pads[n]["y"] if n != "STRIP.5V" else pads[n]["y"] - 2.2, t)
 box(-11.67, 0.13, -9.13, 5.21, "")
-label(-10.4, -2.3, "USB +5V/GND", f2)
-label(9.0, 7.1, "ARGB 90°", f2)
+label(-10.4, -2.3, "USB-C +5V/GND", f2)
+label(16.6, 5.6, "ARGB 90°", f2)
 label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
 label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
+label(0, 23.3, "ESP32", f2)
 label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 fs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s))
 box(2.13, 5.63, 7.21, 8.17, "")
-label(4.65, 4.6, "USB D+ D-", fs)
+label(4.65, 4.6, "USB-C D+ D-", fs)
 for n in smd:
     q = smd_shape(n)
     dr.polygon([tf(*c) for c in q.exterior.coords], fill="#c8a24a", outline="black")
 label(3.3, 30.9, "D+", fs)
 label(3.3 + P, 30.9, "D-", fs)
-label(29.5, 5.0, "LED", f2)
+label(27.5, 6.0, "LED", f1)
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
 print("ok", OUT)
