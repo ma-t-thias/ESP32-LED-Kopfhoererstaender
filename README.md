@@ -173,6 +173,16 @@ Damit Sync-Programme den Controller als WLED-Gerät erkennen, meldet er sich per
 
 Die Helligkeit aus der Weboberfläche und die Stromgrenze gelten auch im PC-Sync. Für die vollen Farben vom PC stellst du die Helligkeit auf 100 %.
 
+### PC-Sync über USB-C (ohne WLAN)
+
+Statt per WLAN kann der PC die Farben auch über ein USB-C-Kabel schicken, das zugleich den Ständer versorgt. Der Controller versteht dafür das **Adalight**-Protokoll über die USB-Schnittstelle des ESP32-C6.
+
+- **Hardware:** Die Sockel-Buchse und die Sockel-Platine sind mit zwei fertigen **JST-XH-2P-Kabeln** (Buchse–Buchse) verbunden: eines für VBUS/GND (Pins 1–2 der 8er-Leiste der Buchsenplatine), eines für D−/D+ (Pins 5–6). Das Datenkabel ist der Schalter: gesteckt gehen D+/D− der Sockel-Buchse an den ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D−), abgezogen läuft nur der Strom. Mit Netzteil ist es egal, ob es steckt. Zum Flashen über die Buchse am ESP-Board das Datenkabel abziehen, damit nicht zwei USB-Hosts an denselben Leitungen hängen.
+- **OpenRGB:** Unter *Settings → Serial Devices* (je nach Version *LED Strip*) ein Gerät anlegen: COM-Port des Controllers, Protokoll **Adalight**, 144 LEDs, Baudrate beliebig (z. B. 115200). Danach OpenRGB neu starten. Prismatik und Hyperion funktionieren mit Adalight genauso.
+- **Strom:** Ein PC-Anschluss liefert weniger als ein Netzteil (USB-C meist 1,5 A, mit PD auch 3 A). Die **Stromgrenze** in der Weboberfläche passend einstellen, z. B. 1200 mA an einem 1,5-A-Anschluss.
+
+Der Schalter **PC-Sync** gilt auch für USB, auf dem Display steht dann „PC-Sync Adalight USB“.
+
 ## Stromgrenze
 
 Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 2400 mA (`include/config.h`), passend zum USB-C-Netzteil 5 V / 3 A. Farbige Effekte laufen damit in voller Helligkeit, nur Vollweiß auf allen LEDs wird gedimmt. War schon ein anderer Wert gespeichert, stellst du ihn in der Weboberfläche auf 2400 mA. Mit einem stärkeren Netzteil (z. B. USB-C PD 12 V und Step-down auf 5 V / 6 A) kannst du auf etwa 85 % von dessen Strom erhöhen.
@@ -211,7 +221,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/main.cpp` | Ablauf, Bildrate, Ein-/Ausblenden, BOOT-Taster |
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
-| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP |
+| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, Adalight über USB |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO23 mit |

@@ -85,6 +85,7 @@ void handleButton() {
 }  // namespace
 
 void setup() {
+  Serial.setRxBufferSize(2048);  // Platz fuer ganze Adalight-Rahmen vom PC (USB)
   Serial.begin(115200);
   delay(200);
   Serial.println("\nLED-Kopfhoererstaender startet");
@@ -127,7 +128,7 @@ void loop() {
   uint32_t now = millis();
   if (now - lastFrame >= FRAME_MS) {
     lastFrame = now;
-    // Reihenfolge: Mainboard (Aura) vor PC-Sync per WLAN vor eigenen Effekten.
+    // Reihenfolge: Mainboard (Aura) vor PC-Sync (WLAN oder USB) vor eigenen Effekten.
     if (state.argbEnabled && argb::active()) argb::copyTo(leds, LED_COUNT);
     else if (state.syncEnabled && realtime::active()) realtime::copyTo(leds, LED_COUNT);
     else effects::render(leds, LED_COUNT, state, now);
