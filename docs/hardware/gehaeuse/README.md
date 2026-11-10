@@ -92,6 +92,33 @@ Ersetzt die Rastzungen an der Rückwand aus Rastdeckel v2. Mit ihnen ließ sich 
 | <img src="c6-touch-1.9/hochkant/bilder/hochkant_frontb_schnitt_clip.png" alt="Hochkant: Schnitt durch die Rastzungen an den Stirnwänden" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_frontb_schnitt_clip.png" alt="Quer: Schnitt durch die Rastzungen an den Stirnwänden" width="400"> |
 | <img src="c6-touch-1.9/hochkant/bilder/hochkant_frontb_schnitt_nase.png" alt="Hochkant: Schnitt durch die Einhängenase vorne" width="400"> | <img src="c6-touch-1.9/quer/bilder/quer_frontb_schnitt_nase.png" alt="Quer: Schnitt durch die Einhängenase vorne" width="400"> |
 
+## Sockel mit Platine und USB-C (10.11.2026)
+
+Im Sockel (`Base_Box_ESP32`) sitzen jetzt die Sockel-Platine (siehe [`../platine/`](../platine/)) und eine USB-C-Buchsenplatine (QUARKZMAN, 20 × 14 mm) für die Stromversorgung und optional PC-Sync über USB. Beide Varianten (hochkant und quer) haben denselben Sockelunterbau.
+
+| Sockel hochkant mit Platine (Vorschau) | Baugruppe hochkant, Schnitt bei z 18,5 |
+|---|---|
+| <img src="c6-touch-1.9/hochkant/bilder/sockel_platine_schraeg.png" alt="Sockel hochkant mit Platine, schräg von oben" width="400"> | <img src="c6-touch-1.9/hochkant/bilder/baugruppe_platine.png" alt="Baugruppe hochkant mit Elektronik, Schnitt unter dem Diffusor" width="400"> |
+| <img src="c6-touch-1.9/hochkant/bilder/sockel_platine_oben.png" alt="Platine von oben mit Beschriftung der Anschlüsse" width="400"> | <img src="c6-touch-1.9/quer/bilder/baugruppe_quer_platine.png" alt="Baugruppe quer mit Elektronik, Schnitt unter dem Diffusor" width="400"> |
+
+**Platinen-Dome:** drei Dome für M2,5-Schrauben bei (−5/−6), (27,5/−1) und (0/30) mm, Ø 6 mm, Oberkante 4 mm über dem Sockelboden, Kernloch Ø 2,2 × 3 mm (selbstschneidend). Die Platine liegt mit der Unterseite auf z 4.
+
+**USB-C-Halter v2** (Probedruck passt):
+- **Durchbruch** 13,0 × 7,2 mm mit 0,6-mm-Fase, mittig zur Buchse. Kleiner geht nicht: Die Umspritzung eines USB-C-Steckers (bis ca. 12,35 × 6,5 mm) muss ca. 2,5 mm in die Wand, die Buchse sitzt bündig an der Wandinnenseite.
+- **Dome für die Buchsenplatine** (Oberkante z 5) und ein **Pad** an der Wand.
+- **Stops** hinter der Buchsenplatine halten sie bei der Montage gegen Verrutschen. Sie sind um 0,75 mm gekürzt (Oberkante z 6,85) und stehen nur noch 0,25 mm über die Buchsenplatine.
+- **Stützleiste** zwischen den Stops, 1,0 mm unter der Buchsenplatine. Die Lötaugen der 8er-Stiftleiste liegen 2,5 mm vor der Rückkante und bleiben frei.
+- Die alte Kabelbohrung (`Power_Cable_Hole`) ist unterdrückt, Strom kommt über die USB-C-Buchse.
+
+**Lehre aus v1:** Der erste Durchbruch begann genau an der Wandinnenfläche. Dadurch blieb in der STL eine Haut mit 0 mm Dicke stehen, die der Slicer zugedruckt hat. Durchbrüche deshalb ca. 0,2 mm innerhalb der Wand beginnen und außen überstehen lassen, danach die STL prüfen (z. B. Strahlentest durch die Öffnung).
+
+**Anschlüsse:** Alle Anschlüsse der Platine sind 2,54-mm-Stiftleisten. Im Modell stecken an USB-Strom und USB-Daten gerade Dupont-Hülsen; darüber liegt die Diffusoröffnung mit Platz bis ca. 40 mm. Über LED-, ESP- und D+/D−-Leiste liegt die geschlossene Diffusorscheibe nur 13,4 mm über der Platine, ein gerader Dupont-Stecker (ca. 16,5 mm) passt dort nicht. LED und ESP werden deshalb angelötet (siehe Offene Punkte). An der Buchsenplatine sitzt die 8er-Stiftleiste (GND, VBUS, SBU2, CC1, D−, D+, SBU1, CC2), die Adern sind an Pin 1, 2, 5 und 6 angelötet.
+
+**Elektronik im Modell:**
+- Die Baugruppen (hochkant und quer) haben eine Gruppe **„Elektronik“** mit Platine, Bauteilen, Stiftleisten, Steckern und Buchsenplatine.
+- `RGB Headphone Stand - ESP32.sc` (hochkant) hat eine Gruppe **„Elektronik (Vorschau)“** mit derselben Elektronik und der Beschriftung der Anschlüsse. Sie dient nur zur Ansicht.
+- **Export:** Beim STL- oder 3MF-Export nur die Körper `Base_Box_ESP32` und `ESP32_Lid` exportieren oder die Elektronik-Gruppe vorher ausblenden, sonst landet die Elektronik im Druck. Der Hinweis steht auch in den Design-Eigenschaften der Datei.
+
 ## Dateien
 
 ```
@@ -106,7 +133,7 @@ c6-touch-1.9/
 c6-lcd-1.3/           Archiv des Gehäuses für das ESP32-C6-LCD-1.3
 ```
 
-Die CAD-Dateien enthalten kein Board-Modell. Das STEP gibt es auf der Waveshare-Seite (siehe oben). Die Baugruppen sind nur zur Ansicht gedacht.
+Die Baugruppen enthalten das Board-Modell (STEP von der Waveshare-Seite, siehe oben) und die Gruppe „Elektronik“. Sie sind nur zur Ansicht gedacht. Druckteile sind ausschließlich `Base_Box_ESP32` und `ESP32_Lid` bzw. die STL-Dateien in `drucken/`.
 
 ## Drucken
 
@@ -117,10 +144,11 @@ Die CAD-Dateien enthalten kein Board-Modell. Das STEP gibt es auf der Waveshare-
 
 ## Montage
 
-1. Litzen an 5V, GND, GPIO1 und GPIO2 anlöten.
-2. Die Litzen durch den Trichter und den Kanal ins Innere des Grundkörpers führen. Nicht direkt über den Antennenbereich der Platine legen.
-3. Das Board mit dem Display nach vorne von oben einschieben, bis es unten aufliegt. Die M2-Bolzen gleiten dabei vor den Halteleisten vorbei.
-4. Den Deckel vorne einhängen und hinten herunterdrücken, bis die Rastzungen an den Stirnwänden hörbar einrasten (siehe [Frontfixierung](#frontfixierung-7112026)). TF-Karte und die BOOT- und RESET-Taster sind nur bei abgenommenem Deckel und herausgezogenem Board erreichbar.
+1. Am ESP32-C6-Touch-LCD-1.9 Litzen an VBUS (J4 Pin 1), GND (J4 Pin 3), GPIO3 (J3 Pin 7) und GPIO23 (J4 Pin 9) anlöten. Für PC-Sync über die Sockel-Buchse zusätzlich GPIO12/D− (J3 Pin 11) und GPIO13/D+ (J3 Pin 12).
+2. Die Litzen durch den Trichter und den Kanal ins Innere des Grundkörpers führen und an die ESP-Stiftleisten der Sockel-Platine anschließen. Nicht direkt über den Antennenbereich des Boards legen.
+3. Sockel-Platine mit drei Schrauben M2,5 auf die Dome schrauben. Die USB-C-Buchsenplatine zwischen Wand und Stops einlegen und auf ihre Dome schrauben. Strom (GND/VBUS) und bei Bedarf Daten (D−/D+) von der 8er-Leiste der Buchsenplatine zu den USB-Stiftleisten der Platine führen.
+4. Das Board mit dem Display nach vorne von oben einschieben, bis es unten aufliegt. Die M2-Bolzen gleiten dabei vor den Halteleisten vorbei.
+5. Den Deckel vorne einhängen und hinten herunterdrücken, bis die Rastzungen an den Stirnwänden hörbar einrasten (siehe [Frontfixierung](#frontfixierung-7112026)). TF-Karte und die BOOT- und RESET-Taster sind nur bei abgenommenem Deckel und herausgezogenem Board erreichbar.
 
 ## Benötigte Originalteile und Lizenz
 
@@ -134,6 +162,8 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 - **Probedruck beider Varianten** (Passung von Board, Deckel und USB-Stecker). Der Rastdeckel v2 sitzt im Probedruck gut.
 - **Probedruck quer** mit der Frontfixierung steht noch aus. Hochkant ist getestet.
 - **Entscheidung hochkant oder quer** nach dem Probedruck.
+- **Steckverbinder an LED, ESP und D+/D− (entschieden 10.11.2026):** Über diesen Leisten liegt die Diffusorscheibe nur 13,4 mm über der Platine, gerade Dupont-Stecker passen dort nicht. Deshalb: LED über ein angelötetes Kabel mit JST-SM-Gegenstück (Pigtail), ESP und ESP-D+/D− auf der Platine angelötet, am ESP-Ende Dupont. Gesteckt sind nur die beiden USB-Leisten unter der Diffusoröffnung. Siehe [Platinen-README](../platine/README.md).
+- **Stops:** Um 0,75 mm gekürzt. Sie stehen noch 0,25 mm über die Buchsenplatine, fixieren sie bei der Montage und sind so gewollt.
 - Der Grundkörper ist aus der Original-STL nachgebaut. Die Mulde für den alten Controller entfällt, die Wände sind leicht facettiert (ca. 0,05 mm).
 
 ## Archiv: ESP32-C6-LCD-1.3

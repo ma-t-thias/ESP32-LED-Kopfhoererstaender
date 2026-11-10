@@ -46,19 +46,20 @@ for n, (x, y) in U1.items():
 pad("D1.A", -8.7, 22.9, "+5V", d=2.0, drill=1.0)
 pad("D1.K", -8.7, 27.98, "VESP", d=2.0, drill=1.0, shape="square")
 # C2 100 nF, Folienkondensator CY630 104J (Raster 10,16 mm, 11,5 x 5,4 x 10,3 mm), stehend unter U1
-pad("C2.1", 17.16, -10.0, "+5V", d=1.9, drill=1.0)
-pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
+pad("C2.1", 17.56, -10.25, "+5V", d=1.9, drill=1.0)
+pad("C2.2", 7.4, -10.25, "GND", d=1.9, drill=1.0)
 # R1 330 Ohm stehend
-pad("R1.1", 21.0, -1.3, "OUT")
-pad("R1.2", 21.0, 1.24, "DIN")
+pad("R1.1", 19.8, -1.3, "OUT")
+pad("R1.2", 19.8, 1.24, "DIN")
 # Anschluesse LED-Streifen (rechts): grosse Pads fuer Litze 1 mm2
-# USB-C (links): JST-XH 2-polig (Raster 2,5 mm, 3 A), steckbar mit fertigem XH-2P-Kabel zur Buchsenplatine
+# USB-C (links): Stiftleiste 1x2 im 2,54-mm-Raster (gerade oder 90 Grad), Dupont-Kabel zur Buchsenplatine
 # (VBUS/GND = Pins 1-2 der 8er-Leiste). Bohrung 1,1 mm: alternativ Litze bis 0,75 mm2 direkt einloeten.
-SX = 23.5
-pad("STRIP.GND", SX, 3.4, "GND", d=2.6, drill=1.3, shape="square")
-pad("STRIP.DIN", SX, -0.4, "DIN", d=2.0, drill=1.0)
-pad("STRIP.5V", SX, -4.2, "+5V", d=2.6, drill=1.3)
-pad("USB.GND", -10.4, 3.9, "GND", d=2.0, drill=1.1, shape="square")
+SX = 23.6                                  # ca. 0,5 mm Luft zwischen R1 (stehend) und Dupont-Gehaeuse
+# LED-Streifen: Stiftleiste 1x3 im 2,54-mm-Raster (GND, DIN, +5V) fuer Dupont, Bohrung 1,1 mm (alternativ Litze bis 0,75 mm2)
+pad("STRIP.GND", SX, 1.24 + P, "GND", d=2.0, drill=1.1, shape="square")
+pad("STRIP.DIN", SX, 1.24, "DIN", d=1.9, drill=1.0)
+pad("STRIP.5V", SX, 1.24 - P, "+5V", d=2.0, drill=1.1)
+pad("USB.GND", -10.4, 3.94, "GND", d=2.0, drill=1.1, shape="square")
 pad("USB.5V", -10.4, 1.4, "+5V", d=2.0, drill=1.1)
 # C1 1000 uF, Elko Ø8,2 x 16,7 liegend in der Zunge (Koerper x -7,5..0,7 / y 4,5..21,2), Beine nach unten abgewinkelt, Raster 3,5
 pad("C1.+", -5.15, 3.0, "+5V", d=1.9, drill=0.9, shape="square")
@@ -74,26 +75,26 @@ AU = (math.sqrt(0.5), -math.sqrt(0.5))      # Richtung entlang der Kante
 def argb_pos(i):                            # i = 0..3 (5V, D, Luecke, G)
     t = (i - 1.5) * P
     return (round(AC[0] + t * AU[0], 3), round(AC[1] + t * AU[1], 3))
-pad("ARGB.5V", *argb_pos(0), "ARGB_5V_NC")
-pad("ARGB.D", *argb_pos(1), "ARGB_D")
-pad("ARGB.G", *argb_pos(3), "GND", shape="square")
+pad("ARGB.5V", *argb_pos(0), "ARGB_5V_NC", drill=1.0)
+pad("ARGB.D", *argb_pos(1), "ARGB_D", drill=1.0)
+pad("ARGB.G", *argb_pos(3), "GND", shape="square", drill=1.0)
 pad("R3.1", AX, 10.54, "ARGB_D")
 pad("R3.2", AX, 13.08, "IO23")
 pad("R4.1", AX, 15.62, "IO23")
 pad("R4.2", AX - P, 15.62, "GND")
 EY = 25.5
-pad("ESP.VBUS", -3.81, EY, "VESP", shape="square")
-pad("ESP.IO3", -1.27, EY, "IO3")
-pad("ESP.GND", 1.27, EY, "GND")
-pad("ESP.IO23", 3.81, EY, "IO23")
-# USB-Daten vom PC (optional): JST-XH 2-polig fuer D+/D- der USB-C-Buchsenplatine (Pins 5-6 der 8er-Leiste)
-# -> ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D-). Das Datenkabel ist der Schalter: gesteckt kann der
-# PC ueber die Sockel-Buchse Daten senden, abgezogen nur Strom (Netzteil-Betrieb, Flashen ueber die ESP-Buchse).
-# XH-Gehaeuse 7,5 x 5,75 x 9,8 mm: Daten x 0,9..8,4 / y 3,8..9,55, Strom x -13,3..-7,5 / y -1,1..6,4 (frei von C1).
-pad("USBD.DP", 3.4, 6.9, "USB_DP")
-pad("USBD.DM", 5.9, 6.9, "USB_DM")
-pad("ESP.DP", 3.3, 28.6, "USB_DP")
-pad("ESP.DM", 5.9, 29.8, "USB_DM")
+pad("ESP.VBUS", -3.81, EY, "VESP", shape="square", drill=1.0)
+pad("ESP.IO3", -1.27, EY, "IO3", drill=1.0)
+pad("ESP.GND", 1.27, EY, "GND", drill=1.0)
+pad("ESP.IO23", 3.81, EY, "IO23", drill=1.0)
+# USB-Daten vom PC (optional): Stiftleiste 1x2 (2,54 mm) fuer D+/D- der USB-C-Buchsenplatine (Pins 5-6 der
+# 8er-Leiste) -> ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D-). Das Datenkabel ist der Schalter: gesteckt
+# kann der PC ueber die Sockel-Buchse Daten senden, abgezogen nur Strom (Netzteil-Betrieb, Flashen ueber die ESP-Buchse).
+pad("USBD.DP", 3.4, 6.9, "USB_DP", drill=1.0)
+pad("USBD.DM", 5.94, 6.9, "USB_DM", drill=1.0)
+# ESP D+/D-: Stiftleiste 1x2 (2,54 mm) an der Zungenspitze, Dupont zu J3 Pin 12 / 11
+pad("ESP.DP", 3.3, 29.2, "USB_DP", drill=1.0)
+pad("ESP.DM", 3.3 + P, 29.2, "USB_DM", drill=1.0)
 SJ_SIZE = 1.0
 smd = {}
 
@@ -137,7 +138,12 @@ def sj(n):
     return smd[n][:2]
 top_tracks = [
     ("USB_DP", W_USB, [at("USBD.DP"), (-2.0, 6.9), (-2.0, 23.0), (5.5, 23.0), (5.5, 27.0), at("ESP.DP")]),
-    ("USB_DM", W_USB, [at("USBD.DM"), (7.3, 8.3), (7.3, 17.5), (6.5, 18.3), (6.5, 29.8), at("ESP.DM")]),
+    ("USB_DM", W_USB, [at("USBD.DM"), (7.3, 8.3), (7.3, 17.5), (6.5, 18.3), (6.5, 29.2), at("ESP.DM")]),
+    # GND-Bruecken oben: Die +5V-Bahnen teilen die Masseflaeche unten in Teile. Drei Bruecken verbinden sie
+    # (U1 Pin 4 -> Pin 1, U1 Pin 5 -> Pin 10, USB-GND -> C1-). Beim Selbstaetzen als Drahtbruecken auf der Bauteilseite.
+    ("GND", 1.2, [U1[4], (U1[4][0], 3.7), (U1[1][0], 3.7), U1[1]]),
+    ("GND", 1.0, [U1[5], U1[10]]),                                  # unter dem IC, verbindet mit der Masse unten
+    ("GND", 1.0, [at("USB.GND"), (-8.0, 4.9), (-1.65, 4.9), at("C1.-")]),   # kurzer Rueckweg zur USB-Buchse
 ]
 
 def smd_shape(n):
@@ -215,7 +221,14 @@ for a in top_nets:
     for m in MOUNT:
         if top_cu[a].distance(Point(m)) < MOUNT_DRILL / 2 + 1.0:
             problems.append(f"Oben {a} zu nah an Befestigungsloch {m}")
-print("GND-Inseln:", gnd_islands)
+# Inseln robust zaehlen: Stege unter 0,4 mm Breite gelten als getrennt (fertigt kein Hersteller zuverlaessig)
+_bridged = unary_union([pour.buffer(-0.2, 8).buffer(0.2, 8)] + [track_shape(t) for t in top_tracks if t[0] == "GND"] +
+                       [pad_shape(pads[n]) for n in gnd_pads])
+_parts = list(_bridged.geoms) if _bridged.geom_type == "MultiPolygon" else [_bridged]
+gnd_islands = sum(1 for g in _parts if any(g.intersects(Point(at(n))) for n in gnd_pads))
+print("GND-Inseln (Stege >= 0,4 mm, mit Bruecke oben):", gnd_islands)
+if gnd_islands != 1:
+    problems.append(f"Masseflaeche in {gnd_islands} Teile getrennt")
 print("Probleme:", problems or "keine")
 
 # ---------------- Gerber ----------------
@@ -264,10 +277,10 @@ def gerber_header(func, polarity="Positive"):
             f"%TF.FileFunction,{func}*%", f"%TF.FilePolarity,{polarity}*%", "%TF.Part,Single*%",
             "%ADD10C,0.150*%", "G01*", "G75*"]
 
-def write_layer(fname, func, geoms):
+def write_layer(fname, func, geoms, polarity="Positive"):
     """geoms: Liste von Flaechen, nacheinander gezeichnet; groesste zuerst, damit Aussparungen
     einer Flaeche keine kleinere Insel darin loeschen."""
-    L = gerber_header(func)
+    L = gerber_header(func, polarity)
     allp = []
     for g in geoms:
         allp += [p for p in polys(g) if not p.is_empty]
@@ -311,10 +324,35 @@ FONT = {
     "3": [[(0, 5), (1, 6), (3, 6), (4, 5), (4, 4), (3, 3), (1, 3)], [(3, 3), (4, 2), (4, 1), (3, 0), (1, 0), (0, 1)]],
     "4": [[(3, 0), (3, 6), (0, 2), (4, 2)]],
     "5": [[(4, 6), (0, 6), (0, 3), (3, 3), (4, 2), (4, 1), (3, 0), (0, 0)]],
+    "F": [[(4, 6), (0, 6), (0, 0)], [(0, 3), (3, 3)]],
+    "H": [[(0, 0), (0, 6)], [(4, 0), (4, 6)], [(0, 3), (4, 3)]],
+    "M": [[(0, 0), (0, 6), (2, 3), (4, 6), (4, 0)]],
+    "Q": [[(1, 0), (0, 1), (0, 5), (1, 6), (3, 6), (4, 5), (4, 1), (3, 0), (1, 0)], [(2, 2), (4, 0)]],
+    "T": [[(0, 6), (4, 6)], [(2, 6), (2, 0)]],
+    "W": [[(0, 6), (1, 0), (2, 3), (3, 0), (4, 6)]],
+    "X": [[(0, 0), (4, 6)], [(0, 6), (4, 0)]],
+    "Y": [[(0, 6), (2, 3), (4, 6)], [(2, 3), (2, 0)]],
+    "Z": [[(0, 6), (4, 6), (0, 0), (4, 0)]],
+    "6": [[(4, 5), (3, 6), (1, 6), (0, 5), (0, 1), (1, 0), (3, 0), (4, 1), (4, 2), (3, 3), (0, 3)]],
+    "7": [[(0, 6), (4, 6), (1, 0)]],
+    "8": [[(1, 3), (0, 4), (0, 5), (1, 6), (3, 6), (4, 5), (4, 4), (3, 3), (1, 3), (0, 2), (0, 1), (1, 0), (3, 0), (4, 1), (4, 2), (3, 3)]],
+    "9": [[(0, 1), (1, 0), (3, 0), (4, 1), (4, 5), (3, 6), (1, 6), (0, 5), (0, 4), (1, 3), (4, 3)]],
+    "(": [[(3, 6), (2, 5), (2, 1), (3, 0)]],
+    ")": [[(1, 6), (2, 5), (2, 1), (1, 0)]],
+    ".": [[(2, 0), (2, 0.4)]],
+    # Kleinbuchstaben (x-Hoehe 4)
+    "a": [[(0.5, 4), (3, 4), (4, 3), (4, 0)], [(4, 2.2), (1, 2.2), (0, 1.5), (0, 0.7), (1, 0), (4, 0)]],
+    "e": [[(0, 2), (4, 2), (4, 3), (3, 4), (1, 4), (0, 3), (0, 1), (1, 0), (4, 0)]],
+    "h": [[(0, 6), (0, 0)], [(0, 3), (1, 4), (3, 4), (4, 3), (4, 0)]],
+    "i": [[(2, 0), (2, 4)], [(2, 5.4), (2, 5.8)]],
+    "s": [[(4, 4), (1, 4), (0, 3.2), (1, 2), (3, 2), (4, 1), (3, 0), (0, 0)]],
+    "t": [[(1.5, 6), (1.5, 1), (2.5, 0), (3.5, 0)], [(0, 4), (3.5, 4)]],
     "+": [[(2, 1), (2, 5)], [(0, 3), (4, 3)]],
     "-": [[(0, 3), (4, 3)]],
     " ": [],
 }
+
+COPYRIGHT = ("(C) 2026", "Matthias Steis")     # Bestueckungsdruck unten links, zwei Zeilen
 
 def silk_text(t, x, y, h=SILK_H):
     """Text mittig um (x, y)."""
@@ -346,7 +384,7 @@ silk = unary_union([
         Polygon([(UX + 8.5, UY - 2), (UX + 9.6, UY - 2), (UX + 9.6, UY + 2), (UX + 8.5, UY + 2)])),
     silk_text("U1", UX - 5.5, UY),
     # C2 (Folie, stehend) unter U1
-    silk_rect(6.4, -12.6, 17.8, -7.4), silk_text("C2", 12.1, -10.0),
+    silk_rect(6.83, -12.85, 18.13, -7.65), silk_text("C2", 12.48, -10.25),
     # C1 liegend in der Zunge, Plus links
     silk_rect(-7.0, 4.6, 0.3, 21.0), silk_text("C1", -3.4, 12.8), silk_text("1000", -3.4, 10.6, 0.9),
     silk_text("+", -5.15, 5.4),
@@ -354,21 +392,23 @@ silk = unary_union([
     silk_circle(-8.7, 22.9, 1.55), silk_text("D1", -8.7, 25.45),
     LineString([(-9.95, 29.6), (-7.45, 29.6)]).buffer(SILK_W, 8),
     # Widerstaende stehend
-    silk_text("R1", 21.0, -3.1), silk_text("R3", AX - 2.0, 11.8), silk_text("R4", AX + 2.2, 15.62),
+    silk_text("R1", 19.8, -3.1), silk_text("R3", AX - 2.0, 11.8), silk_text("R4", AX + 2.2, 15.62),
     # Anschluesse
-    silk_text("5V", SX + 2.6, -4.2), silk_text("D", SX + 1.8, -0.4), silk_text("GND", SX + 3.4, 3.4),
-    silk_text("LED", 29.0, 6.0, 0.9),
-    silk_rect(-13.28, -1.1, -7.53, 6.4).intersection(board.buffer(-0.35)), silk_text("USB", -10.4, -2.2, 0.9),
+    silk_text("5V", SX + 1.6, 1.24 - P - 2.0), silk_text("DIN", SX + 3.0, 1.24), silk_text("GND", SX + 3.4, 1.24 + P),
+    silk_rect(SX - 1.27, 1.24 - 1.5 * P, SX + 1.27, 1.24 + 1.5 * P),
+    silk_text("LED", 27.0, 6.0, 1.1),
+    silk_rect(-11.67, 0.13, -9.13, 5.21), silk_text("USB-C", -9.9, -2.2, 0.9),
     silk_text("+", -12.4, 1.4, 0.9), silk_text("-", -12.4, 3.9, 0.9),
-    silk_rect(0.9, 3.8, 8.4, 9.55), silk_text("USB", 1.6, 10.3, 0.7),
-    silk_text("ARGB", 9.0, 7.3, 0.9),
+    silk_rect(2.13, 5.63, 7.21, 8.17), silk_text("USB-C", 4.67, 9.05, 0.7),
+    silk_text("ARGB", 16.4, 5.9, 0.9),
     silk_text("5V", argb_pos(0)[0] - 1.45, argb_pos(0)[1] - 1.45, 0.8),
     silk_text("D", argb_pos(1)[0] - 1.45, argb_pos(1)[1] - 1.45, 0.8),
     silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
     LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
-    silk_text("ESP", -2.4, 22.6, 0.9),
-    silk_text("D+", 3.4, 5.0, 0.7), silk_text("D-", 5.9, 5.0, 0.7),
-    silk_text("D+", 3.3, 30.5, 0.7), silk_text("D-", 5.9, 31.7, 0.7),
+    silk_text("ESP32", -2.4, 22.6, 0.9),
+    silk_text(COPYRIGHT[0], -0.8, -8.45, 0.8), silk_text(COPYRIGHT[1], -0.8, -9.6, 0.8),
+    silk_text("D+", 3.4, 5.0, 0.7), silk_text("D-", 5.94, 5.0, 0.7),
+    silk_text("D+", 3.3, 31.0, 0.7), silk_text("D-", 3.3 + P, 31.0, 0.7),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
     silk_text("G", 1.27, 27.3, 0.8), silk_text("23", 3.81, 27.3, 0.8),
 ])
@@ -380,8 +420,8 @@ for m in MOUNT:
 write_layer("platine-B_Cu.gbl", "Copper,L2,Bot", [pour] + [g for k, g in net_cu.items() if k != "GND"])
 write_layer("platine-F_Cu.gtl", "Copper,L1,Top", [unary_union([pad_all] + [track_shape(t) for t in top_tracks] +
                                                                 [smd_shape(n) for n in smd])])
-write_layer("platine-F_Mask.gts", "Soldermask,Top", [unary_union([mask_open, mask_open_top_extra])])
-write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open])
+write_layer("platine-F_Mask.gts", "Soldermask,Top", [unary_union([mask_open, mask_open_top_extra])], "Negative")
+write_layer("platine-B_Mask.gbs", "Soldermask,Bot", [mask_open], "Negative")
 write_layer("platine-F_SilkS.gto", "Legend,Top", [silk])
 write_outline("platine-Edge_Cuts.gm1")
 
@@ -471,7 +511,7 @@ d.text((600, 600 + mask.height + 120),
        "Kopfhoererstaender Platine, Kupferseite, Ansicht von der Bauteilseite, 1:1 (nicht skalieren).",
        fill=0, font=font)
 d.text((600, 600 + mask.height + 220),
-       "Tonertransfer: so drucken wie hier (nicht spiegeln). Pruefmass: Platine 46,5 x 36,5 mm.",
+       "Tonertransfer: so drucken wie hier (nicht spiegeln). Pruefmass: Platine 46,5 x 46,0 mm.",
        fill=0, font=font)
 a4.convert("L").save(os.path.join(OUT, "platine_aetzvorlage_A4.pdf"), resolution=600)
 
@@ -521,30 +561,31 @@ box(UX - 9.6, UY - 3.0, UX + 9.6, UY + 3.0, "U1 74AHCT125")
 X, Y = tf(UX + 9.6, UY)
 dr.ellipse([X - 0.9 * s, Y - 0.9 * s, X + 0.9 * s, Y + 0.9 * s], outline="white", width=4)
 label(-6.4, 22.9, "D1", f1)
-box(6.4, -12.7, 17.9, -7.3, "C2")
+box(6.83, -12.95, 18.13, -7.55, "C2")
 box(-7.5, 4.5, 0.7, 21.2, "")
 label(-3.4, 12.5, "C1 1000µF", f2)
 label(-3.4, 1.4, "+  C1  −", f2)
-label(19.4, -0.1, "R1", f1)
+label(19.0, -0.1, "R1", f1)
 label(AX + 0.2, 11.8, "R3", f1)
 label(AX - 1.3, 17.0, "R4", f1)
 for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
-    label(pads[n]["x"] + 3.6, pads[n]["y"], t)
-box(-13.28, -1.1, -7.53, 6.4, "")
-label(-10.4, -2.3, "XH USB +5V/GND", f2)
-label(9.0, 7.1, "ARGB 90°", f2)
+    label(pads[n]["x"] + 3.2, pads[n]["y"] if n != "STRIP.5V" else pads[n]["y"] - 2.2, t)
+box(-11.67, 0.13, -9.13, 5.21, "")
+label(-10.4, -2.3, "USB-C +5V/GND", f2)
+label(16.6, 5.6, "ARGB 90°", f2)
 label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
 label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
+label(0, 23.3, "ESP32", f2)
 label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 fs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s))
-box(0.9, 3.8, 8.4, 9.55, "")
-label(4.65, 4.6, "XH USB D+ D-", fs)
+box(2.13, 5.63, 7.21, 8.17, "")
+label(4.65, 4.6, "USB-C D+ D-", fs)
 for n in smd:
     q = smd_shape(n)
     dr.polygon([tf(*c) for c in q.exterior.coords], fill="#c8a24a", outline="black")
-label(3.3, 30.3, "D+", fs)
-label(5.9, 31.3, "D-", fs)
-label(29.5, 5.0, "LED", f2)
+label(3.3, 30.9, "D+", fs)
+label(3.3 + P, 30.9, "D-", fs)
+label(27.5, 6.0, "LED", f1)
 im.save(os.path.join(OUT, "platine_bestueckung.png"))
 print("ok", OUT)

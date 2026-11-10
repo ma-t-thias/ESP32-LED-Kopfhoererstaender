@@ -25,25 +25,29 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 
 | Datei | Lage |
 |---|---|
-| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind) und die USB-Datenleitungen |
+| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind) die USB-Datenleitungen und drei kurze GND-Brücken (U1 Pin 4 → Pin 1, U1 Pin 5 → Pin 10, USB-GND → C1 −) |
 | `platine-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
 | `platine-F_Mask.gts`, `platine-B_Mask.gbs` | Lötstopplack oben/unten |
-| `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Umrisse, Polung) |
+| `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Anschlussnamen, Umrisse, Polung, Copyright) |
 | `platine-Edge_Cuts.gm1` | Umriss |
 | `platine-PTH.drl`, `platine-NPTH.drl` | Bohrungen durchkontaktiert / ohne Kupfer (3 × M2,5) |
 
-Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstopp grün, Bestückungsdruck weiß**. Größe 46,5 × 46,0 mm, kleinste Bohrung 0,8 mm, kleinster Abstand 0,45 mm, Bahnbreite ab 0,8 mm. Das schafft jeder Standardprozess.
+Format: Gerber RS-274X (X2-Attribute), Excellon, Einheit mm.
+
+Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstopp grün, Bestückungsdruck weiß**. Größe 46,5 × 46,0 mm, kleinste Bohrung 0,8 mm, kleinster Abstand 0,45 mm, Bahnbreite ab 0,5 mm (USB-Datenleitungen oben), sonst ab 0,8 mm. Das schafft jeder Standardprozess.
 
 ![Gerber-Vorschau](out/platine_gerber_vorschau.png)
 
+Die Vorschau erzeugt `gen_platine.py` nicht selbst. Sie ist aus den Gerber-Dateien gerendert (z. B. mit gerbonara oder dem Viewer des Shops) und muss nach Änderungen neu erstellt werden.
+
 ## Selbst ätzen
 
-Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben; beim Selbstätzen sie bei Bedarf mit isoliertem Draht auf der Bauteilseite ziehen.
+Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen und drei GND-Brücken liegen oben: U1 Pin 4 → Pin 1, U1 Pin 5 → Pin 10 und USB-GND → C1 −. Die +5-V-Bahn teilt die Massefläche unten, deshalb beim Selbstätzen alle drei GND-Brücken **immer** als Draht auf der Bauteilseite einlöten (sonst hängen Teile der Massefläche lose). Die USB-Datenleitungen nur bei Bedarf als Draht.
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
 - **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
-- **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
-- **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,1 mm (JST-XH USB-C), 1,3 mm (Litze 1 mm² für den Streifen), 2,7 mm (Befestigung M2,5).
+- **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm (oben USB-Daten 0,5 mm), Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
+- **Bohren:** 0,8 mm (IC), 0,9 mm (R, C1), 1,0 mm (D1, C2, Signal-Stiftleisten ESP, ARGB, USB-Daten, LED DIN), 1,1 mm (Strom-Stiftleisten USB-C und LED), 2,7 mm (Befestigung M2,5).
 
 ## Bauteile
 
@@ -52,21 +56,21 @@ Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben;
 | U1 | 74AHCT125 (DIP-14) | Kerbe zeigt nach rechts (zu den Streifen-Anschlüssen). Pin 1 oben rechts, eckiges Pad. Eine IC-Fassung passt in der Höhe. |
 | D1 | 1N5819 | **stehend** links oben in der verbreiterten Zunge, Körper über dem runden Pad (Anode), Ring (Kathode) ins eckige Pad oben. Abstand zur ESP-Stiftleiste ca. 3,5 mm. |
 | R1 | 330 Ω | stehend, rechts neben U1 (ca. 1 mm Luft zu einer IC-Fassung) |
-| R3 | 1 kΩ | stehend |
-| R4 | 2 kΩ | stehend |
-| C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm, **stehend** direkt unter U1. Das Pad rechts (an U1 Pin 14) ist +5 V, die Polung ist bei Folienkondensatoren aber egal. |
+| R3 | 1 kΩ | stehend, nur für den ARGB-Eingang nötig (sonst weglassen) |
+| R4 | 2 kΩ | stehend, nur für den ARGB-Eingang nötig (sonst weglassen) |
+| C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm, **stehend** direkt unter U1. Der Körper ragt an der abgeschrägten Ecke ca. 0,1 mm über den Platinenrand, das stört im Sockel nicht. Sonst die Keramik-Variante (siehe Einbau) nehmen. Das Pad rechts (an U1 Pin 14) ist +5 V, die Polung ist bei Folienkondensatoren aber egal. |
 | C1 | 1000 µF, Elko Ø 8,2 × 16,7 mm, Raster 3,5 mm | **liegend** in der Zunge, Körper Richtung ESP-Anschluss. Beine 90° abwinkeln: Plus ins eckige Pad links, Minus rechts. |
 
-Anschlüsse:
+Anschlüsse (alle im 2,54-mm-Raster für Stiftleisten und Dupont-Stecker, gerade oder 90°):
 
 | Pads | Wohin |
 |---|---|
-| USB-C +5V / GND (links, JST-XH 2-polig, B2B-XH-A) | Fertiges XH-2P-Kabel (Buchse–Buchse) zu VBUS/GND der USB-C-Buchsenplatine (Pins 1–2 der 8er-Leiste, dort ebenfalls eine XH-2P-Stiftleiste einlöten; Raster 2,5 statt 2,54 passt bei 2 Pins). XH ist für 3 A ausgelegt. Alternativ Litze bis 0,75 mm² direkt einlöten. |
-| LED +5V / DIN / GND (rechts) | Streifen. +5V und GND mit Litze 1 mm². |
-| ESP VBUS / IO3 / GND / IO23 (Zungenspitze) | J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
-| USB D+ / D− (JST-XH 2-polig, über C1-Beinen rechts) | Zweites XH-2P-Kabel zu D−/D+ der Buchsenplatine (Pins 5–6). **Das Kabel ist der Schalter:** gesteckt PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README), abgezogen nur Strom. Zum Flashen über die ESP-Buchse abziehen. |
-| ESP D+ / D− (Zungenspitze rechts) | J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
-| ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Stiftleiste 1×4 einlöten und den dritten Stift (Lücke) ziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
+| USB-C +5V / GND (links, Stiftleiste 1×2, 2,54 mm, gerade) | Dupont-Kabel zu VBUS/GND der USB-C-Buchsenplatine (Pins 1–2 der 8er-Leiste). Für bis zu 2,4 A **kein dünnes Jumperkabel**, sondern Litze ≥ AWG 22 mit selbst gecrimpten Dupont-Hülsen (Kontakte ca. 3 A). Alternativ Litze bis 0,75 mm² direkt einlöten. |
+| LED +5V / DIN / GND (rechts, 1×3 im 2,54-mm-Raster) | **Im Sockel:** Über dem Anschluss liegt die Diffusorscheibe (nur ca. 13 mm frei), und 90°-Stecker stoßen an Sockelwand bzw. R1/U1. Deshalb ein kurzes Kabel mit dem **JST-SM-Gegenstück** des Streifens anlöten (Pigtail, Litze ≥ AWG 22 für +5V/GND). Der Streifen wird dann dort eingesteckt. Außerhalb des Sockels (Test) passt auch eine Stiftleiste mit Dupont. |
+| ESP VBUS / IO3 / GND / IO23 (Zungenspitze, Stiftleiste 1×4) | Im Sockel ist über der Zungenspitze wenig Höhe: Stiftleiste mit Litze oben angelötet oder Litze direkt einlöten, am ESP-Ende Dupont-Buchse. Zu J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
+| USB D+ / D− (Stiftleiste 1×2, 2,54 mm, rechts neben C1) | Zweites Dupont-Kabel zu D−/D+ der Buchsenplatine (Pins 5–6), verdrillt. **Das Kabel ist der Schalter:** gesteckt PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README), abgezogen nur Strom. Zum Flashen über die ESP-Buchse abziehen. |
+| ESP D+ / D− (Zungenspitze rechts, Stiftleiste 1×2, 2,54 mm) | Wie der ESP-Anschluss: auf der Platine gelötet, am ESP-Ende Dupont. Zu J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
+| ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Für die Lücke ist kein Loch gebohrt: aus der 1×4-Stiftleiste (90°) **vor dem Einlöten** den dritten Stift herausziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
 
 ## Unterschiede zum Breadboard-Plan
 
@@ -76,8 +80,27 @@ Anschlüsse:
 
 ## Einbau
 
-- **Höhe der XH-Stecker:** Stiftleiste und Kabelstecker sind gesteckt etwa 10 bis 11 mm hoch, über der Platine sind bis zum Diffusor etwa 13 mm frei. Die Kabel oben gleich zur Seite legen. Wird es zu eng, geht eine 90°-XH-Stiftleiste (S2B-XH-A) oder ein Abstandsring unter dem Diffusor.
+- **USB-C-Buchsenplatine:** Die 8er-Stiftleiste bleibt drauf (Stifte nach oben). GND, VBUS, D− und D+ (Pins 1, 2, 5, 6) oben an die Stifte anlöten und seitlich zur Platine führen, gesteckt ist dort zu hoch. Auf der Platine stecken sie mit Dupont auf den beiden USB-Stiftleisten.
 
-- Drei Befestigungslöcher M2,5 bei (−5/−6), (27,5/−1) und (0/30) mm, passend zu den Domen im Sockel-Vorschlag (`ESP32-Umbau\Passprobe\Vorschlag_Platine\`). Die Unterseite der Platine liegt 4 mm über dem Sockelboden.
-- Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. Am höchsten ist C2 mit 10,3 mm.
+- **Höhe der Stecker:** Auf der Platine passen gerade Stiftleisten mit Dupont-Hülse (ca. 16,5 mm hoch), weil darüber eine Diffusoröffnung liegt. Auf der USB-C-Buchsenplatine ist dafür kein Platz (Diffusor ca. 12 mm darüber), dort die Kabel direkt anlöten.
+
+- Drei Befestigungslöcher M2,5 bei (−5/−6), (27,5/−1) und (0/30) mm. Am Loch (0/30) liegt das ESP-D+-Pad nah am Schraubenkopf: Kopf höchstens Ø 4,5 mm oder eine Kunststoffscheibe unterlegen.
+- Die Löcher sitzen passend zu den Domen im Sockel-Vorschlag (`ESP32-Umbau\Passprobe\Vorschlag_Platine\`). Die Unterseite der Platine liegt 4 mm über dem Sockelboden.
+- Bauhöhe über der Platine höchstens 13 mm, außer an den beiden USB-Stiftleisten (unter der Diffusoröffnung, gesteckt ca. 16,5 mm). Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. Am höchsten ist C2 mit 10,3 mm.
 - Statt CY630 passt auch ein Keramik-Vielschichtkondensator 100 nF, 50 V, X7R mit Raster 5,08 mm (z. B. KEMET C320C104K5R5TA). Dessen Beine auf 10,16 mm aufbiegen.
+
+## Stückliste
+
+| Anzahl | Teil |
+|---|---|
+| 1 | 74AHCT125, DIP-14, mit IC-Fassung DIP-14 |
+| 1 | 1N5819 |
+| 1 / 1 / 1 | Widerstände 330 Ω, 1 kΩ, 2 kΩ (¼ W) |
+| 1 | 100 nF CY630 104J (Raster 10,16) oder MLCC 100 nF 50 V X7R |
+| 1 | Elko 1000 µF, ≥ 10 V, Ø 8 × 16 mm, Raster 3,5 mm |
+| 3 | Stiftleiste 1×2, 2,54 mm (USB +5V/GND, USB D+/D−, ESP D+/D−) |
+| 1 | Stiftleiste 1×3, 2,54 mm (LED, nur für Test außerhalb des Sockels) |
+| 2 | Stiftleiste 1×4, 2,54 mm (ESP gerade, ARGB 90°) |
+| 3 | Schraube M2,5 × 6 (Kopf ≤ Ø 4,5 mm) |
+| 1 | JST-SM-3-Pin-Gegenstück mit Litze (LED-Pigtail) |
+| – | Dupont-Hülsen und -Gehäuse, Litze AWG 22 |
