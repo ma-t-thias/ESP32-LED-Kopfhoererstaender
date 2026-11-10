@@ -267,6 +267,14 @@ text(x(24)-4, ua + 46, "USB-C", 9, weight=700, fill="#e8eefc")
 text(x(24)-4, ua + 58, "5 V · 3 A", 8, fill="#e8eefc")
 text(x(29)+6, ua + 46, "CC", 8, fill="#e8eefc")
 text(x(29)+6, ua + 58, "5,1k", 8, fill="#e8eefc")
+# Optional PC-Sync ueber USB: D- (a27) / D+ (a28) der Buchse -> ESP GPIO12 (J3 Pin 11) / GPIO13 (J3 Pin 12),
+# frei erreichbar ueber Board 2 f11 / f12. Gestrichelt = nur fuer PC-Sync stecken, sonst weglassen.
+DAT = "var(--data4, #0ea5e9)"
+wire([hole2(27, "e"), (x(27), COLS2["f"] + 50), (x(11), COLS2["f"] + 50), hole2(11, "f")], DAT, 2.4, dash="6 4")
+wire([hole2(28, "e"), (x(28), COLS2["f"] + 42), (x(12), COLS2["f"] + 42), hole2(12, "f")], DAT, 2.4, dash="6 4")
+for xx, yy in (hole2(11, "f"), hole2(12, "f")):
+    A(f'<circle cx="{xx}" cy="{yy}" r="7" fill="none" stroke="{DAT}" stroke-width="2"/>')
+text(x(29) + 14, COLS2["f"] + 50, "optional PC-Sync: D−/D+", 9, anchor="start", fill=DAT, weight=700)
 # dicke Litze direkt von den Stiften zu den WAGO-Klemmen
 wire([(x(24), ua), (x(24), COLS2["b"] - 9), (nx - 14, COLS2["b"] - 9), (nx - 14, 60), (nx, 60)], RED, 4.5)
 wire([(x(23), ua), (x(23), COLS2["c"] - 9), (nx + 70, COLS2["c"] - 9), (nx + 70, 150), (nx + 58, 150)], BLU, 4.5)
@@ -352,6 +360,10 @@ t(300, 228, "VBUS", 11, anchor="start"); t(300, 296, "GND", 11, anchor="start")
 t(420, 252, "GPIO3", 11, anchor="end", weight=700)
 t(355, 272, "USB-C nur zum", 9.5, fill="var(--muted)"); t(355, 284, "Flashen/Debuggen", 9.5, fill="var(--muted)")
 L([(330, 310), (330, YG)]); J(330, YG, BLU)
+# optional: USB-Daten der Sockel-Buchse an GPIO12/13 (PC-Sync ueber USB, steckbar per JST-XH)
+A('<path d="M140,290 L280,290" fill="none" stroke="var(--data4, #0ea5e9)" stroke-width="2" stroke-dasharray="6 4"/>')
+t(145, 304, "D+/D− optional", 9.5, anchor="start", fill="var(--muted)")
+t(145, 316, "→ GPIO13/12 (PC-Sync)", 9.5, anchor="start", fill="var(--muted)")
 L([(430, 248), (520, 248)], YEL, 2.4)
 
 # 74AHCT125

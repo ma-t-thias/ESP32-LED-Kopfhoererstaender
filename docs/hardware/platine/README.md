@@ -25,7 +25,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 
 | Datei | Lage |
 |---|---|
-| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind), die USB-Datenleitungen und die Lötbrücken SJ1/SJ2 |
+| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind) und die USB-Datenleitungen |
 | `platine-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
 | `platine-F_Mask.gts`, `platine-B_Mask.gbs` | Lötstopplack oben/unten |
 | `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Umrisse, Polung) |
@@ -43,7 +43,7 @@ Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben;
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
 - **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
 - **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
-- **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,3 mm (Litze 1 mm² für USB-C und Streifen), 2,7 mm (Befestigung M2,5).
+- **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,1 mm (JST-XH USB-C), 1,3 mm (Litze 1 mm² für den Streifen), 2,7 mm (Befestigung M2,5).
 
 ## Bauteile
 
@@ -57,16 +57,15 @@ Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben;
 | C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm, **stehend** direkt unter U1. Das Pad rechts (an U1 Pin 14) ist +5 V, die Polung ist bei Folienkondensatoren aber egal. |
 | C1 | 1000 µF, Elko Ø 8,2 × 16,7 mm, Raster 3,5 mm | **liegend** in der Zunge, Körper Richtung ESP-Anschluss. Beine 90° abwinkeln: Plus ins eckige Pad links, Minus rechts. |
 
-Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auch):
+Anschlüsse:
 
 | Pads | Wohin |
 |---|---|
-| USB-C +5V / GND (links, große Pads) | Litze 1 mm² zu VBUS und GND der USB-C-Buchse |
+| USB-C +5V / GND (links, JST-XH 2-polig, B2B-XH-A) | Fertiges XH-2P-Kabel (Buchse–Buchse) zu VBUS/GND der USB-C-Buchsenplatine (Pins 1–2 der 8er-Leiste, dort ebenfalls eine XH-2P-Stiftleiste einlöten; Raster 2,5 statt 2,54 passt bei 2 Pins). XH ist für 3 A ausgelegt. Alternativ Litze bis 0,75 mm² direkt einlöten. |
 | LED +5V / DIN / GND (rechts) | Streifen. +5V und GND mit Litze 1 mm². |
 | ESP VBUS / IO3 / GND / IO23 (Zungenspitze) | J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
-| USB D+ / D− (über ARGB) | Pins D+ und D− der USB-C-Buchsenplatine (QUARKZMAN), kurze verdrillte Litze. Nur nötig für PC-Sync über USB. |
-| ESP D+ / D− (Zungenspitze rechts) | J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), verdrillt. |
-| SJ1 / SJ2 (Lötbrücken) | Offen: USB-Daten getrennt (Normalfall). Mit Lötpunkt geschlossen: PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README). |
+| USB D+ / D− (JST-XH 2-polig, über C1-Beinen rechts) | Zweites XH-2P-Kabel zu D−/D+ der Buchsenplatine (Pins 5–6). **Das Kabel ist der Schalter:** gesteckt PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README), abgezogen nur Strom. Zum Flashen über die ESP-Buchse abziehen. |
+| ESP D+ / D− (Zungenspitze rechts) | J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
 | ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Stiftleiste 1×4 einlöten und den dritten Stift (Lücke) ziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
 
 ## Unterschiede zum Breadboard-Plan
@@ -76,6 +75,8 @@ Anschlüsse (Lötpads, im 2,54-mm-Raster, Stiftleisten bzw. T-Pfosten passen auc
 - Die WAGO-Klemmen entfallen. Die Platine verteilt +5 V und GND.
 
 ## Einbau
+
+- **Höhe der XH-Stecker:** Stiftleiste und Kabelstecker sind gesteckt etwa 10 bis 11 mm hoch, über der Platine sind bis zum Diffusor etwa 13 mm frei. Die Kabel oben gleich zur Seite legen. Wird es zu eng, geht eine 90°-XH-Stiftleiste (S2B-XH-A) oder ein Abstandsring unter dem Diffusor.
 
 - Drei Befestigungslöcher M2,5 bei (−5/−6), (27,5/−1) und (0/30) mm, passend zu den Domen im Sockel-Vorschlag (`ESP32-Umbau\Passprobe\Vorschlag_Platine\`). Die Unterseite der Platine liegt 4 mm über dem Sockelboden.
 - Bauhöhe über der Platine höchstens 13 mm. Mit stehenden Widerständen und der stehenden Diode bleibt alles unter ca. 11 mm. Am höchsten ist C2 mit 10,3 mm.

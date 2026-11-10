@@ -51,13 +51,15 @@ pad("C2.2", 7.0, -10.0, "GND", d=1.9, drill=1.0)
 # R1 330 Ohm stehend
 pad("R1.1", 21.0, -1.3, "OUT")
 pad("R1.2", 21.0, 1.24, "DIN")
-# Anschluesse LED-Streifen (rechts) und USB-C (links): grosse Pads fuer Litze 1 mm2
+# Anschluesse LED-Streifen (rechts): grosse Pads fuer Litze 1 mm2
+# USB-C (links): JST-XH 2-polig (Raster 2,5 mm, 3 A), steckbar mit fertigem XH-2P-Kabel zur Buchsenplatine
+# (VBUS/GND = Pins 1-2 der 8er-Leiste). Bohrung 1,1 mm: alternativ Litze bis 0,75 mm2 direkt einloeten.
 SX = 23.5
 pad("STRIP.GND", SX, 3.4, "GND", d=2.6, drill=1.3, shape="square")
 pad("STRIP.DIN", SX, -0.4, "DIN", d=2.0, drill=1.0)
 pad("STRIP.5V", SX, -4.2, "+5V", d=2.6, drill=1.3)
-pad("USB.GND", -10.0, 4.0, "GND", d=2.6, drill=1.3, shape="square")
-pad("USB.5V", -10.0, 0.4, "+5V", d=2.6, drill=1.3)
+pad("USB.GND", -10.4, 3.9, "GND", d=2.0, drill=1.1, shape="square")
+pad("USB.5V", -10.4, 1.4, "+5V", d=2.0, drill=1.1)
 # C1 1000 uF, Elko Ø8,2 x 16,7 liegend in der Zunge (Koerper x -7,5..0,7 / y 4,5..21,2), Beine nach unten abgewinkelt, Raster 3,5
 pad("C1.+", -5.15, 3.0, "+5V", d=1.9, drill=0.9, shape="square")
 pad("C1.-", -1.65, 3.0, "GND", d=1.9, drill=0.9)
@@ -84,17 +86,16 @@ pad("ESP.VBUS", -3.81, EY, "VESP", shape="square")
 pad("ESP.IO3", -1.27, EY, "IO3")
 pad("ESP.GND", 1.27, EY, "GND")
 pad("ESP.IO23", 3.81, EY, "IO23")
-# USB-Daten vom PC (optional): D+/D- der USB-C-Buchsenplatine -> Loetbruecken SJ1/SJ2 -> ESP (J3 Pin 12 =
-# GPIO13 = D+, J3 Pin 11 = GPIO12 = D-). Offen sind die Leitungen getrennt (Netzteil-Betrieb, Flashen ueber die
-# ESP-Buchse); mit einem Loetpunkt geschlossen kann der PC ueber die Sockel-Buchse Daten senden.
-pad("USB.DP", 1.6, 7.2, "USB_DP")
-pad("USB.DM", 4.14, 7.2, "USB_DM")
-pad("ESP.DP", 3.3, 28.6, "ESP_DP")
-pad("ESP.DM", 5.9, 29.8, "ESP_DM")
-# Loetbruecken (nur oben, SMD): name -> (x, y, Netz), Pad 1,0 x 1,0 mm, Spalt 0,5 mm
+# USB-Daten vom PC (optional): JST-XH 2-polig fuer D+/D- der USB-C-Buchsenplatine (Pins 5-6 der 8er-Leiste)
+# -> ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D-). Das Datenkabel ist der Schalter: gesteckt kann der
+# PC ueber die Sockel-Buchse Daten senden, abgezogen nur Strom (Netzteil-Betrieb, Flashen ueber die ESP-Buchse).
+# XH-Gehaeuse 7,5 x 5,75 x 9,8 mm: Daten x 0,9..8,4 / y 3,8..9,55, Strom x -13,3..-7,5 / y -1,1..6,4 (frei von C1).
+pad("USBD.DP", 3.4, 6.9, "USB_DP")
+pad("USBD.DM", 5.9, 6.9, "USB_DM")
+pad("ESP.DP", 3.3, 28.6, "USB_DP")
+pad("ESP.DM", 5.9, 29.8, "USB_DM")
 SJ_SIZE = 1.0
-smd = {"SJ1.1": (1.7, 23.0, "USB_DP"), "SJ1.2": (3.2, 23.0, "ESP_DP"),
-       "SJ2.1": (1.7, 19.5, "USB_DM"), "SJ2.2": (3.2, 19.5, "ESP_DM")}
+smd = {}
 
 def at(n):
     return (pads[n]["x"], pads[n]["y"])
@@ -135,10 +136,8 @@ W_USB = 0.5
 def sj(n):
     return smd[n][:2]
 top_tracks = [
-    ("USB_DP", W_USB, [at("USB.DP"), (-2.0, 7.2), (-2.0, 23.0), sj("SJ1.1")]),
-    ("ESP_DP", W_USB, [sj("SJ1.2"), (5.5, 23.0), (5.5, 27.0), at("ESP.DP")]),
-    ("USB_DM", W_USB, [at("USB.DM"), (4.14, 9.1), (-0.6, 9.1), (-0.6, 19.5), sj("SJ2.1")]),
-    ("ESP_DM", W_USB, [sj("SJ2.2"), (6.5, 19.5), (6.5, 29.8), at("ESP.DM")]),
+    ("USB_DP", W_USB, [at("USBD.DP"), (-2.0, 6.9), (-2.0, 23.0), (5.5, 23.0), (5.5, 27.0), at("ESP.DP")]),
+    ("USB_DM", W_USB, [at("USBD.DM"), (7.3, 8.3), (7.3, 17.5), (6.5, 18.3), (6.5, 29.8), at("ESP.DM")]),
 ]
 
 def smd_shape(n):
@@ -336,7 +335,7 @@ def silk_circle(x, y, r):
     return Point(x, y).buffer(r + SILK_W / 2, 32).difference(Point(x, y).buffer(r - SILK_W / 2, 32))
 
 pad_all = unary_union([pad_shape(p) for p in pads.values()])
-mask_open_top_extra = unary_union([smd_shape(n).buffer(MASK_EXP, 4, join_style=2) for n in smd])
+mask_open_top_extra = unary_union([smd_shape(n).buffer(MASK_EXP, 4, join_style=2) for n in smd] or [Point(0, 0).buffer(0)])
 mask_open = unary_union([pad_shape(p).buffer(MASK_EXP, 16) for p in pads.values()] +
                         [Point(m).buffer(MOUNT_DRILL / 2 + 0.1, 32) for m in MOUNT])
 
@@ -359,15 +358,16 @@ silk = unary_union([
     # Anschluesse
     silk_text("5V", SX + 2.6, -4.2), silk_text("D", SX + 1.8, -0.4), silk_text("GND", SX + 3.4, 3.4),
     silk_text("LED", 29.0, 6.0, 0.9),
-    silk_text("USB", -10.0, -1.6, 0.9), silk_text("+", -8.0, 0.4), silk_text("-", -8.0, 4.0),
+    silk_rect(-13.28, -1.1, -7.53, 6.4).intersection(board.buffer(-0.35)), silk_text("USB", -10.4, -2.2, 0.9),
+    silk_text("+", -12.4, 1.4, 0.9), silk_text("-", -12.4, 3.9, 0.9),
+    silk_rect(0.9, 3.8, 8.4, 9.55), silk_text("USB", 1.6, 10.3, 0.7),
     silk_text("ARGB", 9.0, 7.3, 0.9),
     silk_text("5V", argb_pos(0)[0] - 1.45, argb_pos(0)[1] - 1.45, 0.8),
     silk_text("D", argb_pos(1)[0] - 1.45, argb_pos(1)[1] - 1.45, 0.8),
     silk_text("G", argb_pos(3)[0] - 1.45, argb_pos(3)[1] - 1.45, 0.8),
     LineString([(argb_pos(2)[0] - 0.42, argb_pos(2)[1] - 0.42), (argb_pos(2)[0] + 0.42, argb_pos(2)[1] + 0.42)]).buffer(SILK_W / 2, 8),
     silk_text("ESP", -2.4, 22.6, 0.9),
-    silk_text("D+", 2.87, 5.55, 0.7), silk_text("D-", 4.6, 5.55, 0.7),
-    silk_text("SJ2", 2.45, 18.25, 0.7), silk_text("SJ1", 2.45, 21.75, 0.7),
+    silk_text("D+", 3.4, 5.0, 0.7), silk_text("D-", 5.9, 5.0, 0.7),
     silk_text("D+", 3.3, 30.5, 0.7), silk_text("D-", 5.9, 31.7, 0.7),
     silk_text("V", -3.81, 27.3, 0.8), silk_text("3", -1.27, 27.3, 0.8),
     silk_text("G", 1.27, 27.3, 0.8), silk_text("23", 3.81, 27.3, 0.8),
@@ -530,20 +530,19 @@ label(AX + 0.2, 11.8, "R3", f1)
 label(AX - 1.3, 17.0, "R4", f1)
 for n, t in (("STRIP.GND", "GND"), ("STRIP.DIN", "DIN"), ("STRIP.5V", "+5V")):
     label(pads[n]["x"] + 3.6, pads[n]["y"], t)
-label(-11.5, 6.9, "USB-C", f2, "black")
-label(-11.0, 2.2, "GND/+5V")
+box(-13.28, -1.1, -7.53, 6.4, "")
+label(-10.4, -2.3, "XH USB +5V/GND", f2)
 label(9.0, 7.1, "ARGB 90°", f2)
 label(argb_pos(0)[0] - 1.3, argb_pos(0)[1] - 1.9, "5V nc", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 label(argb_pos(1)[0] - 1.5, argb_pos(1)[1] - 1.5, "D", f2)
 label(argb_pos(3)[0] - 1.5, argb_pos(3)[1] - 1.5, "G", f2)
 label(0, 27.2, "VBUS IO3 GND IO23", ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s)))
 fs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", int(0.7 * s))
-label(2.87, 5.6, "USB D+  D-", fs)
+box(0.9, 3.8, 8.4, 9.55, "")
+label(4.65, 4.6, "XH USB D+ D-", fs)
 for n in smd:
     q = smd_shape(n)
     dr.polygon([tf(*c) for c in q.exterior.coords], fill="#c8a24a", outline="black")
-label(2.45, 18.2, "SJ2 D-", fs)
-label(2.45, 21.7, "SJ1 D+", fs)
 label(3.3, 30.3, "D+", fs)
 label(5.9, 31.3, "D-", fs)
 label(29.5, 5.0, "LED", f2)
