@@ -25,7 +25,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen (mindestens 0,
 
 | Datei | Lage |
 |---|---|
-| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind) und die USB-Datenleitungen |
+| `platine-F_Cu.gtl` | Kupfer oben: Lötaugen (damit die Bohrungen durchkontaktiert sind) die USB-Datenleitungen und eine kurze GND-Brücke (U1 Pin 4 → Pin 1) |
 | `platine-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
 | `platine-F_Mask.gts`, `platine-B_Mask.gbs` | Lötstopplack oben/unten |
 | `platine-F_SilkS.gto` | Bestückungsdruck oben (Bauteilnamen, Umrisse, Polung) |
@@ -38,12 +38,12 @@ Bestelloptionen: **2 Lagen, FR-4, 1,6 mm, 35 µm Kupfer, HASL bleifrei, Lötstop
 
 ## Selbst ätzen
 
-Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben; beim Selbstätzen sie bei Bedarf mit isoliertem Draht auf der Bauteilseite ziehen.
+Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen und die GND-Brücke von U1 Pin 4 zu Pin 1 liegen oben. Beim Selbstätzen die GND-Brücke **immer** als Draht auf der Bauteilseite einlöten (sonst hängt ein Teil der Massefläche lose), die USB-Datenleitungen nur bei Bedarf.
 
 - **Tonertransfer oder Belichten:** Die Vorlage zeigt das Kupfer so, wie man von der Bauteilseite durch die Platine schaut. So drucken, wie sie ist, also **nicht spiegeln**. Beim Aufbügeln bzw. Auflegen mit der Druckseite aufs Kupfer stimmt die Lage dann.
 - **Prüfmaß:** Die Platine ist 46,5 × 46,0 mm groß (Außenmaß inkl. Zunge, die oben links auf 18 mm verbreitert ist). Nach dem Drucken mit dem Messschieber kontrollieren.
 - **Bahnen:** 5 V 1,5 mm breit, Signale 0,8 mm, Abstand zur Massefläche 0,5 mm. Die Bohrlöcher haben in der Ätzvorlage einen kleinen freien Punkt als Körnung (in den Gerber-Daten nicht).
-- **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,1 mm (USB-C-Strom), 1,3 mm (Litze 1 mm² für den Streifen), 2,7 mm (Befestigung M2,5).
+- **Bohren:** 0,8 mm (IC), 0,9 mm (R, C, Stiftleisten), 1,0 mm (D1, DIN), 1,1 mm (Strom-Stiftleisten USB-C und LED), 2,7 mm (Befestigung M2,5).
 
 ## Bauteile
 
@@ -57,15 +57,15 @@ Die Ätzvorlage enthält nur die Unterseite. Die USB-Datenleitungen liegen oben;
 | C2 | 100 nF, Folienkondensator CY630 104J (11,5 × 10,3 × 5,4 mm) | Raster 10,16 mm, **stehend** direkt unter U1. Das Pad rechts (an U1 Pin 14) ist +5 V, die Polung ist bei Folienkondensatoren aber egal. |
 | C1 | 1000 µF, Elko Ø 8,2 × 16,7 mm, Raster 3,5 mm | **liegend** in der Zunge, Körper Richtung ESP-Anschluss. Beine 90° abwinkeln: Plus ins eckige Pad links, Minus rechts. |
 
-Anschlüsse:
+Anschlüsse (alle im 2,54-mm-Raster für Stiftleisten und Dupont-Stecker, gerade oder 90°):
 
 | Pads | Wohin |
 |---|---|
 | USB-C +5V / GND (links, Stiftleiste 1×2, 2,54 mm, gerade) | Dupont-Kabel zu VBUS/GND der USB-C-Buchsenplatine (Pins 1–2 der 8er-Leiste). Für bis zu 2,4 A **kein dünnes Jumperkabel**, sondern Litze ≥ AWG 22 mit selbst gecrimpten Dupont-Hülsen (Kontakte ca. 3 A). Alternativ Litze bis 0,75 mm² direkt einlöten. |
-| LED +5V / DIN / GND (rechts) | Streifen. +5V und GND mit Litze 1 mm². |
-| ESP VBUS / IO3 / GND / IO23 (Zungenspitze) | J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
+| LED +5V / DIN / GND (rechts, Stiftleiste 1×3, 2,54 mm) | Dupont zum Streifen. Für +5V und GND Litze ≥ AWG 22 mit gecrimpten Hülsen (bis 2,4 A), kein dünnes Jumperkabel. Alternativ Litze bis 0,75 mm² direkt einlöten. |
+| ESP VBUS / IO3 / GND / IO23 (Zungenspitze, Stiftleiste 1×4) | Dupont zu J4 Pin 1, J3 Pin 7, J4 Pin 3, J4 Pin 9 des ESP32-C6-Touch-LCD-1.9 |
 | USB D+ / D− (Stiftleiste 1×2, 2,54 mm, rechts neben C1) | Zweites Dupont-Kabel zu D−/D+ der Buchsenplatine (Pins 5–6), verdrillt. **Das Kabel ist der Schalter:** gesteckt PC-Sync über die Sockel-Buchse (Adalight, siehe Haupt-README), abgezogen nur Strom. Zum Flashen über die ESP-Buchse abziehen. |
-| ESP D+ / D− (Zungenspitze rechts) | J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
+| ESP D+ / D− (Zungenspitze rechts, Stiftleiste 1×2, 2,54 mm) | Dupont zu J3 Pin 12 (GPIO13 = D+) und J3 Pin 11 (GPIO12 = D−), kurz und verdrillt. |
 | ARGB G / – / D / 5V (Zunge) | Raster wie der 3-polige ARGB-Stecker vom Mainboard (5V, D, Lücke, G). Stiftleiste 1×4 einlöten und den dritten Stift (Lücke) ziehen, dann passt der Stecker direkt. Das 5V-Pad hält nur den Stift und ist nicht angeschlossen. |
 
 ## Unterschiede zum Breadboard-Plan
