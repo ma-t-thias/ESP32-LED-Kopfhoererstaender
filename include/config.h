@@ -121,3 +121,5 @@
 
 // Startbild (Bootlogo): so lange nach dem Einschalten sichtbar, LEDs und WLAN starten dabei schon
 #define BOOT_LOGO_MS 6000
+// Copyright im Start- und Update-Bild (Schrift ohne Umlaute)
+#define COPYRIGHT_TEXT "(C) 2026 Matthias Steis"
