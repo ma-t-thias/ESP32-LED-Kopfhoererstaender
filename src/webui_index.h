@@ -23,7 +23,7 @@ static const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
 :root{
   --bg:#f2f2f7; --glass:rgba(255,255,255,.66); --glass-hi:rgba(255,255,255,.9);
   --fg:#1c1c1e; --muted:#6e6e73; --sep:rgba(60,60,67,.16); --fill:rgba(120,120,128,.14);
-  --green:#34c759; --red:#ff3b30; --orange:#ff9500; --tint:#007aff; --on-tint:#fff;
+  --green:#34c759; --red:#ff3b30; --orange:#ff9500; --tint:#007aff;
   --acc:#ff7800; --on-acc:#fff; --g1:#ff7800; --g2:#0050ff; --seg-on:#fff;
   --shadow:0 1px 1px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.07),0 24px 60px rgba(0,0,0,.06);
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
@@ -40,7 +40,7 @@ static const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
   --green:#30d158; --red:#ff453a; --orange:#ff9f0a; --tint:#0a84ff; --seg-on:#636366; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:100%}
-@supports (font:-apple-system-body){html{font:-apple-system-body}} /* Dynamic Type auf iPhone/iPad */
+@supports (font:-apple-system-body) and (-webkit-touch-callout:none){html{font:-apple-system-body}} /* Dynamic Type nur auf iPhone/iPad, am Mac wäre es 13 px */
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 body{font:1rem/1.4 var(--font)}
 button,input{font:inherit;color:inherit}
@@ -121,7 +121,7 @@ input[type=range]:disabled{opacity:.35;cursor:default}
 .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.22),transparent 40%);opacity:.0;transition:opacity .25s}
 .tile:hover::after{opacity:1}
 .tile[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--tint),0 14px 30px color-mix(in srgb,var(--tint) 30%,transparent)}
-.tile[aria-pressed="true"] span::after{content:" ✓";color:var(--tint);font-weight:600}
+.tile[aria-pressed="true"] span::after{content:" ✓"/"";color:var(--tint);font-weight:600}
 .tile:active{transform:scale(.96)!important}
 /* Farben */
 .colors{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
@@ -433,7 +433,7 @@ function buildPresets(){
   let lp=null, fired=false;
   b.onpointerdown=()=>{ fired=false; clearTimeout(lp); lp=setTimeout(()=>{ fired=true; del(); },600); };
   b.onpointerup=b.onpointerleave=b.onpointercancel=()=>clearTimeout(lp);
-  b.onclick=e=>{ if(fired){ e.preventDefault(); fired=false; return; } send({...p.s}); };
+  b.onclick=e=>{ const lp2=fired; fired=false; if(lp2 && e.detail) return; send({...p.s}); }; // Tastatur/VoiceOver: detail 0
   b.oncontextmenu=e=>{ e.preventDefault(); clearTimeout(lp); if(!fired) del(); fired=false; };
   box.appendChild(b); });
  const a=document.createElement('button'); a.type='button'; a.className='preset add'; a.innerHTML='<span class="orb">+</span>Speichern'; a.setAttribute('aria-label','Aktuelle Einstellung als Preset speichern');
@@ -473,7 +473,7 @@ function render(){
  tiles.forEach((t,i)=>t.el.setAttribute('aria-pressed',i===st.fx));
  [...$('pals').children].forEach((b,i)=>{ b.setAttribute('aria-pressed',i===st.pal); b.firstChild.style.background=palCss(i,st); });
  [...$('rot').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===st.rot));
- if(document.activeElement!==$('b1')) $('b1').value=st.c1; if(document.activeElement!==$('b2')) $('b2').value=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
+ $('b1').value=st.c1; $('b2').value=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
  placeKnob(editing===1?st.c1:st.c2);
  document.documentElement.style.setProperty('--g1',st.c1); document.documentElement.style.setProperty('--g2',st.c2);
  document.body.classList.toggle('off',!st.on);
