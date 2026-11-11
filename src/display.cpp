@@ -283,7 +283,7 @@ void updateProgress(uint8_t percent) {
   if (!updating) {  // erster Aufruf: Startbild mit Hinweis
     updating = true;
     shown = 255;
-    barY = drawLogo("Update - nicht ausschalten");
+    barY = drawLogo("Update, bitte warten");
   }
   if (percent == shown) return;
   shown = percent;
