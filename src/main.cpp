@@ -67,6 +67,14 @@ void nextColorOrPalette() {
   settings::markDirty();
 }
 
+// Ist der Staender aus, schaltet die erste Beruehrung nur ein (Effekt und Farbe bleiben).
+bool turnOnIfOff() {
+  if (state.on) return false;
+  state.on = true;
+  settings::markDirty();
+  return true;
+}
+
 void handleButton() {
   bool pressed = digitalRead(BUTTON_PIN) == LOW;
   uint32_t now = millis();
@@ -80,7 +88,7 @@ void handleButton() {
   } else if (!pressed && btnDown && now - btnSince > DEBOUNCE_MS) {
     btnDown = false;
     btnSince = now;
-    if (!longHandled) nextEffect();  // kurzer Druck
+    if (!longHandled && !turnOnIfOff()) nextEffect();  // kurzer Druck
   }
 }
 }  // namespace
@@ -112,7 +120,9 @@ void loop() {
   realtime::loop(state.syncEnabled);
   argb::loop(state.argbEnabled);
   handleButton();
-  switch (touch::read(display::currentRotation())) {
+  touch::Gesture g = touch::read(display::currentRotation());
+  if (g != touch::NONE && turnOnIfOff()) g = touch::NONE;
+  switch (g) {
     case touch::TAP_TOP:
     case touch::SWIPE_RIGHT: nextEffect(); break;
     case touch::TAP_BOTTOM: nextColorOrPalette(); break;
