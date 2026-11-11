@@ -134,7 +134,7 @@ void drawBar(uint8_t pct) {
   gfx->fillRoundRect(x + 2, barY + 2, (w - 4) * pct / 100, 4, 2, ACCENT);
 }
 uint32_t logoUntil = 0;  // bis dahin bleibt das Startbild stehen
-bool updating = false;
+bool updating = false;  // Update oder Meldung vor Neustart: normale Anzeige ruht
 
 // QR-Code zeichnen: Die Bibliothek ruft uns mit dem fertigen Code auf.
 constexpr int QR_BOX = 156;
@@ -266,6 +266,7 @@ uint8_t currentRotation() { return rotation; }
 
 void message(const char *line1, const char *line2) {
   if (!ok) return;
+  updating = true;  // Meldung stehen lassen: loop() zeichnet bis zum Neustart nichts mehr
   gfx->fillScreen(BG);
   gfx->setTextSize(2);
   gfx->setTextColor(WARN);
