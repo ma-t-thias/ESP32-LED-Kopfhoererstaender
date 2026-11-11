@@ -403,7 +403,7 @@ function drawLeds(cv, cols, bri, glow){
 // ---------- Schnittstelle ----------
 const demoState = {on:true,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
- palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
+ palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3-g1a2b3c4',maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
 const to = () => window.AbortSignal && AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
 const api = DEMO ? {
@@ -469,7 +469,7 @@ function build(){
  ['0°','90°','180°','270°','Auto'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
- $('meta').innerHTML=[['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
+ $('meta').innerHTML=[['Firmware',info.fw||'–'],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
   .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${v}</span></div>`).join('');
  buildPresets();
 }

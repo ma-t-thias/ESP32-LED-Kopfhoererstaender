@@ -3,3 +3,4 @@
 *.bin
 include/secrets.h
 test_ota.ini
+include/fw_version.h

@@ -5,6 +5,7 @@
 #include <FastLED.h>
 
 #include "config.h"
+#include "fw_version.h"
 #include "display.h"
 #include "touch.h"
 #include "imu.h"
@@ -88,7 +89,7 @@ void setup() {
   Serial.setRxBufferSize(2048);  // Platz fuer ganze Adalight-Rahmen vom PC (USB)
   Serial.begin(115200);
   delay(200);
-  Serial.println("\nLED-Kopfhoererstaender startet");
+  Serial.println("\nLED-Kopfhoererstaender startet, Firmware " FW_VERSION);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   settings::begin(state);
