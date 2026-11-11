@@ -266,15 +266,15 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     </section>
     <p class="foot" id="mFoot"></p>
    </div>
-   <div class="group"><h2>Gerät</h2>
-    <section class="glass list" id="meta"></section>
-   </div>
    <section class="glass list"><button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button></section>
   </div>
  </div>
 
  <div class="view" id="v-info" role="tabpanel" aria-labelledby="t-info" hidden>
   <div class="col">
+   <div class="group"><h2>Gerät</h2>
+    <section class="glass list" id="meta"></section>
+   </div>
    <div class="group"><h2>Über dieses Projekt</h2>
     <section class="glass list">
      <div class="li"><span>LED-Kopfhörerständer</span><small>© 2026 Matthias Steis</small></div>
