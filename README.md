@@ -12,7 +12,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
   <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht mit allen Effekten" width="800">
 </p>
 
-Die Weboberfläche hat drei Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten) und **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Gerätedaten, WLAN). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`), und der Browser merkt sich die zuletzt offene.
+Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Gerätedaten, WLAN) und **Info** (Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
 
 Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
 
