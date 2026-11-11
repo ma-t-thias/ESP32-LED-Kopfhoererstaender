@@ -120,7 +120,7 @@ String infoJson() {
   j += "],\"palettes\":[";
   for (uint8_t i = 0; i < effects::PALETTE_COUNT; i++) j += String(i ? "," : "") + "\"" + effects::PALETTE_NAMES[i] + "\"";
   j += "],\"leds\":" + String(LED_COUNT);
-  j += ",\"fw\":\"" + String(FW_VERSION) + "\"";
+  j += ",\"fw\":\"" + jsonEscape(FW_VERSION) + "\"";
   j += ",\"maMax\":" + String(LED_MAX_MILLIAMPS_LIMIT);
   j += ",\"host\":\"" + String(HOSTNAME) + "\"";
   j += ",\"ssid\":\"" + jsonEscape(staSsid) + "\"";

@@ -57,11 +57,11 @@ Beim Bauen schreibt `tools/version.py` den Stand aus Git in die Firmware: letzte
 | Kennung | Bedeutung |
 |---|---|
 | `Prototyp_001` | genau auf dem Tag gebaut |
-| `Prototyp_001-3-g1a2b3c4` | 3 Commits nach dem Tag, Commit `1a2b3c4` |
+| `Prototyp_001-3-1a2b3c4` | 3 Commits nach dem Tag, Commit `1a2b3c4` |
 | `…-dirty` | mit Änderungen gebaut, die noch nicht committet sind |
 | `1a2b3c4` | noch kein Tag vorhanden, nur der Hash |
 
-Einen neuen Stand markieren: in Fork Rechtsklick auf den Commit → **New Tag…**, Namen eingeben (z. B. `v1.0.0`) und den Tag pushen. Oder auf GitHub unter **Releases → Draft a new release** einen Tag anlegen. Danach einmal neu bauen.
+Einen neuen Stand markieren: in Fork Rechtsklick auf den Commit → **New Tag…**, Namen eingeben (z. B. `v1.0.0`) und den Tag pushen. Oder auf GitHub unter **Releases → Draft a new release** einen Tag anlegen und danach in Fork **Fetch** klicken, damit der Tag auch lokal da ist. Danach einmal neu bauen.
 
 ## Erste Einrichtung (WLAN)
 

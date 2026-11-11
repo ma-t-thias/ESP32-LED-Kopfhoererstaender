@@ -1,10 +1,11 @@
 # PlatformIO-Skript (pre): schreibt die Versionskennung nach include/fw_version.h.
-# Kennung = letzter Git-Tag + Commit-Hash, z. B. "Prototyp_001-3-g1a2b3c4".
+# Kennung = letzter Git-Tag + Commit-Hash, z. B. "Prototyp_001-3-1a2b3c4".
 #   Prototyp_001          genau auf dem Tag gebaut
-#   Prototyp_001-3-g1a2b3c4  3 Commits nach dem Tag, Commit 1a2b3c4
+#   Prototyp_001-3-1a2b3c4   3 Commits nach dem Tag, Commit 1a2b3c4
 #   ...-dirty             mit nicht eingecheckten Aenderungen gebaut
 # Die Datei wird nur neu geschrieben, wenn sich die Kennung aendert (spart Neuuebersetzen).
 import os
+import re
 import subprocess
 
 Import("env")  # noqa: F821  (stellt PlatformIO bereit)
@@ -18,6 +19,8 @@ def git(*args):
 
 
 version = git("describe", "--tags", "--always", "--dirty", "--abbrev=7") or "unbekannt"
+version = re.sub(r"-g([0-9a-f]{7})", r"-\1", version)  # kuerzer fuers Display: "-3-1a2b3c4"
+version = re.sub(r"[^A-Za-z0-9._+/-]", "_", version)  # nur unkritische Zeichen (C-String, JSON, HTML)
 text = (
     "// Automatisch erzeugt von tools/version.py - nicht von Hand aendern, nicht einchecken.\n"
     "#pragma once\n"
