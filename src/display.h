@@ -19,7 +19,9 @@ bool begin();
 void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n);
 // Aktuell angezeigte Drehung 0..3, auch bei Auto
 uint8_t currentRotation();
-// Grosse Meldung, z. B. vor einem Neustart
+// Grosse Meldung vor einem Neustart; bleibt bis zum Neustart stehen
 void message(const char *line1, const char *line2);
+// Startbild mit Fortschrittsbalken waehrend eines Updates (0..100 %)
+void updateProgress(uint8_t percent);
 
 }  // namespace display

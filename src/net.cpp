@@ -169,9 +169,23 @@ void startServices() {
   }
   realtime::begin();
   if (strlen(OTA_PASSWORD) > 0) {
+    static bool otaRunning = false;
     ArduinoOTA.setHostname(HOSTNAME);
     ArduinoOTA.setPassword(OTA_PASSWORD);
-    ArduinoOTA.onStart([]() { display::message("Update...", "bitte warten"); });
+    ArduinoOTA.onStart([]() {
+      otaRunning = true;
+      display::updateProgress(0);
+    });
+    ArduinoOTA.onProgress([](unsigned int done, unsigned int total) {
+      if (total) display::updateProgress(done * 100ULL / total);
+    });
+    ArduinoOTA.onError([](ota_error_t) {  // falsches Passwort o. Ae. vor dem Start: nichts tun
+      if (!otaRunning) return;
+      // abgebrochenes Update: Anzeige wieder freigeben, sauber neu starten
+      display::message("Update Fehler", "Neustart...");
+      delay(2000);
+      ESP.restart();
+    });
     ArduinoOTA.begin();
   }
 }

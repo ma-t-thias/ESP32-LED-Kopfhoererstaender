@@ -118,3 +118,6 @@
 #ifndef OTA_PASSWORD
 #define OTA_PASSWORD ""
 #endif
+
+// Startbild (Bootlogo): so lange nach dem Einschalten sichtbar, LEDs und WLAN starten dabei schon
+#define BOOT_LOGO_MS 6000
