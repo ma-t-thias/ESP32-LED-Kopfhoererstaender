@@ -4,15 +4,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LED-Ständer">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
 <title>LED-Kopfhörerständer Steuerung</title>
 <style>
 /* Glas-Karten über einem Lichtschein in den aktuellen LED-Farben: die Seite
    wirkt, als läge sie auf dem leuchtenden Ständer. Gruppierte Listen,
-   große Überschrift, Schalter und Segmente wie in den Systemeinstellungen. */
+   große Überschrift, Schalter und Segmente wie in den Systemeinstellungen.
+   Apple Human Interface Guidelines: feste Akzentfarbe (systemBlue) für
+   Bedienelemente, LED-Farbe nur für Inhalte (Ein/Aus, Helligkeit, Lichtschein),
+   Systemfarben hell/dunkel, Trefferflächen ab 44 pt, Dynamic Type,
+   "Bewegung reduzieren", "Transparenz reduzieren" und "Kontrast erhöhen". */
 :root{
   --bg:#f2f2f7; --glass:rgba(255,255,255,.66); --glass-hi:rgba(255,255,255,.9);
   --fg:#1c1c1e; --muted:#6e6e73; --sep:rgba(60,60,67,.16); --fill:rgba(120,120,128,.14);
-  --green:#34c759; --acc:#ff7800; --on-acc:#fff; --g1:#ff7800; --g2:#0050ff;
+  --green:#34c759; --red:#ff3b30; --orange:#ff9500; --tint:#007aff; --on-tint:#fff;
+  --acc:#ff7800; --on-acc:#fff; --g1:#ff7800; --g2:#0050ff; --seg-on:#fff;
   --shadow:0 1px 1px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.07),0 24px 60px rgba(0,0,0,.06);
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
   --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
@@ -21,15 +29,18 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#000; --glass:rgba(30,30,32,.62); --glass-hi:rgba(255,255,255,.08);
   --fg:#f5f5f7; --muted:#98989f; --sep:rgba(84,84,88,.55); --fill:rgba(118,118,128,.24);
-  --green:#30d158; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}}
+  --green:#30d158; --red:#ff453a; --orange:#ff9f0a; --tint:#0a84ff; --seg-on:#636366; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}}
 :root[data-theme="dark"]{
   --bg:#000; --glass:rgba(30,30,32,.62); --glass-hi:rgba(255,255,255,.08);
   --fg:#f5f5f7; --muted:#98989f; --sep:rgba(84,84,88,.55); --fill:rgba(118,118,128,.24);
-  --green:#30d158; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}
+  --green:#30d158; --red:#ff453a; --orange:#ff9f0a; --tint:#0a84ff; --seg-on:#636366; --shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 50px rgba(0,0,0,.5); color-scheme:dark;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font:16px/1.4 var(--font);-webkit-font-smoothing:antialiased}
+html{font-size:100%}
+@supports (font:-apple-system-body){html{font:-apple-system-body}} /* Dynamic Type auf iPhone/iPad */
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+body{font:1rem/1.4 var(--font)}
 button,input{font:inherit;color:inherit}
-:focus-visible{outline:3px solid color-mix(in srgb,var(--acc) 60%,transparent);outline-offset:2px}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 70%,transparent);outline-offset:2px}
 /* Lichtschein hinter dem Glas */
 .ambient{position:fixed;inset:-20%;z-index:0;pointer-events:none;filter:blur(70px);opacity:.55;transition:opacity .6s}
 .ambient i{position:absolute;width:60vmax;height:60vmax;border-radius:50%;animation:drift 22s ease-in-out infinite alternate}
@@ -38,7 +49,7 @@ button,input{font:inherit;color:inherit}
 .ambient i:nth-child(3){background:var(--g1);left:20%;bottom:-25%;opacity:.6;animation-delay:-14s}
 .off .ambient{opacity:.08}
 @keyframes drift{to{transform:translate(8vmax,6vmax) scale(1.15)}}
-.demo{position:relative;z-index:2;font-size:13px;text-align:center;padding:8px 16px;color:var(--muted)}
+.demo{position:relative;z-index:2;font-size:0.8125rem;text-align:center;padding:8px 16px;color:var(--muted)}
 .app{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 16px calc(120px + env(safe-area-inset-bottom));display:grid;gap:20px}
 .col{display:grid;gap:20px;align-content:start}
 /* Drei Bereiche; Kopf, Streifen und Helligkeit bleiben auf jeder Seite sichtbar */
@@ -55,14 +66,14 @@ button,input{font:inherit;color:inherit}
 /* Tab-Leiste unten, schwebend wie in iOS-Apps */
 .tabbar{position:fixed;z-index:5;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:4px;padding:6px;border-radius:999px;width:min(440px,calc(100% - 32px))}
 .tabbar{background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8)}
-.tabbar button{flex:1;display:grid;justify-items:center;gap:2px;border:0;background:none;border-radius:999px;padding:7px 6px 6px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.01em;transition:background .25s,color .25s}
+.tabbar button{flex:1;display:grid;justify-items:center;gap:2px;border:0;background:none;border-radius:999px;padding:7px 6px 6px;min-height:48px;cursor:pointer;color:var(--muted);font-size:.625rem;font-weight:600;letter-spacing:.01em;transition:background .25s,color .25s}
 .tabbar svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
-.tabbar button[aria-selected="true"]{color:var(--acc);background:var(--fill)}
+.tabbar button[aria-selected="true"]{color:var(--tint);background:var(--fill)}
 .tabbar button:active{transform:scale(.94)}
 header{display:flex;align-items:flex-end;gap:14px;padding-top:12px}
 header .txt{flex:1;min-width:0}
-header h1{font:700 34px/1.1 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
-header .sub{color:var(--muted);font-size:14px;margin-top:4px;font-variant-numeric:tabular-nums}
+header h1{font:700 2.125rem/1.1 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+header .sub{color:var(--muted);font-size:0.875rem;margin-top:4px;font-variant-numeric:tabular-nums}
 .power{width:58px;height:58px;border-radius:50%;border:0;background:var(--glass);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;transition:transform .2s,background .3s,box-shadow .3s}
 .power svg{width:26px;height:26px;stroke:var(--muted);stroke-width:2.4;fill:none;stroke-linecap:round}
 .power[aria-pressed="true"]{background:var(--acc);box-shadow:0 10px 30px color-mix(in srgb,var(--acc) 55%,transparent),0 0 0 1px rgba(255,255,255,.25) inset}
@@ -70,41 +81,43 @@ header .sub{color:var(--muted);font-size:14px;margin-top:4px;font-variant-numeri
 .power:active{transform:scale(.92)}
 .glass{background:var(--glass);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--glass-hi)}
 .group{display:grid;gap:8px}
-.group>h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 0 18px}
+.group>h2{font-size:0.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 0 18px}
 .pad{padding:16px;display:grid;gap:16px}
 /* Live-Streifen mit Spiegelung */
 .stage{padding:0;overflow:hidden}
 .strip{display:block;width:100%;height:132px;background:radial-gradient(120% 90% at 50% 40%,rgba(255,255,255,.04),transparent),#050507}
 .stage .pad{padding-top:14px}
 .status{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;background:var(--fill)}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:0.8125rem;font-weight:500;background:var(--fill)}
 .chip i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
-.chip.live{color:var(--green)}.chip.live i{background:var(--green)}
-.chip.warn{color:#ff9f0a}.chip.warn i{background:#ff9f0a}
+.chip.live i{background:var(--green)}
+.chip.warn i{background:var(--orange)}
 /* Regler wie im Kontrollzentrum */
 .ctl{display:grid;gap:6px}
-.ctl .lab{display:flex;justify-content:space-between;font-size:15px}
+.ctl .lab{display:flex;justify-content:space-between;font-size:0.9375rem}
 .ctl .lab output{color:var(--muted);font-variant-numeric:tabular-nums}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:32px;border-radius:16px;background:linear-gradient(90deg,var(--acc) var(--p,50%),var(--fill) var(--p,50%));cursor:pointer;margin:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.03)}
 input[type=range].big{height:48px;border-radius:16px}
+input[type=range].tint{background:linear-gradient(90deg,var(--tint) var(--p,50%),var(--fill) var(--p,50%))}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:32px;box-shadow:none}
 input[type=range]::-moz-range-thumb{width:0;height:0;border:0}
 input[type=range]::-moz-range-track{background:transparent}
 input[type=range]:disabled{opacity:.35;cursor:default}
 /* Presets */
-.presets{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
-.preset{flex:0 0 auto;scroll-snap-align:start;display:grid;justify-items:center;gap:8px;width:76px;border:0;background:none;cursor:pointer;padding:0;font-size:13px}
+.presets{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
+.preset{flex:0 0 auto;scroll-snap-align:start;display:grid;justify-items:center;gap:8px;width:76px;border:0;background:none;cursor:pointer;padding:0;font-size:0.8125rem}
 .preset .orb{width:64px;height:64px;border-radius:20px;box-shadow:0 8px 20px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -8px 16px rgba(0,0,0,.18);transition:transform .25s}
-.preset.add .orb{background:var(--fill);display:grid;place-items:center;font-size:30px;color:var(--muted);box-shadow:none}
+.preset.add .orb{background:var(--fill);display:grid;place-items:center;font-size:1.875rem;color:var(--muted);box-shadow:none}
 .preset:active .orb{transform:scale(.92)}
 /* Effekte als Karten mit Tiefe */
 .fx{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;perspective:800px}
 .tile{position:relative;border:0;border-radius:18px;padding:0;cursor:pointer;text-align:left;overflow:hidden;display:grid;background:var(--glass);box-shadow:var(--shadow);transform-style:preserve-3d;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;outline-offset:3px}
 .tile canvas{display:block;width:100%;height:46px;background:#050507}
-.tile span{padding:9px 12px 11px;font-size:15px;font-weight:500}
+.tile span{padding:9px 12px 11px;font-size:0.9375rem;font-weight:500}
 .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.22),transparent 40%);opacity:.0;transition:opacity .25s}
 .tile:hover::after{opacity:1}
-.tile[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--acc),0 14px 30px color-mix(in srgb,var(--acc) 35%,transparent)}
+.tile[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--tint),0 14px 30px color-mix(in srgb,var(--tint) 30%,transparent)}
+.tile[aria-pressed="true"] span::after{content:" ✓";color:var(--tint);font-weight:600}
 .tile:active{transform:scale(.96)!important}
 /* Farben */
 .colors{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
@@ -113,33 +126,45 @@ input[type=range]:disabled{opacity:.35;cursor:default}
 .wheel{width:200px;height:200px;border-radius:50%;cursor:crosshair;touch-action:none;display:block}
 .knob{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--fill);border-radius:10px;padding:2px;gap:2px}
-.seg button{border:0;background:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;transition:background .2s,box-shadow .2s}
-.seg button[aria-pressed="true"]{background:var(--glass-hi);box-shadow:0 3px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:#636366}}
-:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:#636366}
+.seg button{border:0;background:none;border-radius:8px;padding:7px 10px;min-height:32px;cursor:pointer;font-size:0.875rem;font-weight:500;font-variant-numeric:tabular-nums;transition:background .2s,box-shadow .2s}
+.seg button[aria-pressed="true"]{background:var(--seg-on);box-shadow:0 3px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
 .swatches{display:grid;gap:12px;width:100%}
 .swrow{display:flex;gap:12px;align-items:center}
-.swrow b{width:44px;height:44px;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 12px rgba(0,0,0,.15)}
-.swrow span{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.swrow{cursor:pointer}
+.swrow input{-webkit-appearance:none;appearance:none;width:44px;height:44px;border:0;padding:0;border-radius:12px;background:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 12px rgba(0,0,0,.15)}
+.swrow input::-webkit-color-swatch-wrapper{padding:0}.swrow input::-webkit-color-swatch{border:0;border-radius:12px}.swrow input::-moz-color-swatch{border:0;border-radius:12px}
+.swrow span{font-variant-numeric:tabular-nums;color:var(--muted);font-size:0.875rem}
 .pals{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
-.pal{border:0;border-radius:14px;background:none;padding:0;cursor:pointer;display:grid;gap:6px;text-align:center;font-size:13px}
+.pal{border:0;border-radius:14px;background:none;padding:0;cursor:pointer;display:grid;gap:6px;text-align:center;font-size:0.8125rem}
+.pal{min-height:44px}
 .pal i{height:30px;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 10px rgba(0,0,0,.12);transition:transform .2s}
-.pal[aria-pressed="true"] i{box-shadow:0 0 0 2.5px var(--bg),0 0 0 5px var(--acc)}
+.pal[aria-pressed="true"] i{box-shadow:0 0 0 2.5px var(--bg),0 0 0 5px var(--tint)}
 .pal[aria-pressed="true"]{font-weight:600}
 /* Gruppierte Liste */
 .list{padding:0}
 .li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:12px 16px;min-height:52px;position:relative}
 .li+.li::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
-.li small{color:var(--muted);font-size:13px;grid-column:1}
+.li.stack{grid-template-columns:1fr;gap:10px}
+.li small{color:var(--muted);font-size:0.8125rem;grid-column:1}
 .li .val{color:var(--muted);font-variant-numeric:tabular-nums}
-.li.btn{cursor:pointer;color:#ff3b30;border:0;background:none;width:100%;text-align:left;font-size:16px}
+.li.btn{cursor:pointer;color:var(--red);border:0;background:none;width:100%;text-align:left;font-size:1rem}
 .switch{position:relative;width:51px;height:31px;border-radius:16px;background:var(--fill);border:0;cursor:pointer;grid-row:1/3;grid-column:2;transition:background .25s}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);transition:transform .25s cubic-bezier(.3,.7,.3,1.2)}
 .switch[aria-checked="true"]{background:var(--green)}
 .switch[aria-checked="true"]::after{transform:translateX(20px)}
-input[type=number]{width:90px;text-align:right;border:0;background:none;color:var(--muted);font-variant-numeric:tabular-nums;padding:0}
-.foot{color:var(--muted);font-size:13px;margin:0 16px}
+input[type=number]{width:90px;min-height:44px;text-align:right;border:0;background:none;color:var(--muted);font-variant-numeric:tabular-nums;padding:0}
+.foot{color:var(--muted);font-size:0.8125rem;margin:0 16px}
 @media (prefers-reduced-motion:reduce){*,.ambient i{transition:none!important;animation:none!important}}
+@media (prefers-reduced-transparency:reduce){
+ :root{--glass:#fff}
+ .ambient{display:none}
+ .glass,.power,.tabbar{backdrop-filter:none;-webkit-backdrop-filter:none}
+ .tabbar{background:var(--bg)}}
+@media (prefers-reduced-transparency:reduce) and (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:#1c1c1e}}
+@media (prefers-contrast:more){
+ :root{--muted:#3a3a3c;--sep:rgba(60,60,67,.4)}
+ .glass{border-color:var(--sep)}}
+@media (prefers-contrast:more) and (prefers-color-scheme:dark){:root:not([data-theme="light"]){--muted:#d1d1d6;--sep:rgba(84,84,88,.9)}}
 </style></head><body>
 <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="demo" id="demo">Vorschau mit Beispieldaten · steuert keine echten LEDs</div>
@@ -160,10 +185,11 @@ input[type=number]{width:90px;text-align:right;border:0;background:none;color:va
  <div class="view v-licht" id="v-licht" role="tabpanel" aria-labelledby="t-licht">
   <div class="group a-pre"><h2>Presets</h2>
    <div class="presets" id="presets"></div>
+   <p class="foot">Lange drücken, um ein Preset zu löschen.</p>
   </div>
   <section class="glass pad a-spd">
-   <div class="ctl"><div class="lab"><label for="spd">Tempo</label><output id="spdO"></output></div><input id="spd" type="range" min="0" max="255"></div>
-   <div class="ctl"><div class="lab"><label for="int" id="intL">Intensität</label><output id="intO"></output></div><input id="int" type="range" min="0" max="255"></div>
+   <div class="ctl"><div class="lab"><label for="spd">Tempo</label><output id="spdO"></output></div><input id="spd" class="tint" type="range" min="0" max="255"></div>
+   <div class="ctl"><div class="lab"><label for="int" id="intL">Intensität</label><output id="intO"></output></div><input id="int" class="tint" type="range" min="0" max="255"></div>
   </section>
   <div class="group a-fx"><h2>Effekt</h2>
    <div class="fx" id="fx"></div>
@@ -177,8 +203,8 @@ input[type=number]{width:90px;text-align:right;border:0;background:none;color:va
      <div class="wheelwrap"><canvas class="wheel" id="wheel" width="400" height="400" aria-label="Farbrad"></canvas><span class="knob" id="knob"></span></div>
      <div class="swatches">
       <div class="seg" role="group" aria-label="Farbe wählen"><button id="sw1" type="button" aria-pressed="true">Farbe 1</button><button id="sw2" type="button" aria-pressed="false">Farbe 2</button></div>
-      <div class="swrow"><b id="b1"></b><span id="h1"></span></div>
-      <div class="swrow"><b id="b2"></b><span id="h2"></span></div>
+      <label class="swrow"><input type="color" id="b1" aria-label="Farbe 1 genau wählen"><span id="h1"></span></label>
+      <label class="swrow"><input type="color" id="b2" aria-label="Farbe 2 genau wählen"><span id="h2"></span></label>
      </div>
     </div>
    </section>
@@ -199,8 +225,8 @@ input[type=number]{width:90px;text-align:right;border:0;background:none;color:va
    </div>
    <div class="group"><h2>Einstellungen</h2>
     <section class="glass list">
-     <div class="li"><label for="ma">Stromgrenze</label><span class="val"><input id="ma" type="number" min="200" step="100"> mA</span></div>
-     <div class="li"><span id="rotL">Anzeige drehen</span><div class="seg" id="rot" role="group" aria-labelledby="rotL" style="min-width:260px"></div></div>
+     <div class="li"><label for="ma">Stromgrenze</label><span class="val"><input id="ma" type="number" min="200" step="100" inputmode="numeric" enterkeyhint="done"> mA</span></div>
+     <div class="li stack"><span id="rotL">Anzeige drehen</span><div class="seg" id="rot" role="group" aria-labelledby="rotL"></div></div>
     </section>
     <p class="foot" id="maHint"></p>
    </div>
@@ -398,8 +424,13 @@ function buildPresets(){
  const box=$('presets'); box.innerHTML='';
  presets.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.className='preset';
   const g = [0,.5,1].map(x=>rgb2hex(palAt(p.s.fx===2||p.s.fx===14||p.s.fx===4?7:p.s.pal,x*.5,p.s))); b.innerHTML=`<span class="orb" style="background:linear-gradient(145deg,${g[0]},${g[1]} 55%,${g[2]})"></span>${p.name}`;
-  b.onclick=()=>send({...p.s});
-  b.oncontextmenu=e=>{ e.preventDefault(); if(confirm(`Preset „${p.name}“ löschen?`)){ presets=presets.filter(x=>x!==p); buildPresets(); api.savePresets(presets); } };
+  // Lange drücken (iPhone) oder Rechtsklick löscht. iOS Safari meldet kein contextmenu, daher eigener Timer.
+  const del=()=>{ if(confirm(`Preset „${p.name}“ löschen?`)){ presets=presets.filter(x=>x!==p); buildPresets(); api.savePresets(presets); } };
+  let lp=null, fired=false;
+  b.onpointerdown=()=>{ fired=false; clearTimeout(lp); lp=setTimeout(()=>{ fired=true; del(); },600); };
+  b.onpointerup=b.onpointerleave=b.onpointercancel=()=>clearTimeout(lp);
+  b.onclick=e=>{ if(fired){ e.preventDefault(); fired=false; return; } send({...p.s}); };
+  b.oncontextmenu=e=>{ e.preventDefault(); clearTimeout(lp); if(!fired) del(); fired=false; };
   box.appendChild(b); });
  const a=document.createElement('button'); a.type='button'; a.className='preset add'; a.innerHTML='<span class="orb">+</span>Speichern'; a.setAttribute('aria-label','Aktuelle Einstellung als Preset speichern');
  a.onclick=()=>{ const n=prompt('Name für das Preset:'); if(n&&n.trim()){ presets.push({name:n.trim().slice(0,16),s:{on:1,bri:st.bri,fx:st.fx,pal:st.pal,spd:st.spd,int:st.int,c1:st.c1,c2:st.c2}}); if(presets.length>12) presets.shift(); buildPresets(); api.savePresets(presets); } };
@@ -427,7 +458,7 @@ function build(){
 function setRange(id,v){ const el=$(id); if(document.activeElement!==el) el.value=v; el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%'); }
 function render(){
  const c1=hex2rgb(st.c1), lum=(c1[0]*.3+c1[1]*.59+c1[2]*.11);
- const acc = lum<60 ? '#8fa3ff' : st.c1;
+ const acc = lum<60 ? '#8fa3ff' : lum>235 ? '#ffcc00' : st.c1; // sehr dunkle/helle LED-Farbe wäre auf dem Hintergrund unsichtbar
  document.documentElement.style.setProperty('--acc',acc);
  document.documentElement.style.setProperty('--on-acc', (lum<60?140:lum)>140 ? '#14100a' : '#ffffff');
  $('power').setAttribute('aria-pressed',st.on);
@@ -438,7 +469,7 @@ function render(){
  tiles.forEach((t,i)=>t.el.setAttribute('aria-pressed',i===st.fx));
  [...$('pals').children].forEach((b,i)=>{ b.setAttribute('aria-pressed',i===st.pal); b.firstChild.style.background=palCss(i,st); });
  [...$('rot').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===st.rot));
- $('b1').style.background=st.c1; $('b2').style.background=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
+ if(document.activeElement!==$('b1')) $('b1').value=st.c1; if(document.activeElement!==$('b2')) $('b2').value=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
  placeKnob(editing===1?st.c1:st.c2);
  document.documentElement.style.setProperty('--g1',st.c1); document.documentElement.style.setProperty('--g2',st.c2);
  document.body.classList.toggle('off',!st.on);
@@ -491,6 +522,7 @@ function wheelPick(e){
 $('power').onclick=()=>send({on:st.on?0:1});
 for (const k of ['bri','spd','int']) $(k).oninput=e=>send({[k]:+e.target.value});
 $('sw1').onclick=()=>{editing=1;render();}; $('sw2').onclick=()=>{editing=2;render();};
+$('b1').oninput=e=>{editing=1; send({c1:e.target.value});}; $('b2').oninput=e=>{editing=2; send({c2:e.target.value});};
 $('wheel').onpointerdown=e=>{ $('wheel').setPointerCapture(e.pointerId); wheelPick(e); };
 $('wheel').onpointermove=e=>{ if(e.buttons) wheelPick(e); };
 $('argb').onclick=()=>send({argb:st.argb?0:1}); $('sync').onclick=()=>send({sync:st.sync?0:1});
