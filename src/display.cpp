@@ -20,7 +20,8 @@ namespace {
 Arduino_DataBus *bus = new Arduino_HWSPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI, GFX_NOT_DEFINED);
 Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true /* IPS */, LCD_W, LCD_H, LCD_OFFSETS);
 bool ok = false;
-bool pairingShown = false;  // Matter-Koppelbildschirm ist zu sehen
+enum Screen : uint8_t { SCR_STATUS, SCR_PAIRING, SCR_OFF };
+Screen shown = SCR_STATUS;  // welcher Bildschirm gerade zu sehen ist
 uint8_t rotation = LCD_ROTATION;
 
 constexpr uint16_t BG = 0x0000;
@@ -188,6 +189,11 @@ void drawPercent(uint8_t pct) {
 }
 int hourglassX() { return rowCx - (13 * 6 + 24) / 2 + 9; }
 
+#ifdef TOUCH_ADDR
+constexpr const char *OFF_HINT = "Aus - antippen";
+#else
+constexpr const char *OFF_HINT = "Aus - Taste druecken";
+#endif
 uint32_t logoUntil = 0;  // bis dahin bleibt das Startbild stehen
 bool updating = false;  // Update oder Meldung vor Neustart: normale Anzeige ruht
 
@@ -259,6 +265,9 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   bool wantPairing = matterdev::started() && !matterdev::paired() && net.connected;
   uint8_t want = s.displayRotation;
   if (want == ROT_AUTO) want = imu::rotation() >= 0 ? imu::rotation() : LCD_ROTATION;
+  // Koppeln geht vor; aus = Logo (ausser bei der WLAN-Einrichtung, die braucht die Hinweise)
+  Screen screen = wantPairing ? SCR_PAIRING : (!s.on && !net.setupAp) ? SCR_OFF : SCR_STATUS;
+  bool redraw = false;
   if (logoUntil) {  // Startbild: nur bei Drehung neu zeichnen, danach normale Anzeige
     if ((want & 3) != rotation) {
       rotation = want & 3;
@@ -266,21 +275,19 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
     }
     if ((int32_t)(millis() - logoUntil) < 0) return;
     logoUntil = 0;
-    pairingShown = wantPairing;
-    if (wantPairing) drawPairing(net);
-    else drawStatic();
+    redraw = true;
   }
   if ((want & 3) != rotation) {
     rotation = want & 3;
-    if (wantPairing) drawPairing(net);
+    redraw = true;
+  }
+  if (screen != shown || redraw) {
+    shown = screen;
+    if (screen == SCR_PAIRING) drawPairing(net);
+    else if (screen == SCR_OFF) drawLogo(OFF_HINT);
     else drawStatic();
   }
-  if (wantPairing != pairingShown) {
-    pairingShown = wantPairing;
-    if (wantPairing) drawPairing(net);
-    else drawStatic();
-  }
-  if (pairingShown) return;
+  if (shown != SCR_STATUS) return;
 
   textLine(6, 24, W < 200 ? "Kopfhoerer" : "LED-Kopfhoerer", 2, FG, lastHeader);
 
