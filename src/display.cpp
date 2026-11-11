@@ -89,15 +89,16 @@ void drawStatic() {
 }
 // Startbild: Kopfhoerer mit Buegel im Regenbogen, darunter eine LED-Reihe und
 // der Name. Nur mit Grafikbefehlen gezeichnet, braucht also keinen Bildspeicher.
-// Passt hochkant, quer und quadratisch. Gibt die Unterkante zurueck.
+// Passt hochkant, quer und quadratisch, mit Copyright.
 uint16_t hue565(uint8_t h) { return to565(CHSV(h, 255, 255)); }
-int drawLogo(const char *sub) {
+int rowY, rowCx, barX, barY, barW;  // Lage von Untertitel und Balken, setzt drawLogo
+void drawLogo(const char *sub) {
   setLayout();
   gfx->fillScreen(BG);
   bool wide = W > H;
   bool square = !wide && H < W * 3 / 2;   // altes 240x240-Display
   int R = square ? min(W, H) / 4 : min(W, H) * 3 / 10;  // Radius des Buegels
-  int cx = W / 2, cy = wide ? H / 2 - 4 : square ? H / 2 - 50 : H / 2 - 40;
+  int cx = W / 2, cy = wide ? H / 2 - 4 : square ? H / 2 - 58 : H / 2 - 40;
   if (wide) cx = W / 4 + 8;                // quer: Bild links, Text rechts
   // Buegel: oberer Halbkreis in 24 Farbstuecken
   for (int k = 0; k < 24; k++)
@@ -124,16 +125,69 @@ int drawLogo(const char *sub) {
   center("LED", 2, FG, ty);
   center("Kopfhoerer", 2, FG, ty + 20);
   center(sub, 1, MUTED, ty + 46);
-  return ty + 58;
+  rowY = ty + 46;
+  rowCx = tx + tw / 2;
+  barY = ty + 62;  // Platz fuer die Sanduhr in der Zeile darueber
+  barX = wide ? W / 2 + 14 : 16;
+  barW = wide ? W - barX - 14 : W - 32;
+  // Copyright: hochkant/quadratisch ganz unten, quer unter dem Kopfhoerer
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  int cwTxt = strlen(COPYRIGHT_TEXT) * 6;
+  if (wide) gfx->setCursor(max(0, cx - cwTxt / 2), ly + 8);
+  else gfx->setCursor(max(0, (W - cwTxt) / 2), H - 11);
+  gfx->print(COPYRIGHT_TEXT);
 }
-// Fortschrittsbalken unter dem Startbild
-int barY = 0;
+
+// ---------- Update-Anzeige: Balken mit Farbverlauf, drehende Sanduhr, Prozent ----------
+uint8_t barShown = 0;  // bis hierhin ist der Balken schon gefuellt (in Prozent)
+void drawBarFrame() {
+  gfx->fillRect(barX + 2, barY + 2, barW - 4, 4, BG);  // alte Fuellung weg (neuer Versuch)
+  gfx->drawRoundRect(barX, barY, barW, 8, 4, MUTED);
+  barShown = 0;
+}
+// Fuellt nur das neue Stueck; Farbe laeuft ueber die Breite von Rot ueber Gelb/Gruen nach Blau.
 void drawBar(uint8_t pct) {
-  int x = 16, w = W - 32;
-  if (W > H) { x = W / 2 + 14; w = W - x - 14; }
-  gfx->drawRoundRect(x, barY, w, 8, 4, MUTED);
-  gfx->fillRoundRect(x + 2, barY + 2, (w - 4) * pct / 100, 4, 2, ACCENT);
+  int inner = barW - 4, from = inner * barShown / 100, to = inner * pct / 100;
+  for (int x = from; x < to; x++) gfx->drawFastVLine(barX + 2 + x, barY + 2, 4, hue565(x * 160 / inner));
+  barShown = pct;
 }
+// Sanduhr um ihren Mittelpunkt gedreht; Sand unten waechst mit dem Fortschritt.
+void drawHourglass(int x, int y, float deg, uint8_t pct) {
+  gfx->fillCircle(x, y, 10, BG);
+  float a = deg * DEG_TO_RAD, c = cosf(a), s = sinf(a);
+  auto P = [&](float px, float py, int16_t &ox, int16_t &oy) {
+    ox = x + lroundf(px * c - py * s);
+    oy = y + lroundf(px * s + py * c);
+  };
+  int16_t ax, ay, bx, by, mx, my, dx, dy, ex, ey;
+  P(-5, -8, ax, ay); P(5, -8, bx, by); P(0, 0, mx, my); P(-5, 8, dx, dy); P(5, 8, ex, ey);
+  // Sand: oben schrumpft, unten waechst
+  float top = 1.0f - pct / 100.0f, bot = pct / 100.0f;
+  int16_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
+  if (top > 0.05f) {
+    P(-5 * top, -8 * top, s1x, s1y); P(5 * top, -8 * top, s2x, s2y);
+    gfx->fillTriangle(s1x, s1y, s2x, s2y, mx, my, WARN);
+  }
+  if (bot > 0.05f) {
+    P(-5, 8, s3x, s3y); P(5, 8, s4x, s4y); P(0, 8 - 8 * bot, s1x, s1y);
+    gfx->fillTriangle(s3x, s3y, s4x, s4y, s1x, s1y, WARN);
+  }
+  gfx->drawTriangle(ax, ay, bx, by, mx, my, FG);
+  gfx->drawTriangle(dx, dy, ex, ey, mx, my, FG);
+}
+void drawPercent(uint8_t pct) {
+  char t[16];
+  snprintf(t, sizeof(t), "Update %3u %%", (unsigned)pct);
+  int w = 13 * 6, x0 = rowCx - (w + 24) / 2;  // Sanduhr links, Text rechts daneben
+  gfx->fillRect(x0 + 24, rowY - 2, w, 12, BG);
+  gfx->setTextSize(1);
+  gfx->setTextColor(FG);
+  gfx->setCursor(x0 + 24, rowY);
+  gfx->print(t);
+}
+int hourglassX() { return rowCx - (13 * 6 + 24) / 2 + 9; }
+
 uint32_t logoUntil = 0;  // bis dahin bleibt das Startbild stehen
 bool updating = false;  // Update oder Meldung vor Neustart: normale Anzeige ruht
 
@@ -282,14 +336,25 @@ void message(const char *line1, const char *line2) {
 void updateProgress(uint8_t percent) {
   if (!ok) return;
   static uint8_t shown = 255;
-  if (!updating) {  // erster Aufruf: Startbild mit Hinweis
+  static uint32_t lastSpin = 0;
+  if (!updating) {  // erster Aufruf: Startbild ohne Untertitel, dann Balkenrahmen
     updating = true;
     shown = 255;
-    barY = drawLogo("Update, bitte warten");
+    drawLogo("");
+    drawBarFrame();
   }
-  if (percent == shown) return;
-  shown = percent;
-  drawBar(percent);
+  if (percent > 100) percent = 100;
+  uint32_t now = millis();
+  if (percent != shown) {
+    if (percent < barShown) drawBarFrame();  // neuer Versuch: Balken von vorn
+    drawBar(percent);
+    drawPercent(percent);
+    shown = percent;
+  }
+  if (now - lastSpin >= 60 || percent == 100) {  // Sanduhr dreht sich wie bei Apple
+    lastSpin = now;
+    drawHourglass(hourglassX(), rowY + 3, (now / 4) % 360, percent);
+  }
 }
 
 }  // namespace display

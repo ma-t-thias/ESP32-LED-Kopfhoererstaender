@@ -246,3 +246,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | `src/touch.cpp` | Touch: Tippen (oben/unten) und Wischen erkennen |
 | `src/imu.cpp` | Lagesensor: Displaydrehung „Auto“ nach der Schwerkraft |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |
+
+## Lizenz
+
+© 2026 Matthias Steis. Lizenz: [CC BY-NC-SA 4.0](LICENSE.md). Nachbau und Änderungen sind mit Namensnennung für nicht kommerzielle Zwecke erlaubt, Verkauf nur mit Erlaubnis. Fremde Bestandteile und ihre Lizenzen stehen in [LICENSE.md](LICENSE.md).
