@@ -3,6 +3,7 @@
 #include <Arduino_GFX_Library.h>
 
 #include "config.h"
+#include "fw_version.h"
 #include "effects.h"
 #include "argb_in.h"
 #include "realtime.h"
@@ -193,7 +194,7 @@ bool begin() {
   ok = gfx->begin();
   if (!ok) return false;
   gfx->setTextWrap(false);
-  drawLogo("Start ...");
+  drawLogo(FW_VERSION);
   logoUntil = millis() + BOOT_LOGO_MS;
   return true;
 }
@@ -207,7 +208,7 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (logoUntil) {  // Startbild: nur bei Drehung neu zeichnen, danach normale Anzeige
     if ((want & 3) != rotation) {
       rotation = want & 3;
-      drawLogo("Start ...");
+      drawLogo(FW_VERSION);
     }
     if ((int32_t)(millis() - logoUntil) < 0) return;
     logoUntil = 0;

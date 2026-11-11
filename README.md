@@ -50,6 +50,19 @@ Die Partitionstabelle (`partitions_8mb.csv` bzw. `partitions.csv` beim 1.3er) wi
 
 Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
 
+### Versionskennung
+
+Beim Bauen schreibt `tools/version.py` den Stand aus Git in die Firmware: letzter Tag plus Commit-Hash. Die Kennung steht im Startbild, in der Weboberfläche unter **Einstellungen → Gerät → Firmware**, in `/api/info` (Feld `fw`) und im seriellen Monitor.
+
+| Kennung | Bedeutung |
+|---|---|
+| `Prototyp_001` | genau auf dem Tag gebaut |
+| `Prototyp_001-3-1a2b3c4` | 3 Commits nach dem Tag, Commit `1a2b3c4` |
+| `…-dirty` | mit Änderungen gebaut, die noch nicht committet sind |
+| `1a2b3c4` | noch kein Tag vorhanden, nur der Hash |
+
+Einen neuen Stand markieren: in Fork Rechtsklick auf den Commit → **New Tag…**, Namen eingeben (z. B. `v1.0.0`) und den Tag pushen. Oder auf GitHub unter **Releases → Draft a new release** einen Tag anlegen und danach in Fork **Fetch** klicken, damit der Tag auch lokal da ist. Danach einmal neu bauen.
+
 ## Erste Einrichtung (WLAN)
 
 Die WLAN-Zugangsdaten stehen nicht im Code.
@@ -204,7 +217,7 @@ Findet der PC `led-kopfhoerer.local` nicht, in `test_ota.ini` bei `host` die IP-
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON |
 | POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu) |
-| GET | `/api/info` | Effekt- und Palettennamen, Netzwerkdaten |
+| GET | `/api/info` | Firmware-Version (`fw`), Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
@@ -218,6 +231,7 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 | Datei | Inhalt |
 |---|---|
 | `include/config.h` | Pins, LED-Anzahl, Stromgrenze, Hostname |
+| `tools/version.py` | schreibt beim Bauen die Versionskennung nach `include/fw_version.h` (nicht eingecheckt) |
 | `src/main.cpp` | Ablauf, Bildrate, Ein-/Ausblenden, BOOT-Taster |
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
