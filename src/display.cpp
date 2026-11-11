@@ -142,6 +142,7 @@ void drawLogo(const char *sub) {
 // ---------- Update-Anzeige: Balken mit Farbverlauf, drehende Sanduhr, Prozent ----------
 uint8_t barShown = 0;  // bis hierhin ist der Balken schon gefuellt (in Prozent)
 void drawBarFrame() {
+  gfx->fillRect(barX + 2, barY + 2, barW - 4, 4, BG);  // alte Fuellung weg (neuer Versuch)
   gfx->drawRoundRect(barX, barY, barW, 8, 4, MUTED);
   barShown = 0;
 }
