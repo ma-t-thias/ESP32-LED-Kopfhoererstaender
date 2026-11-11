@@ -167,6 +167,15 @@ input[type=range]:disabled{opacity:.35;cursor:default}
 .switch::before{content:"";position:absolute;inset:-7px -4px}
 @media (pointer:coarse){.seg button{min-height:40px}}
 input[type=number]{width:90px;min-height:44px;text-align:right;border:0;background:none;color:var(--muted);font-variant-numeric:tabular-nums;padding:0}
+.li.link{color:var(--tint);text-decoration:none;cursor:pointer}
+.li.link:active,.li.more summary:active{background:var(--fill)}
+.li.more{display:block;padding:0}
+.li.more summary{list-style:none;display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 16px;min-height:52px;cursor:pointer}
+.li.more summary::-webkit-details-marker{display:none}
+.li.more .val,.li.link .val{transition:transform .2s;font-size:1.25rem;line-height:1}
+.li.more[open] summary .val{transform:rotate(90deg)}
+.legal{padding:0 16px 14px;color:var(--muted);font-size:.8125rem;line-height:1.45}
+.legal p{margin:0 0 8px}.legal b{color:var(--fg);font-weight:600}
 .foot{color:var(--muted);font-size:0.8125rem;margin:0 16px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 @media (prefers-reduced-transparency:reduce){
@@ -259,6 +268,23 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     <section class="glass list" id="meta"></section>
    </div>
    <section class="glass list"><button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button></section>
+   <div class="group"><h2>Über dieses Projekt</h2>
+    <section class="glass list">
+     <div class="li"><span>LED-Kopfhörerständer</span><small>© 2026 Matthias Steis</small></div>
+     <div class="li"><span>Lizenz</span><span class="val" id="licName"></span></div>
+     <a class="li link" href="https://github.com/ma-t-thias/ESP32-LED-Kopfhoererstaender" target="_blank" rel="noopener">Quelltext auf GitHub<span class="val" aria-hidden="true">›</span></a>
+     <details class="li more"><summary>Herkunft und Rechtliches<span class="val" aria-hidden="true">›</span></summary>
+      <div class="legal">
+       <p id="licText"></p>
+       <p><b>Ständer:</b> Grundkörper nach „RGB Headphone Stand“ von FaisLeFr (Thingiverse 4722406), Lizenz Creative Commons Namensnennung (CC BY). Gehäuse für Display und Elektronik, Sockel und Platine: Matthias Steis.</p>
+       <p><b>Verwendete Software:</b> FastLED (MIT) · GFX Library for Arduino von moononournation, auf Basis Adafruit GFX (BSD) · ArduinoJson von Benoît Blanchon (MIT) · Arduino-Core für ESP32 von Espressif (LGPL-2.1) · ESP-IDF und Matter-SDK (Apache-2.0). Die Lizenztexte liegen bei den jeweiligen Projekten.</p>
+       <p><b>Kompatibilität:</b> Die JSON-Schnittstelle ist mit WLED kompatibel, enthält aber keinen WLED-Code. Apple, Apple Home, Matter, ASUS Aura, SignalRGB und OpenRGB sind Marken ihrer jeweiligen Inhaber. Dieses Projekt ist mit keinem dieser Unternehmen verbunden.</p>
+       <p><b>Haftung:</b> Bereitgestellt ohne Gewähr. Nachbau und Betrieb auf eigene Verantwortung, besonders bei Netzteil und Verkabelung.</p>
+      </div>
+     </details>
+    </section>
+    <p class="foot" id="aboutFoot"></p>
+   </div>
   </div>
  </div>
 </main>
@@ -401,6 +427,12 @@ function drawLeds(cv, cols, bri, glow){
  ctx.shadowBlur=0;
 }
 
+// ---------- Lizenz (eine Stelle zum Ändern) ----------
+const LICENSE = {
+ name: 'CC BY-NC-SA 4.0',
+ text: 'Dieses Projekt ist öffentlich. Firmware, Weboberfläche, Gehäuse und Platine stehen unter Creative Commons Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen 4.0 (CC BY-NC-SA 4.0): Nachbauen, Ändern und Weitergeben für private Zwecke ist erlaubt, wenn „Matthias Steis“ und der Link zum Projekt genannt werden und Änderungen unter derselben Lizenz stehen. Kommerzielle Nutzung, etwa der Verkauf, nur mit Erlaubnis.'
+};
+
 // ---------- Schnittstelle ----------
 const demoState = {on:true,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
@@ -473,6 +505,10 @@ function build(){
  $('meta').innerHTML=[['Firmware',info.fw||'–'],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
   .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${esc(v)}</span></div>`).join('');
  buildPresets();
+
+ $('licName').textContent=LICENSE.name;
+ $('licText').textContent=LICENSE.text;
+ $('aboutFoot').textContent='© 2026 Matthias Steis · '+LICENSE.name;
 }
 function setRange(id,v){ const el=$(id); if(document.activeElement!==el) el.value=v; el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%'); }
 function render(){
