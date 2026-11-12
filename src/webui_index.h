@@ -277,7 +277,7 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
      <div class="li"><label for="nTo">Bis</label><input id="nTo" type="time" step="60"></div>
      <div class="li stack"><span id="nBriL">Helligkeit nachts</span><div class="seg" id="nBri" role="group" aria-labelledby="nBriL"></div></div>
     </section>
-    <p class="foot" id="nightFoot">Die Uhrzeit holt sich der Ständer aus dem Internet (Zeitzone Deutschland). In der Nacht dimmt er langsam herunter; tagsüber gilt wieder die normale Helligkeit.</p>
+    <p class="foot" id="nightFoot">Die Uhrzeit holt sich der Ständer aus dem Internet (Zeitzone Deutschland). Zu Beginn der Nacht dimmt er langsam herunter; nach dem Zeitfenster gilt wieder die normale Helligkeit. Von und Bis gleich = Nachtmodus wirkungslos.</p>
    </div>
   </div>
   <div class="col">

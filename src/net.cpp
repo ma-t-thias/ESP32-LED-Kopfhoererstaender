@@ -533,6 +533,10 @@ void handleNotFound() {
 }  // namespace
 
 void begin(LedState &state, ChangeHandler onChange) {
+  // Zeitzone sofort setzen: nach einem Neustart laeuft die Systemuhr weiter, sonst wuerde das
+  // Nachtfenster bis zur WLAN-Verbindung gegen UTC geprueft
+  setenv("TZ", TIMEZONE, 1);
+  tzset();
   st = &state;
   changed = onChange;
 
@@ -665,6 +669,8 @@ bool nightActive(const LedState &s) {
   return s.nightFrom < s.nightTo ? (m >= s.nightFrom && m < s.nightTo)   // z. B. 13:00-15:00
                                  : (m >= s.nightFrom || m < s.nightTo);  // ueber Mitternacht
 }
+
+bool clockKnown() { return minutesNow() >= 0; }
 
 void resetWifiAndRestart() {
   settings::clearWifi();

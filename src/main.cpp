@@ -160,9 +160,14 @@ void loop() {
     // Nachtmodus: hoechstens die Nacht-Helligkeit; der Uebergang laeuft langsam (ca. 10 s)
     static bool night = false;
     static uint32_t nightChecked = 0;
-    if (now - nightChecked >= 1000) {
+    static bool firstCheck = true;
+    if (firstCheck || now - nightChecked >= 1000) {
+      firstCheck = false;
       nightChecked = now;
-      night = net::nightActive(state);
+      // Beim Start ist die Uhrzeit noch unbekannt: mit eingeschaltetem Nachtmodus die ersten 30 s
+      // vorsichtshalber nur Nacht-Helligkeit, damit der Staender nachts nicht kurz voll aufleuchtet.
+      // Ohne Internet gilt danach wieder die normale Helligkeit.
+      night = net::nightActive(state) || (state.nightEnabled && !net::clockKnown() && now < 30000);
     }
     uint8_t target = state.on ? (night ? min(state.brightness, state.nightBri) : state.brightness) : 0;
     if (night && outputLevel > target && state.on) {  // sanft herunterdimmen statt schnell ausblenden

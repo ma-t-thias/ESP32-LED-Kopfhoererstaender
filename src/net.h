@@ -16,5 +16,7 @@ display::NetInfo info();
 void resetWifiAndRestart();
 // Nachtmodus gerade aktiv (eingeschaltet, Uhrzeit bekannt, jetzt im Zeitfenster)
 bool nightActive(const LedState &s);
+// Uhrzeit bekannt (per NTP gesetzt)
+bool clockKnown();
 
 }  // namespace net
