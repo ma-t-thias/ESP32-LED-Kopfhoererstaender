@@ -271,6 +271,16 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     </section>
     <p class="foot" id="mFoot"></p>
    </div>
+   <div class="group"><h2>Firmware-Update</h2>
+    <section class="glass list">
+     <div class="li"><span>Installiert</span><span class="val" id="fwCur">–</span></div>
+     <button class="li btn tint" id="fwPick" type="button"><span>Datei wählen</span><span class="val" id="fwName">keine</span></button>
+     <input type="file" id="fwFile" accept=".bin" hidden>
+     <div class="li stack" id="fwProg" hidden><div class="prog" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" id="fwBarW"><i id="fwBar"></i></div><small id="fwPct" aria-live="polite"></small></div>
+     <button class="li btn tint" id="fwStart" type="button" disabled>Update installieren</button>
+    </section>
+    <p class="foot" id="fwFoot"></p>
+   </div>
    <section class="glass list"><button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button></section>
   </div>
  </div>
@@ -279,15 +289,6 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
   <div class="col">
    <div class="group"><h2>Gerät</h2>
     <section class="glass list" id="meta"></section>
-   </div>
-   <div class="group"><h2>Firmware-Update</h2>
-    <section class="glass list">
-     <button class="li btn tint" id="fwPick" type="button"><span>Datei wählen</span><span class="val" id="fwName">keine</span></button>
-     <input type="file" id="fwFile" accept=".bin" hidden>
-     <div class="li stack" id="fwProg" hidden><div class="prog" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" id="fwBarW"><i id="fwBar"></i></div><small id="fwPct" aria-live="polite"></small></div>
-     <button class="li btn tint" id="fwStart" type="button" disabled>Update installieren</button>
-    </section>
-    <p class="foot" id="fwFoot"></p>
    </div>
    <div class="group"><h2>Über dieses Projekt</h2>
     <section class="glass list">
@@ -524,6 +525,7 @@ function build(){
  ['0°','90°','180°','270°','Auto'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
+ $('fwCur').textContent=info.fw||'–';
  $('meta').innerHTML=[['Firmware',info.fw||'–'],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
   .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${esc(v)}</span></div>`).join('');
  buildPresets();

@@ -167,9 +167,10 @@ void drawLogo(const char *sub) {
   center("LED", 2, FG, ty);
   center("Kopfhoerer", 2, FG, ty + 20);
   center(sub, 1, MUTED, ty + 46);
-  rowY = ty + 46;
+  // Update-Anzeige eine Zeile unter der Version; 240x240: etwas enger, damit das Copyright frei bleibt
+  rowY = ty + 46 + (square ? 8 : 14);
   rowCx = tx + tw / 2;
-  barY = ty + 62;  // Platz fuer die Sanduhr in der Zeile darueber
+  barY = rowY + (square ? 14 : 16);  // Platz fuer die Sanduhr in der Zeile darueber
   barX = wide ? W / 2 + 14 : 16;
   barW = wide ? W - barX - 14 : W - 32;
   // Copyright: hochkant/quadratisch ganz unten, quer unter dem Kopfhoerer

@@ -12,7 +12,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
   <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht mit allen Effekten" width="800">
 </p>
 
-Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, WLAN) und **Info** (Gerätedaten mit Firmware-Version, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
+Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Firmware-Update, WLAN) und **Info** (Gerätedaten mit Firmware-Version, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
 
 Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
 
@@ -52,7 +52,7 @@ Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode
 
 ### Versionskennung
 
-Beim Bauen schreibt `tools/version.py` den Stand aus Git in die Firmware: letzter Tag plus Commit-Hash, der Hash steht immer in Klammern dabei. Die Kennung steht im Startbild, auf der Display-Seite **Einrichten**, in der Weboberfläche unter **Info → Gerät → Firmware**, in `/api/info` (Feld `fw`) und im seriellen Monitor.
+Beim Bauen schreibt `tools/version.py` den Stand aus Git in die Firmware: letzter Tag plus Commit-Hash, der Hash steht immer in Klammern dabei. Die Kennung steht im Startbild, auf der Display-Seite **Einrichten**, in der Weboberfläche unter **Info → Gerät → Firmware** und **Einstellungen → Firmware-Update → Installiert**, in `/api/info` (Feld `fw`) und im seriellen Monitor. Im Monitor erscheint sie nur einmal direkt nach dem Start; beim ESP32-C6 verbindet sich der Monitor nach einem Upload meist erst danach, die Zeile fehlt dann. Am einfachsten auf dem Display oder in der Weboberfläche nachsehen.
 
 | Kennung | Bedeutung |
 |---|---|
@@ -205,7 +205,7 @@ Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestel
 ## Firmware-Update über die Weboberfläche
 
 1. Nur für getaggte Stände: Den Commit in Fork taggen (Rechtsklick auf den Commit → „New Tag…“, z. B. `V1.0.0`) und den Tag pushen. Dann in VS Code unter *PlatformIO → Project Tasks → env → Custom* **Update-Datei erzeugen** ausführen. Danach liegt im Projektordner unter `update/` die Datei `LED-Kopfhoerer_LCD19_V1.0.0.bin` (altes 1,3-Zoll-Board: `_LCD13_`). Das ist die normale `firmware.bin` mit sprechendem Namen (`tools/update_file.py`). Hat der Commit keinen Tag oder gibt es nicht eingecheckte Änderungen, bricht die Aufgabe mit einer Meldung ab und erzeugt keine Datei. So ist jede Update-Datei einem Tag zugeordnet. Prototypen flasht man weiter wie gewohnt mit Build/Upload per USB oder WLAN.
-2. In der Weboberfläche **Info → Firmware-Update → Datei wählen**, die Datei auswählen und **Update installieren**. Der Ständer fragt dann am Display **„Update?“**: dort **Erlauben** tippen (altes 1,3-Zoll-Board: BOOT-Taste kurz drücken). Ohne Antwort innerhalb von 60 s oder mit **Ablehnen** wird nichts hochgeladen. Erst nach der Bestätigung beginnt der Upload; so kann niemand im WLAN ohne Zugriff auf den Ständer eine Firmware aufspielen.
+2. In der Weboberfläche **Einstellungen → Firmware-Update → Datei wählen**, die Datei auswählen und **Update installieren**. Der Ständer fragt dann am Display **„Update?“**: dort **Erlauben** tippen (altes 1,3-Zoll-Board: BOOT-Taste kurz drücken). Ohne Antwort innerhalb von 60 s oder mit **Ablehnen** wird nichts hochgeladen. Erst nach der Bestätigung beginnt der Upload; so kann niemand im WLAN ohne Zugriff auf den Ständer eine Firmware aufspielen.
 3. Ein Balken zeigt den Upload in Prozent, das Display den Fortschritt mit Sanduhr. Danach prüft der Ständer die Datei, startet neu, und die Seite lädt sich neu. Die neue Version steht unter **Info → Gerät → Firmware**.
 
 Geprüft wird vorher: die Datei passt in den freien Firmware-Speicher (sonst Meldung mit beiden Größen, noch bevor das Display fragt), der Name enthält die Board-Kennung (`_LCD19_` bzw. `_LCD13_`, deshalb die Datei nicht umbenennen), es ist eine Firmware für den ESP32-C6, und die Prüfsumme stimmt. Bei einem Fehler bleibt die alte Firmware aktiv. Die Partitionstabelle ändert ein Update nicht; dafür bleibt USB nötig.
