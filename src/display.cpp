@@ -134,6 +134,7 @@ void drawStatic(bool home) {
 // Passt hochkant, quer und quadratisch, mit Copyright.
 uint16_t hue565(uint8_t h) { return to565(CHSV(h, 255, 255)); }
 int rowY, rowCx, barX, barY, barW;  // Lage von Untertitel und Balken, setzt drawLogo
+int spinX, spinY, spinR;            // Warte-Symbol beim Update: in der Kopfhoerer-Grafik, setzt drawLogo
 void drawLogo(const char *sub) {
   setLayout();
   gfx->fillScreen(BG);
@@ -142,6 +143,9 @@ void drawLogo(const char *sub) {
   int R = square ? min(W, H) / 4 : min(W, H) * 3 / 10;  // Radius des Buegels
   int cx = W / 2, cy = wide ? H / 2 - 4 : square ? H / 2 - 58 : H / 2 - 40;
   if (wide) cx = W / 4 + 8;                // quer: Bild links, Text rechts
+  spinX = cx;  // zwischen den Ohrmuscheln, unter dem Buegel
+  spinY = cy + R / 4;
+  spinR = R * 3 / 10;
   // Buegel: oberer Halbkreis in 24 Farbstuecken
   for (int k = 0; k < 24; k++)
     gfx->fillArc(cx, cy, R, R - 7, 180 + k * 7.5f, min(180 + (k + 1) * 7.5f + 0.5f, 359.9f), hue565(k * 10));
@@ -170,7 +174,7 @@ void drawLogo(const char *sub) {
   // Update-Anzeige eine Zeile unter der Version; 240x240: etwas enger, damit das Copyright frei bleibt
   rowY = ty + 46 + (square ? 8 : 14);
   rowCx = tx + tw / 2;
-  barY = rowY + (square ? 14 : 16);  // Platz fuer die Sanduhr in der Zeile darueber
+  barY = rowY + (square ? 14 : 16);  // Prozentzahl in der Zeile darueber
   barX = wide ? W / 2 + 14 : 16;
   barW = wide ? W - barX - 14 : W - 32;
   // Copyright: hochkant/quadratisch ganz unten, quer unter dem Kopfhoerer
@@ -182,7 +186,7 @@ void drawLogo(const char *sub) {
   gfx->print(COPYRIGHT_TEXT);
 }
 
-// ---------- Update-Anzeige: Balken mit Farbverlauf, drehende Sanduhr, Prozent ----------
+// ---------- Update-Anzeige: Balken mit Farbverlauf, Warte-Symbol im Logo, Prozent ----------
 uint8_t barShown = 0;  // bis hierhin ist der Balken schon gefuellt (in Prozent)
 void drawBarFrame() {
   gfx->fillRect(barX + 2, barY + 2, barW - 4, 4, BG);  // alte Fuellung weg (neuer Versuch)
@@ -195,41 +199,39 @@ void drawBar(uint8_t pct) {
   for (int x = from; x < to; x++) gfx->drawFastVLine(barX + 2 + x, barY + 2, 4, hue565(x * 160 / inner));
   barShown = pct;
 }
-// Sanduhr um ihren Mittelpunkt gedreht; Sand unten waechst mit dem Fortschritt.
-void drawHourglass(int x, int y, float deg, uint8_t pct) {
-  gfx->fillCircle(x, y, 10, BG);
-  float a = deg * DEG_TO_RAD, c = cosf(a), s = sinf(a);
-  auto P = [&](float px, float py, int16_t &ox, int16_t &oy) {
-    ox = x + lroundf(px * c - py * s);
-    oy = y + lroundf(px * s + py * c);
-  };
-  int16_t ax, ay, bx, by, mx, my, dx, dy, ex, ey;
-  P(-5, -8, ax, ay); P(5, -8, bx, by); P(0, 0, mx, my); P(-5, 8, dx, dy); P(5, 8, ex, ey);
-  // Sand: oben schrumpft, unten waechst
-  float top = 1.0f - pct / 100.0f, bot = pct / 100.0f;
-  int16_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
-  if (top > 0.05f) {
-    P(-5 * top, -8 * top, s1x, s1y); P(5 * top, -8 * top, s2x, s2y);
-    gfx->fillTriangle(s1x, s1y, s2x, s2y, mx, my, WARN);
+// Warte-Symbol in der Kopfhoerer-Grafik: 8 Striche im Kreis, der hellste wandert im Uhrzeigersinn,
+// die folgenden werden dunkler (wie das bekannte Warte-Symbol).
+constexpr int SPOKES = 8;
+uint16_t gray565(uint8_t v) { return ((v >> 3) << 11) | ((v >> 2) << 5) | (v >> 3); }
+void drawSpinner(uint8_t step) {
+  int x = spinX, y = spinY;
+  float ro = spinR, ri = spinR * 0.5f, hw = max(0.9f, spinR * 0.1f);  // Strich von ri bis ro, halbe Breite hw
+  gfx->fillCircle(x, y, spinR + 1, BG);
+  for (int k = 0; k < SPOKES; k++) {
+    float a = (k * 360.0f / SPOKES - 90) * DEG_TO_RAD, c = cosf(a), s = sinf(a);
+    int age = (step - k + SPOKES) % SPOKES;  // 0 = gerade aktiv
+    uint16_t col = gray565(max(60, 235 - age * 28));
+    // Strich als schmales Viereck (2 Dreiecke)
+    auto P = [&](float r, float o, int16_t &px, int16_t &py) {
+      px = x + lroundf(c * r - s * o);
+      py = y + lroundf(s * r + c * o);
+    };
+    int16_t ax, ay, bx, by, cx2, cy2, dx, dy;
+    P(ri, -hw, ax, ay); P(ro, -hw, bx, by); P(ro, hw, cx2, cy2); P(ri, hw, dx, dy);
+    gfx->fillTriangle(ax, ay, bx, by, cx2, cy2, col);
+    gfx->fillTriangle(ax, ay, cx2, cy2, dx, dy, col);
   }
-  if (bot > 0.05f) {
-    P(-5, 8, s3x, s3y); P(5, 8, s4x, s4y); P(0, 8 - 8 * bot, s1x, s1y);
-    gfx->fillTriangle(s3x, s3y, s4x, s4y, s1x, s1y, WARN);
-  }
-  gfx->drawTriangle(ax, ay, bx, by, mx, my, FG);
-  gfx->drawTriangle(dx, dy, ex, ey, mx, my, FG);
 }
 void drawPercent(uint8_t pct) {
   char t[16];
   snprintf(t, sizeof(t), "Update %3u %%", (unsigned)pct);
-  int w = 13 * 6, x0 = rowCx - (w + 24) / 2;  // Sanduhr links, Text rechts daneben
-  gfx->fillRect(x0 + 24, rowY - 2, w, 12, BG);
+  int w = 12 * 6, x0 = rowCx - w / 2;  // mittig unter dem Schriftzug ("Update 100 %" = 12 Zeichen)
+  gfx->fillRect(x0, rowY - 2, w, 12, BG);
   gfx->setTextSize(1);
   gfx->setTextColor(FG);
-  gfx->setCursor(x0 + 24, rowY);
+  gfx->setCursor(x0, rowY);
   gfx->print(t);
 }
-int hourglassX() { return rowCx - (13 * 6 + 24) / 2 + 9; }
 
 #ifdef TOUCH_ADDR
 constexpr const char *OFF_HINT = "Aus - antippen";
@@ -665,9 +667,9 @@ void updateProgress(uint8_t percent) {
     drawPercent(percent);
     shown = percent;
   }
-  if (now - lastSpin >= 60 || percent == 100) {  // Sanduhr dreht sich wie bei Apple
+  if (now - lastSpin >= 110) {  // ein Schritt je 110 ms, eine Runde knapp 1 s
     lastSpin = now;
-    drawHourglass(hourglassX(), rowY + 3, (now / 4) % 360, percent);
+    drawSpinner((now / 110) % SPOKES);
   }
 }
 
