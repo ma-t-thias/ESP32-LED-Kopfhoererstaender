@@ -52,7 +52,7 @@ Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode
 
 ### Versionskennung
 
-Beim Bauen schreibt `tools/version.py` den Stand aus Git in die Firmware: letzter Tag plus Commit-Hash, der Hash steht immer in Klammern dabei. Die Kennung steht im Startbild, auf der Display-Seite **Einrichten**, in der Weboberfläche unter **Info → Gerät → Firmware**, in `/api/info` (Feld `fw`) und im seriellen Monitor.
+Beim Bauen schreibt `tools/version.py` den Stand aus Git in die Firmware: letzter Tag plus Commit-Hash, der Hash steht immer in Klammern dabei. Die Kennung steht im Startbild, auf der Display-Seite **Einrichten**, in der Weboberfläche unter **Info → Gerät → Firmware** und **Einstellungen → Firmware-Update → Installiert**, in `/api/info` (Feld `fw`) und im seriellen Monitor. Im Monitor erscheint sie nur einmal direkt nach dem Start; beim ESP32-C6 verbindet sich der Monitor nach einem Upload meist erst danach, die Zeile fehlt dann. Am einfachsten auf dem Display oder in der Weboberfläche nachsehen.
 
 | Kennung | Bedeutung |
 |---|---|
