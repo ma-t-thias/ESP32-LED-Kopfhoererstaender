@@ -14,5 +14,7 @@ void loop();
 display::NetInfo info();
 // Loescht WLAN-Daten und startet neu (Taster 5 s halten oder Weboberflaeche)
 void resetWifiAndRestart();
+// Nachtmodus gerade aktiv (eingeschaltet, Uhrzeit bekannt, jetzt im Zeitfenster)
+bool nightActive(const LedState &s);
 
 }  // namespace net

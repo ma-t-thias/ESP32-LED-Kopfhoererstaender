@@ -46,6 +46,10 @@ void begin(LedState &s) {
   if (s.displayRotation > ROT_AUTO) s.displayRotation = ROT_DEFAULT;
   s.matterEnabled = prefs.getBool("mtr", s.matterEnabled);
   s.wledOpen = prefs.getBool("wled", s.wledOpen);
+  s.nightEnabled = prefs.getBool("nOn", s.nightEnabled);
+  s.nightFrom = prefs.getUShort("nFr", s.nightFrom) % 1440;
+  s.nightTo = prefs.getUShort("nTo", s.nightTo) % 1440;
+  s.nightBri = prefs.getUChar("nBr", s.nightBri);
   prefs.end();
   if (s.maxMilliamps == 0 || s.maxMilliamps > LED_MAX_MILLIAMPS_LIMIT) s.maxMilliamps = LED_MAX_MILLIAMPS_DEFAULT;
 
@@ -102,6 +106,10 @@ void loop(const LedState &s) {
   prefs.putBool("argb2", s.argbEnabled);
   prefs.putUChar("rot2", s.displayRotation);
   prefs.putBool("wled", s.wledOpen);
+  prefs.putBool("nOn", s.nightEnabled);
+  prefs.putUShort("nFr", s.nightFrom);
+  prefs.putUShort("nTo", s.nightTo);
+  prefs.putUChar("nBr", s.nightBri);
   prefs.end();
 }
 

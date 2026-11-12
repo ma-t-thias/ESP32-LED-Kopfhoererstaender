@@ -21,6 +21,11 @@ struct LedState {
   uint8_t displayRotation = ROT_DEFAULT;  // 0..3 = 0/90/180/270 Grad im Uhrzeigersinn, 4 = Auto
   bool matterEnabled = false;  // Apple Home & Co. ueber Matter; wirkt nach Neustart
   bool wledOpen = false;       // WLED-Schnittstelle (Home Assistant, WLED-App) ohne Passwort steuerbar
+  // Nachtmodus: in der Zeit von..bis (Minuten ab Mitternacht) hoechstens nightBri hell, 0 = aus
+  bool nightEnabled = false;
+  uint16_t nightFrom = 22 * 60;
+  uint16_t nightTo = 7 * 60;
+  uint8_t nightBri = 13;  // ca. 5 %
 };
 
 namespace settings {

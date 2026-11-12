@@ -31,6 +31,12 @@
 #define LED_MAX_MILLIAMPS_DEFAULT 2400  // USB-C-Netzteil 5 V / 3 A
 #define LED_MAX_MILLIAMPS_LIMIT 9000  // Obergrenze, die die Weboberflaeche zulaesst
 
+// ---------------- Uhrzeit (Nachtmodus) ----------------
+// Zeitzone als POSIX-Text: Deutschland mit Sommerzeit. Die Uhrzeit kommt per NTP aus dem Internet.
+#define TIMEZONE "CET-1CEST,M3.5.0,M10.5.0/3"
+#define NTP_SERVER1 "pool.ntp.org"
+#define NTP_SERVER2 "time.cloudflare.com"
+
 // ---------------- PC-Sync (SignalRGB, OpenRGB ...) ----------------
 // Kommen laenger als diese Zeit keine Daten vom PC, laufen wieder die eigenen Effekte.
 #define REALTIME_TIMEOUT_MS 2500

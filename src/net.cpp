@@ -87,6 +87,23 @@ String jsonEscape(const String &in) {
   return out;
 }
 
+// ---------- Uhrzeit ----------
+// Minuten seit Mitternacht (Ortszeit), -1 solange die Uhrzeit noch nicht per NTP gesetzt ist
+int minutesNow() {
+  time_t t = time(nullptr);
+  if (t < 1700000000) return -1;
+  struct tm lt;
+  localtime_r(&t, &lt);
+  return lt.tm_hour * 60 + lt.tm_min;
+}
+String clockText() {
+  int m = minutesNow();
+  if (m < 0) return "";
+  char b[6];
+  snprintf(b, sizeof(b), "%02d:%02d", m / 60, m % 60);
+  return b;
+}
+
 // ---------- Geraetepasswort ----------
 // Alles, was etwas aendert, braucht das Passwort im Kopf "X-Key". Lesen (Zustand, Info, Live)
 // bleibt offen. Nach 5 falschen Versuchen wird diese Adresse 30 s gesperrt (gegen Durchprobieren);
@@ -173,6 +190,10 @@ String stateJson() {
   j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
   j += ",\"rot\":" + String(s.displayRotation);
   j += ",\"wled\":" + String(s.wledOpen ? "true" : "false");
+  j += ",\"night\":" + String(s.nightEnabled ? "true" : "false");
+  j += ",\"nFrom\":" + String(s.nightFrom) + ",\"nTo\":" + String(s.nightTo) + ",\"nBri\":" + String(s.nightBri);
+  j += ",\"nActive\":" + String(nightActive(s) ? "true" : "false");
+  j += ",\"time\":\"" + clockText() + "\"";
   j += ",\"matterAvail\":" + String(matterdev::available() ? "true" : "false");
   j += ",\"matter\":" + String(s.matterEnabled ? "true" : "false");
   j += ",\"matterPaired\":" + String(matterdev::paired() ? "true" : "false");
@@ -256,6 +277,7 @@ void startServices() {
     MDNS.addServiceTxt("wled", "tcp", "mac", mac);  // Home Assistant erkennt das Geraet daran wieder
   }
   realtime::begin();
+  configTzTime(TIMEZONE, NTP_SERVER1, NTP_SERVER2);  // Uhrzeit fuer den Nachtmodus
   if (strlen(OTA_PASSWORD) > 0) {
     static bool otaRunning = false;
     ArduinoOTA.setHostname(HOSTNAME);
@@ -392,6 +414,10 @@ void handleSetState() {
   v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
   v = argInt("rot", 0, ROT_AUTO, p);          if (p) s.displayRotation = v;
   v = argInt("wled", 0, 1, p);         if (p) s.wledOpen = v;
+  v = argInt("night", 0, 1, p);        if (p) s.nightEnabled = v;
+  v = argInt("nFrom", 0, 1439, p);     if (p) s.nightFrom = v;
+  v = argInt("nTo", 0, 1439, p);       if (p) s.nightTo = v;
+  v = argInt("nBri", 0, 255, p);       if (p) s.nightBri = v;
   v = argInt("matter", 0, 1, p);
   if (p && matterdev::available() && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
     s.matterEnabled = v;
@@ -631,6 +657,13 @@ display::NetInfo info() {
                WiFi.disconnectReasonName((wifi_err_reason_t)lastDisconnectReason);
   i.detail2 = "Start: " + resetReason;
   return i;
+}
+
+bool nightActive(const LedState &s) {
+  int m = minutesNow();
+  if (!s.nightEnabled || m < 0 || s.nightFrom == s.nightTo) return false;
+  return s.nightFrom < s.nightTo ? (m >= s.nightFrom && m < s.nightTo)   // z. B. 13:00-15:00
+                                 : (m >= s.nightFrom || m < s.nightTo);  // ueber Mitternacht
 }
 
 void resetWifiAndRestart() {
