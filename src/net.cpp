@@ -87,6 +87,76 @@ String jsonEscape(const String &in) {
   return out;
 }
 
+// ---------- Geraetepasswort ----------
+// Alles, was etwas aendert, braucht das Passwort im Kopf "X-Key". Lesen (Zustand, Info, Live)
+// bleibt offen. Nach 5 falschen Versuchen wird diese Adresse 30 s gesperrt (gegen Durchprobieren);
+// andere Geraete im WLAN koennen den Besitzer so nicht aussperren.
+uint8_t badTries = 0;
+uint32_t lockUntil = 0;
+IPAddress badIp;
+
+bool locked() {
+  if (lockUntil && (int32_t)(millis() - lockUntil) >= 0) lockUntil = 0;
+  return lockUntil && server.client().remoteIP() == badIp;
+}
+
+bool keyOk() {
+  if (locked()) return false;
+  String k = server.header("X-Key");
+  if (k.isEmpty()) return false;  // ohne Passwort: kein Versuch, zaehlt nicht
+  const String pw = settings::devicePassword();
+  uint8_t diff = k.length() != pw.length();
+  for (size_t i = 0; i < pw.length(); i++) diff |= (i < k.length() ? k[i] : 0) ^ pw[i];  // gleich lange Pruefung
+  if (!diff) {
+    badTries = 0;
+    return true;
+  }
+  IPAddress ip = server.client().remoteIP();
+  if (ip != badIp) {  // Zaehler gilt je Adresse (die zuletzt falsch versuchende)
+    badIp = ip;
+    badTries = 0;
+  }
+  if (++badTries >= 5) {
+    badTries = 0;
+    lockUntil = millis() + 30000;
+  }
+  return false;
+}
+
+// Anfrage kommt ueber das Einrichtungs-WLAN (nicht ueber das Heimnetz)
+bool fromSetupAp() { return setupAp && server.client().localIP() == WiFi.softAPIP(); }
+
+// true = darf; sonst ist die Antwort 401 schon gesendet
+bool guard() {
+  if (keyOk()) return true;
+  server.send(401, "text/plain; charset=utf-8",
+              locked() ? "Zu viele falsche Versuche. Bitte 30 s warten." : "Geraetepasswort fehlt oder ist falsch.");
+  return false;
+}
+// Handler nur mit Passwort ausfuehren
+std::function<void()> prot(std::function<void()> h) {
+  return [h]() { if (guard()) h(); };
+}
+
+void handlePassword() {
+  String pw = server.arg("new");
+  bool okChars = pw.length() >= 8 && pw.length() <= 32;
+  for (char c : pw) okChars = okChars && c > 32 && c < 127;
+  if (!okChars) {
+    server.send(400, "text/plain; charset=utf-8", "Das Passwort braucht 8 bis 32 Zeichen ohne Leerzeichen und Umlaute.");
+    return;
+  }
+  settings::setDevicePassword(pw);
+  server.send(200, "text/plain; charset=utf-8", "Passwort geaendert.");
+}
+
+void handleFactoryReset() {
+  server.send(200, "text/plain; charset=utf-8", "Werkseinstellungen: Alle Daten werden geloescht, der Staender startet ins Einrichtungs-WLAN.");
+  display::message("Werksreset", "Neustart...");
+  delay(500);
+  settings::factoryReset();
+}
+
 String stateJson() {
   const LedState &s = *st;
   String j = "{";
@@ -102,6 +172,7 @@ String stateJson() {
   j += ",\"sync\":" + String(s.syncEnabled ? "true" : "false");
   j += ",\"argb\":" + String(s.argbEnabled ? "true" : "false");
   j += ",\"rot\":" + String(s.displayRotation);
+  j += ",\"wled\":" + String(s.wledOpen ? "true" : "false");
   j += ",\"matterAvail\":" + String(matterdev::available() ? "true" : "false");
   j += ",\"matter\":" + String(s.matterEnabled ? "true" : "false");
   j += ",\"matterPaired\":" + String(matterdev::paired() ? "true" : "false");
@@ -232,7 +303,9 @@ void handleUpdateUpload() {
     updOk = false;
     updSize = server.clientContentLength();
     updFile = strtoul(server.arg("size").c_str(), nullptr, 10);  // echte Dateigroesse vom Browser
-    if (display::updateAnswer(strtoul(server.arg("t").c_str(), nullptr, 10)) != 1) {
+    if (!keyOk()) {
+      updErr = "Geraetepasswort fehlt oder ist falsch.";
+    } else if (display::updateAnswer(strtoul(server.arg("t").c_str(), nullptr, 10)) != 1) {
       updErr = "Das Update wurde nicht am Display erlaubt.";
     } else if (u.filename.indexOf("_" BOARD_TAG "_") < 0) {
       updErr = "Die Datei passt nicht zu diesem Board. Ihr Name muss _" BOARD_TAG "_ enthalten.";
@@ -318,6 +391,7 @@ void handleSetState() {
   v = argInt("sync", 0, 1, p);         if (p) s.syncEnabled = v;
   v = argInt("argb", 0, 1, p);         if (p) s.argbEnabled = v;
   v = argInt("rot", 0, ROT_AUTO, p);          if (p) s.displayRotation = v;
+  v = argInt("wled", 0, 1, p);         if (p) s.wledOpen = v;
   v = argInt("matter", 0, 1, p);
   if (p && matterdev::available() && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
     s.matterEnabled = v;
@@ -459,25 +533,29 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/", HTTP_GET, handleRoot);
   server.on("/setup", HTTP_GET, []() { server.send_P(200, "text/html; charset=utf-8", SETUP_HTML); });
   server.on("/api/state", HTTP_GET, []() { server.send(200, "application/json", stateJson()); });
-  server.on("/api/state", HTTP_POST, handleSetState);
+  server.on("/api/state", HTTP_POST, prot(handleSetState));
   server.on("/api/info", HTTP_GET, []() { server.send(200, "application/json", infoJson()); });
   server.on("/api/live", HTTP_GET, handleLive);
   server.on("/api/presets", HTTP_GET, []() { server.send(200, "application/json", settings::loadPresets()); });
-  server.on("/api/presets", HTTP_POST, handleSavePresets);
-  server.on("/api/scan", HTTP_GET, handleScan);
-  server.on("/api/wifi", HTTP_POST, handleSaveWifi);
-  server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
-  server.on("/api/matter/unpair", HTTP_POST, handleMatterUnpair);
+  server.on("/api/presets", HTTP_POST, prot(handleSavePresets));
+  // WLAN-Suche und -Daten: ueber das Einrichtungs-WLAN selbst ohne Passwort (nur wer dort verbunden ist)
+  server.on("/api/scan", HTTP_GET, []() { if (fromSetupAp() || guard()) handleScan(); });
+  server.on("/api/wifi", HTTP_POST, []() { if (fromSetupAp() || guard()) handleSaveWifi(); });
+  server.on("/api/wifi/reset", HTTP_POST, prot(handleResetWifi));
+  server.on("/api/matter/unpair", HTTP_POST, prot(handleMatterUnpair));
+  server.on("/api/login", HTTP_POST, prot([]() { server.send(200, "text/plain", "ok"); }));
+  server.on("/api/password", HTTP_POST, prot(handlePassword));
+  server.on("/api/factory-reset", HTTP_POST, prot(handleFactoryReset));
   // Ablauf: /api/update/ask zeigt am Display "Update erlauben?", der Browser fragt
   // /api/update/answer ab (1 = erlaubt, -1 = abgelehnt/abgelaufen, 0 = offen) und laedt erst dann hoch.
   // Die Kennung (t) bindet die Erlaubnis an den Browser, der gefragt hat.
-  server.on("/api/update/ask", HTTP_POST, []() {
+  server.on("/api/update/ask", HTTP_POST, prot([]() {
     String err = spaceError(strtoul(server.arg("size").c_str(), nullptr, 10));  // vor der Frage am Display
     if (err.length()) return server.send(413, "text/plain; charset=utf-8", err);
     uint32_t t = display::askUpdate();
     if (!t) server.send(409, "text/plain; charset=utf-8", "Am Display wartet schon eine Anfrage. Bitte kurz warten.");
     else server.send(200, "application/json", "{\"token\":" + String(t) + "}");
-  });
+  }));
   server.on("/api/update/answer", HTTP_GET, []() {
     uint32_t t = strtoul(server.arg("t").c_str(), nullptr, 10);
     server.send(200, "application/json", "{\"answer\":" + String(display::updateAnswer(t)) + "}");
@@ -486,7 +564,8 @@ void begin(LedState &state, ChangeHandler onChange) {
   // WLED-kompatibel fuer Home Assistant, WLED-App und Sync-Programme (siehe wled_api.h)
   server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledapi::info(*st)); });
   server.on("/json/state", HTTP_GET, []() { server.send(200, "application/json", wledapi::state(*st)); });
-  server.on("/json/state", HTTP_POST, handleWledState);
+  // Home Assistant und die WLED-App kennen kein Passwort: nur wenn in den Einstellungen erlaubt
+  server.on("/json/state", HTTP_POST, []() { if (st->wledOpen || guard()) handleWledState(); });
   server.on("/json/si", HTTP_GET, []() {
     server.send(200, "application/json", "{\"state\":" + wledapi::state(*st) + ",\"info\":" + wledapi::info(*st) + "}");
   });
@@ -499,6 +578,8 @@ void begin(LedState &state, ChangeHandler onChange) {
                 "{\"state\":" + wledapi::state(*st) + ",\"info\":" + wledapi::info(*st) +
                     ",\"effects\":" + wledapi::effectsJson() + ",\"palettes\":" + wledapi::palettesJson() + "}");
   });
+  static const char *HEADERS[] = {"X-Key"};
+  server.collectHeaders(HEADERS, 1);
   server.onNotFound(handleNotFound);
   server.begin();
 }

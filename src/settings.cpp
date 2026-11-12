@@ -1,4 +1,8 @@
 #include <Preferences.h>
+#include <WiFi.h>
+#include <bootloader_random.h>
+#include <esp_random.h>
+#include <nvs_flash.h>
 
 #include "config.h"
 #include "state.h"
@@ -7,6 +11,7 @@ namespace {
 Preferences prefs;
 bool dirty = false;
 uint32_t dirtySince = 0;
+String password;  // Geraetepasswort, einmal beim Start geladen
 constexpr uint32_t SAVE_DELAY_MS = 3000;  // schont den Flash beim Schieben der Regler
 
 uint32_t packColor(const CRGB &c) { return (uint32_t(c.r) << 16) | (uint32_t(c.g) << 8) | c.b; }
@@ -40,8 +45,39 @@ void begin(LedState &s) {
   s.displayRotation = prefs.getUChar("rot2", s.displayRotation);
   if (s.displayRotation > ROT_AUTO) s.displayRotation = ROT_DEFAULT;
   s.matterEnabled = prefs.getBool("mtr", s.matterEnabled);
+  s.wledOpen = prefs.getBool("wled", s.wledOpen);
   prefs.end();
   if (s.maxMilliamps == 0 || s.maxMilliamps > LED_MAX_MILLIAMPS_LIMIT) s.maxMilliamps = LED_MAX_MILLIAMPS_DEFAULT;
+
+  // Geraetepasswort laden, beim ersten Start erzeugen. Ohne leicht verwechselbare Zeichen (0/O, 1/I/L).
+  static const char CHARS[] = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  prefs.begin("sec", false);
+  password = prefs.getString("pw", "");
+  if (password.length() < 8) {
+    password = "";
+    bootloader_random_enable();  // echte Zufallszahlen auch vor dem WLAN-Start
+    for (int i = 0; i < 8; i++) password += CHARS[esp_random() % (sizeof(CHARS) - 1)];
+    bootloader_random_disable();
+    prefs.putString("pw", password);
+  }
+  prefs.end();
+}
+
+String devicePassword() { return password; }
+
+void setDevicePassword(const String &pw) {
+  prefs.begin("sec", false);
+  prefs.putString("pw", pw);
+  prefs.end();
+  password = pw;
+}
+
+void factoryReset() {
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  nvs_flash_erase();  // ganzer NVS-Bereich: WLAN, Einstellungen, Presets, Passwort, Matter
+  delay(100);
+  ESP.restart();
 }
 
 void markDirty() {
@@ -65,6 +101,7 @@ void loop(const LedState &s) {
   prefs.putBool("sync", s.syncEnabled);
   prefs.putBool("argb2", s.argbEnabled);
   prefs.putUChar("rot2", s.displayRotation);
+  prefs.putBool("wled", s.wledOpen);
   prefs.end();
 }
 

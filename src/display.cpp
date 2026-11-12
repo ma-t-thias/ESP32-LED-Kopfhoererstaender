@@ -432,7 +432,8 @@ void drawSettings() {
 void drawSettingsInfo(const NetInfo &net) {
   bool wide = W > H;
   String ip = net.connected || net.setupAp ? net.ip : String("nicht verbunden");
-  String all = ip + "|" + net.ssid;
+  String pw = settings::devicePassword();
+  String all = ip + "|" + net.ssid + "|" + pw;
   if (all == lastSetInfo) return;
   lastSetInfo = all;
   gfx->fillRect(infoX, infoY0, W - infoX, H - infoY0, BG);
@@ -451,10 +452,17 @@ void drawSettingsInfo(const NetInfo &net) {
   gfx->print(String(HOSTNAME) + ".local");
   gfx->setCursor(infoX, y + 14);
   gfx->print(net.ssid);
+  // Geraetepasswort fuer die Weboberflaeche (wer es sieht, steht am Staender)
+  gfx->setCursor(infoX, y + 28);
+  gfx->print("Web-Passwort");
+  gfx->setTextColor(FG);
+  gfx->setCursor(infoX, y + 40);
+  gfx->print(pw.substring(0, (W - infoX) / 6));  // eigenes langes Passwort: abschneiden statt umbrechen
   if (!wide) {  // quer reicht die Breite nicht fuer die Versionskennung
-    gfx->setCursor(infoX, y + 28);
+    gfx->setTextColor(MUTED);
+    gfx->setCursor(infoX, y + 56);
     gfx->print("Firmware");
-    gfx->setCursor(infoX, y + 40);
+    gfx->setCursor(infoX, y + 68);
     gfx->print(FW_FULL);
   }
 }
@@ -536,7 +544,8 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
     textLine(66, fxY - 68, "Verbinde mit\n " + net.ssid + "\n dann " + net.ip, 1, FG, lastNet2);
   } else if (net.connected) {
     textLine(44, 20, net.ip, 2, GOOD, lastNet1);
-    textLine(66, fxY - 68, String(HOSTNAME) + ".local\n " + net.ssid + "\n " + net.detail2, 1, MUTED, lastNet2);
+    // Board ohne Touch (keine Einstellseite): Passwort der Weboberflaeche hier statt Startgrund
+    textLine(66, fxY - 68, String(HOSTNAME) + ".local\n " + net.ssid + "\n Passwort " + settings::devicePassword(), 1, MUTED, lastNet2);
   } else {
     textLine(44, 20, "Verbinde WLAN...", 2, WARN, lastNet1);
     textLine(66, fxY - 68, net.ssid + "\n " + net.detail + "\n " + net.detail2, 1, MUTED, lastNet2);
