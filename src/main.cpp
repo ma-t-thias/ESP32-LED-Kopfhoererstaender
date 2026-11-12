@@ -88,7 +88,9 @@ void handleButton() {
   } else if (!pressed && btnDown && now - btnSince > DEBOUNCE_MS) {
     btnDown = false;
     btnSince = now;
-    if (!longHandled && !turnOnIfOff()) nextEffect();  // kurzer Druck
+    if (longHandled) return;
+    if (display::confirming()) display::answerUpdate(true);  // Firmware-Update am Geraet erlauben
+    else if (!turnOnIfOff()) nextEffect();                    // kurzer Druck
   }
 }
 }  // namespace
@@ -121,7 +123,7 @@ void loop() {
   argb::loop(state.argbEnabled);
   handleButton();
   touch::Gesture g = touch::read(display::currentRotation());
-  if (g != touch::NONE && turnOnIfOff()) {
+  if (g != touch::NONE && !display::confirming() && turnOnIfOff()) {
     g = touch::NONE;
   } else if (int r = display::handleTouch(g, touch::point(), state)) {
     if (r == 2) settings::markDirty();  // Regler auf der Einstellseite

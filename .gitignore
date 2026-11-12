@@ -4,3 +4,5 @@
 include/secrets.h
 test_ota.ini
 include/fw_version.h
+update/
+__pycache__/
