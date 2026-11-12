@@ -94,6 +94,7 @@ Beim ersten Start erzeugt der Ständer ein eigenes, zufälliges Passwort aus 8 Z
 - **Ausgeschaltet** (über Weboberfläche, Matter oder Apple Home) zeigt das Display das Logo statt der Statusseite. Die erste Berührung oder ein kurzer Druck auf den BOOT-Taster schaltet nur wieder ein, Effekt und Farbe bleiben wie zuvor, und die Statusseite erscheint wieder. Ausnahme: Während der WLAN-Einrichtung oder des Koppelns bleiben deren Hinweise zu sehen.
 - **BOOT-Taster 5 s halten:** Das Display zeigt „Loslassen: WLAN-Reset“. Jetzt loslassen löscht die WLAN-Daten, Neustart ins Einrichtungs-WLAN.
 - **BOOT-Taster 10 s halten:** Werkseinstellungen. Löscht alles (WLAN, Einstellungen, Presets, Gerätepasswort, Matter-Kopplung) und startet ins Einrichtungs-WLAN; danach gibt es ein neues Passwort. Geht auch in der Weboberfläche unter **Einstellungen → Zugang → Werkseinstellungen**.
+- **Nachtmodus** (Einstellungen → Nachtmodus): Im Zeitfenster *Von*–*Bis* (z. B. 22:00–07:00, auch über Mitternacht) leuchtet der Ständer höchstens mit der gewählten Nacht-Helligkeit (Aus, 5 %, 15 % oder 30 %) und dimmt beim Beginn langsam herunter (ca. 10 s). Nach dem Zeitfenster gilt wieder die normale Helligkeit. Sind *Von* und *Bis* gleich, ist der Nachtmodus wirkungslos. Solange der Ständer nach dem Einschalten die Uhrzeit noch nicht kennt (höchstens 30 s), leuchtet er bei eingeschaltetem Nachtmodus vorsichtshalber nur mit der Nacht-Helligkeit. Die Uhrzeit holt sich der Ständer per NTP aus dem Internet (Zeitzone in `config.h`, `TIMEZONE`); ohne Internet bleibt der Nachtmodus wirkungslos. Die Weboberfläche zeigt die Uhrzeit des Ständers zur Kontrolle.
 - **Anzeige drehen** (Einstellungen): 0° und 180° ergeben Hochformat, 90° und 270° Querformat, passend zur Gehäusevariante. Die Anzeige ordnet sich selbst neu an.
 
 Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert und nach einem Neustart wiederhergestellt.
@@ -242,8 +243,8 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET | `/api/state` | aktueller Zustand als JSON |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu), `wled` (0/1, WLED-Schnittstelle ohne Passwort) |
+| GET | `/api/state` | aktueller Zustand als JSON (dazu `nActive` = Nachtmodus gerade aktiv, `time` = Uhrzeit am Ständer) |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu), `wled` (0/1, WLED-Schnittstelle ohne Passwort), `night` (0/1), `nFrom`/`nTo` (Minuten ab Mitternacht), `nBri` (0–255, 0 = aus) |
 | GET | `/api/info` | Firmware-Version (`fw`), Platz für Updates in Byte (`fwMax`), Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
 | POST | `/api/login` | prüft nur das Passwort (200 oder 401) |

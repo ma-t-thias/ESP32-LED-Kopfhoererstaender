@@ -167,6 +167,7 @@ input[type=range]:disabled{opacity:.35;cursor:default}
 .switch:active::after{width:33px}.switch[aria-checked="true"]:active::after{transform:translateX(14px)}
 .switch::before{content:"";position:absolute;inset:-7px -4px}
 @media (pointer:coarse){.seg button{min-height:40px}}
+input[type=time]{min-height:44px;border:0;background:none;color:var(--muted);font:inherit;text-align:right}
 input[type=number]{width:90px;min-height:44px;text-align:right;border:0;background:none;color:var(--muted);font-variant-numeric:tabular-nums;padding:0}
 .li.link{color:var(--tint);text-decoration:none;cursor:pointer}
 .li.link:focus-visible,.li.more summary:focus-visible,.li.btn:focus-visible{outline-offset:-3px}
@@ -268,6 +269,15 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
      <div class="li stack"><span id="rotL">Anzeige drehen</span><div class="seg" id="rot" role="group" aria-labelledby="rotL"></div></div>
     </section>
     <p class="foot" id="maHint"></p>
+   </div>
+   <div class="group"><h2>Nachtmodus</h2>
+    <section class="glass list">
+     <div class="li"><span>Nachts dimmen</span><button class="switch" id="night" type="button" role="switch" aria-checked="false" aria-label="Nachtmodus"></button><small id="nightHint"></small></div>
+     <div class="li"><label for="nFrom">Von</label><input id="nFrom" type="time" step="60"></div>
+     <div class="li"><label for="nTo">Bis</label><input id="nTo" type="time" step="60"></div>
+     <div class="li stack"><span id="nBriL">Helligkeit nachts</span><div class="seg" id="nBri" role="group" aria-labelledby="nBriL"></div></div>
+    </section>
+    <p class="foot" id="nightFoot">Die Uhrzeit holt sich der Ständer aus dem Internet (Zeitzone Deutschland). Zu Beginn der Nacht dimmt er langsam herunter; nach dem Zeitfenster gilt wieder die normale Helligkeit. Von und Bis gleich = Nachtmodus wirkungslos.</p>
    </div>
   </div>
   <div class="col">
@@ -489,7 +499,7 @@ const LICENSE = {
 };
 
 // ---------- Schnittstelle ----------
-const demoState = {on:true,wled:false,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
+const demoState = {on:true,wled:false,night:true,nFrom:1320,nTo:420,nBri:13,nActive:false,time:'21:47',bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
  palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3 (1a2b3c4)',board:'LCD19',fwMax:3932160,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
@@ -555,6 +565,7 @@ function build(){
  info.palettes.forEach((name,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='pal';
   b.innerHTML=`<i></i><span>${name}</span>`; b.onclick=()=>send({pal:i}); $('pals').appendChild(b); });
  ['0°','90°','180°','270°','Auto'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
+ [['Aus',0],['5 %',13],['15 %',38],['30 %',77]].forEach(([t,v])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({nBri:v}); $('nBri').appendChild(b); });
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
  $('fwCur').textContent=info.fw||'–';
@@ -581,6 +592,12 @@ function render(){
  tiles.forEach((t,i)=>t.el.setAttribute('aria-pressed',i===st.fx));
  [...$('pals').children].forEach((b,i)=>{ b.setAttribute('aria-pressed',i===st.pal); b.firstChild.style.background=palCss(i,st); });
  [...$('rot').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===st.rot));
+ $('night').setAttribute('aria-checked',!!st.night);
+ [...$('nBri').children].forEach((b,i)=>b.setAttribute('aria-pressed',[0,13,38,77][i]===st.nBri));
+ const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+ if(document.activeElement!==$('nFrom')) $('nFrom').value=hm(st.nFrom??1320);
+ if(document.activeElement!==$('nTo')) $('nTo').value=hm(st.nTo??420);
+ $('nightHint').textContent=!st.night?'aus':!st.time?'wartet auf die Uhrzeit':st.nActive?`jetzt aktiv · ${st.time} Uhr`:`Uhrzeit am Ständer: ${st.time}`;
  $('b1').value=st.c1; $('b2').value=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
  placeKnob(editing===1?st.c1:st.c2);
  document.documentElement.style.setProperty('--g1',st.c1); document.documentElement.style.setProperty('--g2',st.c2);
@@ -642,6 +659,10 @@ $('argb').onclick=()=>send({argb:st.argb?0:1}); $('sync').onclick=()=>send({sync
 $('matter').onclick=()=>{ if(DEMO || confirm(st.matter?'Matter ausschalten? Der Ständer startet dafür neu.':'Matter einschalten? Der Ständer startet dafür neu.')) send({matter:st.matter?0:1}); };
 $('mUnpair').onclick=()=>{ if(confirm('Kopplung mit Apple Home & Co. löschen? Der Ständer startet neu und kann dann wieder gekoppelt werden.')) api.matterUnpair().then(t=>alert(t)); };
 $('ma').onchange=e=>send({ma:+e.target.value});
+$('night').onclick=()=>send({night:st.night?0:1});
+const toMin=v=>{ const [h,m]=v.split(':').map(Number); return h*60+m; };
+$('nFrom').onchange=e=>{ if(e.target.value) send({nFrom:toMin(e.target.value)}); };
+$('nTo').onchange=e=>{ if(e.target.value) send({nTo:toMin(e.target.value)}); };
 // ---------- Firmware-Update: .bin aus VS Code (Ordner update) hochladen ----------
 let fwFile=null, fwBusy=false;
 const fwTag=()=>'_'+((info&&info.board)||'LCD19')+'_';

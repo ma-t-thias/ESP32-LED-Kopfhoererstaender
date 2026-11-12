@@ -157,7 +157,27 @@ void loop() {
     else if (state.syncEnabled && realtime::active()) realtime::copyTo(leds, LED_COUNT);
     else effects::render(leds, LED_COUNT, state, now);
 
-    uint8_t target = state.on ? state.brightness : 0;
+    // Nachtmodus: hoechstens die Nacht-Helligkeit; der Uebergang laeuft langsam (ca. 10 s)
+    static bool night = false;
+    static uint32_t nightChecked = 0;
+    static bool firstCheck = true;
+    if (firstCheck || now - nightChecked >= 1000) {
+      firstCheck = false;
+      nightChecked = now;
+      // Beim Start ist die Uhrzeit noch unbekannt: mit eingeschaltetem Nachtmodus die ersten 30 s
+      // vorsichtshalber nur Nacht-Helligkeit, damit der Staender nachts nicht kurz voll aufleuchtet.
+      // Ohne Internet gilt danach wieder die normale Helligkeit.
+      night = net::nightActive(state) || (state.nightEnabled && !net::clockKnown() && now < 30000);
+    }
+    uint8_t target = state.on ? (night ? min(state.brightness, state.nightBri) : state.brightness) : 0;
+    if (night && outputLevel > target && state.on) {  // sanft herunterdimmen statt schnell ausblenden
+      static uint32_t lastDim = 0;
+      if (now - lastDim >= 40) {
+        lastDim = now;
+        outputLevel--;
+      }
+      target = outputLevel;
+    }
     if (outputLevel < target) outputLevel = min<int>(target, outputLevel + FADE_STEP);
     else if (outputLevel > target) outputLevel = max<int>(target, outputLevel - FADE_STEP);
     FastLED.setBrightness(outputLevel);
