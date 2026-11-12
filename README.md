@@ -46,7 +46,7 @@ Es gibt zwei Umgebungen, auswählbar unten in der VS-Code-Statusleiste:
 | `esp32-c6-lcd` (Standard) | alles, mit Matter für Apple Home & Co. | möglich, siehe unten |
 | `esp32-c6-lcd-13` | für das alte ESP32-C6-LCD-1.3 (4 MB), ohne Matter | möglich |
 
-Die Partitionstabelle (`partitions_8mb.csv` bzw. `partitions.csv` beim 1.3er) wird nur per USB geschrieben. Nach dem Wechsel auf eine neue Tabelle deshalb einmal per USB flashen. Die Einstellungen und WLAN-Daten liegen in beiden Tabellen an derselben Stelle und bleiben erhalten.
+Die Partitionstabelle (`partitions_8mb.csv` bzw. `partitions.csv` beim 1.3er) wird nur per USB geschrieben. Nach dem Wechsel auf eine neue Tabelle deshalb einmal per USB flashen. Die Einstellungen und WLAN-Daten liegen in beiden Tabellen an derselben Stelle und bleiben erhalten. `otadata` muss bei `0xE000` liegen, denn dort setzt der USB-Upload den Merker „starte app0“ zurück. Bis November 2026 lag er bei `0x9000`. Mit diesem alten Stand startete nach einem Web-Update auch nach einem USB-Upload weiter die alte Firmware. Einmal per USB flashen behebt das; Einstellungen, WLAN und Matter-Kopplung bleiben erhalten.
 
 Das USB-C-Netzteil für die LEDs darf beim Flashen angeschlossen sein. Die Diode verhindert, dass es in den USB-Anschluss zurückspeist.
 
