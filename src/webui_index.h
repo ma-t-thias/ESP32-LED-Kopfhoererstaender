@@ -458,7 +458,7 @@ const LICENSE = {
 // ---------- Schnittstelle ----------
 const demoState = {on:true,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
- palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3-1a2b3c4',board:'LCD19',maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
+ palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3 (1a2b3c4)',board:'LCD19',fwMax:3932160,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
 const to = () => window.AbortSignal && AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
 const api = DEMO ? {
@@ -629,6 +629,8 @@ $('fwFile').onchange=e=>{ fwFile=e.target.files[0]||null; $('fwName').textConten
 $('fwStart').onclick=()=>{
  if(!fwFile||fwBusy) return;
  if(!fwFile.name.includes(fwTag())) return fwMsg(`Diese Datei passt nicht zu diesem Board: Ihr Name muss ${fwTag()} enthalten.`,true);
+ const kb=n=>n.toLocaleString('de-DE')+' KB';  // Datei aufgerundet, Platz abgerundet, wie der Ständer
+ if(info&&info.fwMax&&fwFile.size>info.fwMax) return fwMsg(`Die Datei ist zu groß: ${kb(Math.ceil(fwFile.size/1024))}, Platz ist nur für ${kb(Math.floor(info.fwMax/1024))}.`,true);
  if(!confirm(`Firmware „${fwFile.name}“ installieren? Der Ständer startet danach neu.`)) return;
  fwBusy=true; $('fwStart').disabled=$('fwPick').disabled=true; $('fwProg').hidden=false; $('fwBar').style.width='0'; fwMsg('');
  $('fwPct').textContent='Bitte am Display „Erlauben“ tippen (altes Board: BOOT-Taste) …';
@@ -640,14 +642,14 @@ $('fwStart').onclick=()=>{
   if(a.answer===-1) return fwDone(false,'Am Display abgelehnt oder nicht rechtzeitig bestätigt.');
   if(Date.now()-t0>70000) return fwDone(false,'Keine Antwort vom Display.');
   setTimeout(ask,1000); }).catch(()=>Date.now()-t0>70000 ? fwDone(false,'Ständer nicht erreichbar.') : setTimeout(ask,1500));
- fetch('/api/update/ask',{method:'POST',signal:to()})
+ fetch('/api/update/ask?size='+fwFile.size,{method:'POST',signal:to()})
   .then(r=>r.ok ? r.json().then(j=>{ tok=j.token; setTimeout(ask,1000); }) : r.text().then(t=>fwDone(false,t)))
   .catch(()=>fwDone(false,'Ständer nicht erreichbar.'));
 };
 function fwUpload(tok){
  fwProg(0);
  const fd=new FormData(); fd.append('firmware',fwFile,fwFile.name);
- const x=new XMLHttpRequest(); x.open('POST','/api/update?t='+tok);
+ const x=new XMLHttpRequest(); x.open('POST','/api/update?t='+tok+'&size='+fwFile.size);
  x.upload.onprogress=e=>{ if(e.lengthComputable) fwProg(Math.round(e.loaded*100/e.total)); };
  x.onload=()=>fwDone(x.status===200,x.responseText||'Keine Antwort vom Ständer.');
  x.onerror=()=>fwDone(false,'Verbindung unterbrochen. Bitte erneut versuchen.');

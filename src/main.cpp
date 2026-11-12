@@ -99,7 +99,7 @@ void setup() {
   Serial.setRxBufferSize(2048);  // Platz fuer ganze Adalight-Rahmen vom PC (USB)
   Serial.begin(115200);
   delay(200);
-  Serial.println("\nLED-Kopfhoererstaender startet, Firmware " FW_VERSION);
+  Serial.println("\nLED-Kopfhoererstaender startet, Firmware " FW_FULL);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   settings::begin(state);

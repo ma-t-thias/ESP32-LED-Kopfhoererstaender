@@ -452,7 +452,7 @@ void drawSettingsInfo(const NetInfo &net) {
     gfx->setCursor(infoX, y + 28);
     gfx->print("Firmware");
     gfx->setCursor(infoX, y + 40);
-    gfx->print(FW_VERSION);
+    gfx->print(FW_FULL);
   }
 }
 
@@ -479,7 +479,7 @@ bool begin() {
   ok = gfx->begin();
   if (!ok) return false;
   gfx->setTextWrap(false);
-  drawLogo(FW_VERSION);
+  drawLogo(FW_FULL);
   logoUntil = millis() + BOOT_LOGO_MS;
   return true;
 }
@@ -503,7 +503,7 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (logoUntil) {  // Startbild: nur bei Drehung neu zeichnen, danach normale Anzeige
     if ((want & 3) != rotation) {
       rotation = want & 3;
-      drawLogo(FW_VERSION);
+      drawLogo(FW_FULL);
     }
     if ((int32_t)(millis() - logoUntil) < 0) return;
     logoUntil = 0;

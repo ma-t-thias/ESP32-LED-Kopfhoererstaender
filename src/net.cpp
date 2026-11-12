@@ -6,6 +6,7 @@
 #include <Update.h>
 #include <WebServer.h>
 #include <WiFi.h>
+#include <esp_ota_ops.h>
 #include <esp_system.h>
 
 #include "config.h"
@@ -115,13 +116,26 @@ String stateJson() {
   return j;
 }
 
+// Platz fuer eine neue Firmware: Groesse des freien App-Slots (0 = kein OTA-Slot)
+size_t otaSpace() {
+  const esp_partition_t *p = esp_ota_get_next_update_partition(nullptr);
+  return p ? p->size : 0;
+}
+// Klartext, wenn die Datei nicht passt, sonst leer. size 0 = unbekannt, prueft dann Update.begin().
+String spaceError(size_t size) {
+  size_t space = otaSpace();
+  if (!space) return "Auf diesem Staender ist kein Platz fuer ein Update eingerichtet.";
+  if (size <= space) return "";
+  return "Die Datei ist zu gross: " + String((size + 1023) / 1024) + " KB, Platz ist nur fuer " + String(space / 1024) + " KB.";
+}
 String infoJson() {
   String j = "{\"effects\":[";
   for (uint8_t i = 0; i < effects::COUNT; i++) j += String(i ? "," : "") + "\"" + effects::NAMES[i] + "\"";
   j += "],\"palettes\":[";
   for (uint8_t i = 0; i < effects::PALETTE_COUNT; i++) j += String(i ? "," : "") + "\"" + effects::PALETTE_NAMES[i] + "\"";
   j += "],\"leds\":" + String(LED_COUNT);
-  j += ",\"fw\":\"" + jsonEscape(FW_VERSION) + "\",\"board\":\"" BOARD_TAG "\"";
+  j += ",\"fw\":\"" + jsonEscape(FW_FULL) + "\",\"board\":\"" BOARD_TAG "\"";
+  j += ",\"fwMax\":" + String(otaSpace());
   j += ",\"maMax\":" + String(LED_MAX_MILLIAMPS_LIMIT);
   j += ",\"host\":\"" + String(HOSTNAME) + "\"";
   j += ",\"ssid\":\"" + jsonEscape(staSsid) + "\"";
@@ -206,6 +220,7 @@ bool updFirst = false;  // naechster Block ist der Anfang der Datei
 bool updStarted = false;  // eine Datei kam an
 bool updOk = false;       // Update.end() erfolgreich: neue Firmware ist gesetzt
 size_t updSize = 0;     // Groesse der Anfrage, fuer die Prozentanzeige
+size_t updFile = 0;     // Groesse der .bin laut Browser (0 = unbekannt)
 
 void handleUpdateUpload() {
   HTTPUpload &u = server.upload();
@@ -216,11 +231,14 @@ void handleUpdateUpload() {
     updStarted = true;
     updOk = false;
     updSize = server.clientContentLength();
+    updFile = strtoul(server.arg("size").c_str(), nullptr, 10);  // echte Dateigroesse vom Browser
     if (display::updateAnswer(strtoul(server.arg("t").c_str(), nullptr, 10)) != 1) {
       updErr = "Das Update wurde nicht am Display erlaubt.";
     } else if (u.filename.indexOf("_" BOARD_TAG "_") < 0) {
       updErr = "Die Datei passt nicht zu diesem Board. Ihr Name muss _" BOARD_TAG "_ enthalten.";
-    } else if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+    } else if (spaceError(updFile).length()) {
+      updErr = spaceError(updFile);
+    } else if (!Update.begin(updFile ? updFile : UPDATE_SIZE_UNKNOWN)) {
       updErr = Update.errorString();
     } else {
       display::clearUpdateAnswer();  // Erlaubnis gilt fuer genau einen Upload
@@ -454,6 +472,8 @@ void begin(LedState &state, ChangeHandler onChange) {
   // /api/update/answer ab (1 = erlaubt, -1 = abgelehnt/abgelaufen, 0 = offen) und laedt erst dann hoch.
   // Die Kennung (t) bindet die Erlaubnis an den Browser, der gefragt hat.
   server.on("/api/update/ask", HTTP_POST, []() {
+    String err = spaceError(strtoul(server.arg("size").c_str(), nullptr, 10));  // vor der Frage am Display
+    if (err.length()) return server.send(413, "text/plain; charset=utf-8", err);
     uint32_t t = display::askUpdate();
     if (!t) server.send(409, "text/plain; charset=utf-8", "Am Display wartet schon eine Anfrage. Bitte kurz warten.");
     else server.send(200, "application/json", "{\"token\":" + String(t) + "}");
