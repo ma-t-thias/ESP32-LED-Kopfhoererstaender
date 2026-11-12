@@ -9,6 +9,7 @@
 #include "realtime.h"
 #include "matter_dev.h"
 #include "imu.h"
+#include "touch.h"
 
 extern "C" {
 #include <qrcode.h>
@@ -20,7 +21,17 @@ namespace {
 Arduino_DataBus *bus = new Arduino_HWSPI(LCD_DC, LCD_CS, LCD_SCK, LCD_MOSI, GFX_NOT_DEFINED);
 Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true /* IPS */, LCD_W, LCD_H, LCD_OFFSETS);
 bool ok = false;
-enum Screen : uint8_t { SCR_STATUS, SCR_PAIRING, SCR_OFF };
+// STATUS = mit WLAN-Zeilen, HOME = aufgeraeumt (Touch-Board und WLAN verbunden),
+// SETTINGS = Regler und Netzdaten hinter dem Zahnrad
+enum Screen : uint8_t { SCR_STATUS, SCR_HOME, SCR_SETTINGS, SCR_PAIRING, SCR_OFF };
+#ifdef TOUCH_ADDR
+constexpr bool HAS_TOUCH = true;
+#else
+constexpr bool HAS_TOUCH = false;
+#endif
+bool settingsOpen = false;
+uint32_t settingsTouched = 0;               // letzte Beruehrung auf der Einstellseite
+constexpr uint32_t SETTINGS_TIMEOUT_MS = 20000;  // danach zurueck zur Startseite
 Screen shown = SCR_STATUS;  // welcher Bildschirm gerade zu sehen ist
 uint8_t rotation = LCD_ROTATION;
 
@@ -42,11 +53,17 @@ int W = LCD_W, H = LCD_H;
 int fxY, infoY, previewY, previewH;
 bool previewLabel;
 
-void setLayout() {
+void setLayout(bool home = false) {
   gfx->setRotation(rotation);
   W = gfx->width();
   H = gfx->height();
-  if (H >= 240) {  // 240x240 oder hochkant 170x320
+  if (home) {  // ohne WLAN-Zeilen: Effekt nach oben, Vorschau groesser
+    fxY = 48;
+    infoY = 76;
+    previewLabel = H >= 240;
+    previewY = previewLabel ? 124 : 108;
+    previewH = H - previewY - (previewLabel ? 14 : 6);
+  } else if (H >= 240) {  // 240x240 oder hochkant 170x320
     fxY = 112;
     infoY = 140;
     previewY = H > 240 ? 180 : 196;
@@ -64,21 +81,35 @@ void setLayout() {
 uint16_t to565(const CRGB &c) { return ((c.r & 0xF8) << 8) | ((c.g & 0xFC) << 3) | (c.b >> 3); }
 
 // Text, der in Groesse 2 nicht in die Zeile passt, wird klein geschrieben.
-void textLine(int y, int h, const String &txt, uint8_t size, uint16_t color, String &cache) {
+// w = Breite der Zeile (0 = ganze Breite), z. B. damit das Zahnrad stehen bleibt.
+void textLine(int y, int h, const String &txt, uint8_t size, uint16_t color, String &cache, int w = 0) {
   if (txt == cache) return;
   cache = txt;
-  if (size == 2 && txt.indexOf('\n') < 0 && (int)txt.length() * 12 > W - 16) size = 1;
-  gfx->fillRect(0, y, W, h, BG);
+  int margin = w ? 10 : 16;
+  if (!w) w = W;
+  if (size == 2 && txt.indexOf('\n') < 0 && (int)txt.length() * 12 > w - margin) size = 1;
+  gfx->fillRect(0, y, w, h, BG);
   gfx->setTextSize(size);
   gfx->setTextColor(color);
   gfx->setCursor(8, y + 2);
   gfx->print(txt);
 }
+// Zahnrad oben rechts (nur mit Touch); Trefferflaeche 48x44 in der Ecke
+void drawGear() {
+  int cx = W - 20, cy = 17;
+  for (int k = 0; k < 8; k++)
+    gfx->fillCircle(cx + lround(9 * cos(k * PI / 4)), cy + lround(9 * sin(k * PI / 4)), 3, MUTED);
+  gfx->fillCircle(cx, cy, 8, MUTED);
+  gfx->fillCircle(cx, cy, 3, BG);
+}
+bool inCorner(const touch::Point &p) { return p.x >= W - 48 && p.y < 44; }
+
 // Feste Bildteile; danach zeichnen die Zeilen beim naechsten loop() neu.
-void drawStatic() {
-  setLayout();
+void drawStatic(bool home) {
+  setLayout(home);
   gfx->fillScreen(BG);
   gfx->drawFastHLine(8, 34, W - 16, ACCENT);
+  if (HAS_TOUCH) drawGear();
   if (previewLabel) {
     gfx->setTextSize(1);
     gfx->setTextColor(MUTED);
@@ -246,6 +277,121 @@ void drawPairing(const NetInfo &net) {
     gfx->print(net.ip + "  " + String(HOSTNAME) + ".local");
   }
 }
+
+// ---------- Einstellseite: drei Regler (Helligkeit, Tempo, Effekt-Staerke) und Netzdaten ----------
+// Hochkant untereinander, quer: Regler links, Netzdaten rechts.
+constexpr int SL_X = 12, SL_Y0 = 44;
+int slW, slRowH, infoX, infoY0;
+int lastSlider[3];
+const char *lastIntLabel = nullptr;
+bool slDown = false;  // Finger lag beim letzten Aufruf auf
+int slActive = -1;    // Regler, auf dem der Finger aufgesetzt hat
+String lastSetInfo;
+
+void settingsLayout() {
+  bool wide = W > H;
+  slW = wide ? 170 : W - 2 * SL_X;
+  slRowH = wide ? 42 : 54;
+  infoX = wide ? SL_X + slW + 16 : 8;
+  infoY0 = wide ? SL_Y0 + 4 : SL_Y0 + 3 * slRowH + 4;
+}
+
+const char *intLabel(const LedState &s) { return effects::INT_NAMES[s.effect < effects::COUNT ? s.effect : 0]; }
+
+uint8_t &sliderValue(LedState &s, int i) { return i == 0 ? s.brightness : i == 1 ? s.speed : s.intensity; }
+
+// full = mit Beschriftung; sonst nur Prozentwert und Regler neu (weniger Flackern beim Ziehen)
+void drawSliderRow(int i, const char *label, uint8_t v, bool enabled, bool full) {
+  int y = SL_Y0 + i * slRowH;
+  gfx->setTextSize(1);
+  if (full) {
+    gfx->fillRect(0, y, SL_X + slW + 10, slRowH - 4, BG);
+    gfx->setTextColor(enabled ? FG : MUTED);
+    gfx->setCursor(SL_X, y + 2);
+    gfx->print(label);
+  } else {
+    gfx->fillRect(SL_X + slW - 36, y, 36, 12, BG);       // Prozentwert
+    gfx->fillRect(0, y + 13, SL_X + slW + 10, 18, BG);  // Regler mit Knopf
+  }
+  if (enabled) {
+    String val = String((v * 100 + 127) / 255) + " %";
+    gfx->setTextColor(MUTED);
+    gfx->setCursor(SL_X + slW - (int)val.length() * 6, y + 2);
+    gfx->print(val);
+  }
+  int fill = (int)v * slW / 255;
+  gfx->fillRoundRect(SL_X, y + 18, slW, 8, 4, 0x31A6);
+  if (fill > 0) gfx->fillRoundRect(SL_X, y + 18, max(fill, 8), 8, 4, enabled ? ACCENT : MUTED);
+  gfx->fillCircle(SL_X + fill, y + 22, 8, enabled ? FG : MUTED);
+}
+
+void drawSettings() {
+  setLayout();
+  settingsLayout();
+  gfx->fillScreen(BG);
+  gfx->setTextSize(2);
+  gfx->setTextColor(FG);
+  gfx->setCursor(8, 10);
+  gfx->print("Einrichten");
+  gfx->drawFastHLine(8, 34, W - 16, ACCENT);
+  int cx = W - 20, cy = 17;  // Schliessen: X im Kreis, an der Stelle des Zahnrads
+  gfx->fillCircle(cx, cy, 11, 0x31A6);
+  for (int d = -1; d <= 1; d++) {
+    gfx->drawLine(cx - 4 + d, cy - 4, cx + 4 + d, cy + 4, FG);
+    gfx->drawLine(cx - 4 + d, cy + 4, cx + 4 + d, cy - 4, FG);
+  }
+  lastSlider[0] = lastSlider[1] = lastSlider[2] = -1;
+  lastIntLabel = nullptr;
+  slDown = false;
+  slActive = -1;
+  lastSetInfo = "";
+}
+
+void drawSettingsInfo(const NetInfo &net) {
+  bool wide = W > H;
+  String ip = net.connected || net.setupAp ? net.ip : String("nicht verbunden");
+  String all = ip + "|" + net.ssid;
+  if (all == lastSetInfo) return;
+  lastSetInfo = all;
+  gfx->fillRect(infoX, infoY0, W - infoX, H - infoY0, BG);
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  gfx->setCursor(infoX, infoY0);
+  gfx->print("IP-Adresse");
+  gfx->setTextSize(wide || ip.length() * 12 > (unsigned)(W - infoX - 4) ? 1 : 2);
+  gfx->setTextColor(net.connected ? GOOD : WARN);
+  gfx->setCursor(infoX, infoY0 + 12);
+  gfx->print(ip);
+  int y = infoY0 + (wide ? 26 : 34);
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  gfx->setCursor(infoX, y);
+  gfx->print(String(HOSTNAME) + ".local");
+  gfx->setCursor(infoX, y + 14);
+  gfx->print(net.ssid);
+  if (!wide) {  // quer reicht die Breite nicht fuer die Versionskennung
+    gfx->setCursor(infoX, y + 28);
+    gfx->print("Firmware");
+    gfx->setCursor(infoX, y + 40);
+    gfx->print(FW_VERSION);
+  }
+}
+
+void loopSettings(const LedState &s, const NetInfo &net) {
+  const char *il = intLabel(s);
+  bool intOn = il[0] != 0;
+  bool newLabel = il != lastIntLabel;  // anderer Effekt: Beschriftung neu
+  lastIntLabel = il;
+  const char *labels[3] = {"Helligkeit", "Tempo", intOn ? il : "Staerke (ohne Wirkung)"};
+  for (int i = 0; i < 3; i++) {
+    uint8_t v = sliderValue(const_cast<LedState &>(s), i);
+    bool full = lastSlider[i] < 0 || (i == 2 && newLabel);
+    if (v == lastSlider[i] && !full) continue;
+    lastSlider[i] = v;
+    drawSliderRow(i, labels[i], v, i < 2 || intOn, full);
+  }
+  drawSettingsInfo(net);
+}
 }  // namespace
 
 bool begin() {
@@ -266,7 +412,13 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   uint8_t want = s.displayRotation;
   if (want == ROT_AUTO) want = imu::rotation() >= 0 ? imu::rotation() : LCD_ROTATION;
   // Koppeln geht vor; aus = Logo (ausser bei der WLAN-Einrichtung, die braucht die Hinweise)
-  Screen screen = wantPairing ? SCR_PAIRING : (!s.on && !net.setupAp) ? SCR_OFF : SCR_STATUS;
+  if (settingsOpen && millis() - settingsTouched > SETTINGS_TIMEOUT_MS) settingsOpen = false;
+  Screen screen = wantPairing                ? SCR_PAIRING
+                  : (!s.on && !net.setupAp)  ? SCR_OFF
+                  : settingsOpen             ? SCR_SETTINGS
+                  : HAS_TOUCH && net.connected ? SCR_HOME
+                                             : SCR_STATUS;
+  if (screen == SCR_PAIRING || screen == SCR_OFF) settingsOpen = false;
   bool redraw = false;
   if (logoUntil) {  // Startbild: nur bei Drehung neu zeichnen, danach normale Anzeige
     if ((want & 3) != rotation) {
@@ -285,13 +437,17 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
     shown = screen;
     if (screen == SCR_PAIRING) drawPairing(net);
     else if (screen == SCR_OFF) drawLogo(OFF_HINT);
-    else drawStatic();
+    else if (screen == SCR_SETTINGS) drawSettings();
+    else drawStatic(screen == SCR_HOME);
   }
-  if (shown != SCR_STATUS) return;
+  if (shown == SCR_SETTINGS) return loopSettings(s, net);
+  if (shown != SCR_STATUS && shown != SCR_HOME) return;
 
-  textLine(6, 24, W < 200 ? "Kopfhoerer" : "LED-Kopfhoerer", 2, FG, lastHeader);
+  textLine(6, 24, W < 200 ? "Kopfhoerer" : "LED-Kopfhoerer", 2, FG, lastHeader, HAS_TOUCH ? W - 36 : 0);
 
-  if (net.setupAp) {
+  if (shown == SCR_HOME) {
+    // aufgeraeumt: Netzdaten stehen auf der Einstellseite
+  } else if (net.setupAp) {
     textLine(44, 20, "WLAN einrichten:", 2, WARN, lastNet1);
     textLine(66, fxY - 68, "Verbinde mit\n " + net.ssid + "\n dann " + net.ip, 1, FG, lastNet2);
   } else if (net.connected) {
@@ -308,7 +464,7 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
     textLine(fxY, 24, String("PC-Sync ") + realtime::source(), 2, GOOD, lastFx);
   else
     textLine(fxY, 24, effects::NAMES[s.effect < effects::COUNT ? s.effect : 0], 2, FG, lastFx);
-  String info = s.on ? ("Hell " + String((s.brightness * 100 + 127) / 255) + "% Tempo " + String(s.speed))
+  String info = s.on ? ("Hell " + String((s.brightness * 100 + 127) / 255) + "% Tempo " + String((s.speed * 100 + 127) / 255) + "%")
                      : String("Aus");
   textLine(infoY, 20, info, 2, s.on ? MUTED : WARN, lastInfo);
 
@@ -325,6 +481,43 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
 }
 
 uint8_t currentRotation() { return rotation; }
+
+int handleTouch(uint8_t gesture, const touch::Point &p, LedState &s) {
+  if (!HAS_TOUCH || !ok || updating || logoUntil) return 0;
+  bool tap = gesture == touch::TAP_TOP || gesture == touch::TAP_BOTTOM;
+  if (shown == SCR_STATUS || shown == SCR_HOME) {
+    if (!tap || !inCorner(p)) return 0;
+    settingsOpen = true;  // Zahnrad: loop() zeichnet die Einstellseite
+    settingsTouched = millis();
+    return 1;
+  }
+  // bis loop() nach dem Schliessen neu zeichnet, bleibt alles verbraucht
+  if (shown != SCR_SETTINGS) return 0;
+  if (!settingsOpen) return 1;
+  int &active = slActive;
+  if (p.down || gesture) settingsTouched = millis();
+  if (p.down && !slDown) {
+    active = -1;
+    // nur auf dem Regler selbst (Balken +- Knopf), nicht auf Beschriftung oder X
+    for (int i = 0; i < 3; i++) {
+      int y = SL_Y0 + i * slRowH;
+      if (!inCorner(p) && p.y >= y + 8 && p.y < y + 38 && p.x < SL_X + slW + 16) active = i;
+    }
+    if (active == 2 && !intLabel(s)[0]) active = -1;  // Effekt ohne Staerke-Regler
+  }
+  slDown = p.down;
+  if (!p.down) active = -1;
+  if (active >= 0) {
+    int v = constrain((p.x - SL_X) * 255 / slW, 0, 255);
+    if (active == 0 && v < 1) v = 1;  // ganz dunkel waere "an, aber aus"
+    uint8_t &ref = sliderValue(s, active);
+    if (ref == v) return 1;
+    ref = v;
+    return 2;
+  }
+  if (tap && inCorner(p)) settingsOpen = false;
+  return 1;  // auf der Einstellseite wechseln Tippen und Wischen keinen Effekt
+}
 
 void message(const char *line1, const char *line2) {
   if (!ok) return;

@@ -13,6 +13,17 @@ bool present = false;
 bool wasDown = false;
 int x = 0, y = 0, x0 = 0, y0 = 0;  // aktuelle Position und Startpunkt des Fingers
 uint32_t lastPoll = 0;
+Point pt;  // letzte Position in Bildkoordinaten
+
+// Panel-Koordinaten (hochkant LCD_W x LCD_H) in Bildkoordinaten der Drehung umrechnen
+void toScreen(uint8_t rotation, int px, int py, int &sx, int &sy) {
+  switch (rotation & 3) {
+    case 0: sx = px;              sy = py;              break;
+    case 1: sx = py;              sy = LCD_W - 1 - px;  break;
+    case 2: sx = LCD_W - 1 - px;  sy = LCD_H - 1 - py;  break;
+    default: sx = LCD_H - 1 - py; sy = px;              break;
+  }
+}
 
 bool writeReg(uint8_t reg, uint8_t val) {
   Wire.beginTransmission(TOUCH_ADDR);
@@ -52,6 +63,8 @@ Gesture read(uint8_t rotation) {
   }
   bool released = wasDown && !down;
   wasDown = down;
+  pt.down = down;
+  toScreen(rotation, x, y, pt.x, pt.y);
   if (!released) return NONE;
 
   // Bewegung in Panel-Koordinaten (hochkant) in Bildkoordinaten umrechnen
@@ -76,6 +89,8 @@ Gesture read(uint8_t rotation) {
   }
   return NONE;  // senkrecht gewischt: ignorieren
 }
+
+Point point() { return pt; }
 }  // namespace touch
 
 #else
@@ -83,6 +98,7 @@ Gesture read(uint8_t rotation) {
 namespace touch {
 void begin() {}
 Gesture read(uint8_t) { return NONE; }
+Point point() { return Point(); }
 }  // namespace touch
 
 #endif

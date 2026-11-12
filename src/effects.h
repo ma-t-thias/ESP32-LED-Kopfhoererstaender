@@ -8,6 +8,8 @@ namespace effects {
 // Namen fuer Weboberflaeche und Display (Reihenfolge = Index im LedState)
 extern const char *const NAMES[];
 extern const uint8_t COUNT;
+// Bedeutung des Intensitaets-Reglers je Effekt, "" = ohne Wirkung
+extern const char *const INT_NAMES[];
 extern const char *const PALETTE_NAMES[];
 extern const uint8_t PALETTE_COUNT;
 

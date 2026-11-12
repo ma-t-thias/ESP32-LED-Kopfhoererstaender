@@ -121,7 +121,12 @@ void loop() {
   argb::loop(state.argbEnabled);
   handleButton();
   touch::Gesture g = touch::read(display::currentRotation());
-  if (g != touch::NONE && turnOnIfOff()) g = touch::NONE;
+  if (g != touch::NONE && turnOnIfOff()) {
+    g = touch::NONE;
+  } else if (int r = display::handleTouch(g, touch::point(), state)) {
+    if (r == 2) settings::markDirty();  // Regler auf der Einstellseite
+    g = touch::NONE;
+  }
   switch (g) {
     case touch::TAP_TOP:
     case touch::SWIPE_RIGHT: nextEffect(); break;

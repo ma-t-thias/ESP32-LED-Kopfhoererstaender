@@ -32,6 +32,15 @@ const char *const NAMES[] = {
 };
 const uint8_t COUNT = sizeof(NAMES) / sizeof(NAMES[0]);
 
+// Bedeutung des Reglers "intensity" je Effekt (wie in der Weboberflaeche); leer = ohne Wirkung
+const char *const INT_NAMES[] = {
+    "", "Anzahl Regenboegen", "Wiederholungen", "Dichte", "", "", "Abstand", "Schweiflaenge",
+    "Schweiflaenge", "Haeufigkeit", "Menge", "Flammenhoehe", "Anzahl Punkte", "Wellengroesse",
+    "Frequenz", "", "Kontrast", "Feinheit", "Anzahl Meteore", "Haeufigkeit", "Ausbreitung",
+    "Flackern", "Dichte", "Schaum",
+};
+static_assert(sizeof(INT_NAMES) == sizeof(NAMES), "INT_NAMES passend zu NAMES pflegen");
+
 const char *const PALETTE_NAMES[] = {
     "Regenbogen", "Party", "Ozean", "Lava", "Wald", "Wolken", "Hitze", "Eigene Farben",
 };
