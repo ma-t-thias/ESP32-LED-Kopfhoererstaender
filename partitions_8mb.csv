@@ -1,9 +1,11 @@
 # Name,   Type, SubType, Offset,   Size,     Flags
+# otadata muss bei 0xE000 liegen: Dort schreibt PlatformIO beim USB-Upload boot_app0.bin hin
+# ("starte app0"). Lag otadata woanders, startete nach einem Web-Update weiter die alte Firmware.
 # 8 MB Flash (ESP32-C6-Touch-LCD-1.9): Matter und Update per WLAN zusammen.
 # Zwei App-Slots mit je 3,75 MB. NVS liegt an derselben Stelle wie in
 # partitions.csv, damit WLAN-Daten und Einstellungen beim Umstieg erhalten bleiben.
-otadata,  data, ota,     0x9000,   0x2000,
-fctry,    data, nvs,     0xB000,   0x5000,
+fctry,    data, nvs,     0x9000,   0x5000,
+otadata,  data, ota,     0xE000,   0x2000,
 app0,     app,  ota_0,   0x10000,  0x3C0000,
 nvs,      data, nvs,     0x3D0000, 0x20000,
 coredump, data, coredump,0x3F0000, 0x10000,
