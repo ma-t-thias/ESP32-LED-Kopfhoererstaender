@@ -44,10 +44,11 @@ def stop(text):
     return 1  # Aufgabe schlaegt fehl, es entsteht keine Datei
 
 
-def make_update_file(target, source, env):
+def release_check():
+    """Tag auf HEAD und keine Aenderungen? Gibt (tag, None) oder (None, Meldung) zurueck."""
     code, tag = git("describe", "--tags", "--exact-match", "HEAD")
     if code != 0 or not tag:
-        return stop(
+        return None, (
             "Der aktuelle Commit hat keinen Tag. Update-Dateien gibt es nur fuer getaggte Staende.\n"
             "Erst einchecken und taggen, z. B. in Fork: Rechtsklick auf den Commit -> \"New Tag...\",\n"
             "oder im Terminal:  git tag V1.0.0  und  git push origin V1.0.0\n"
@@ -55,10 +56,17 @@ def make_update_file(target, source, env):
         )
     code, changes = git("status", "--porcelain", "--untracked-files=no")
     if code != 0 or changes:
-        return stop(
+        return None, (
             f"Es gibt nicht eingecheckte Aenderungen. Der Stand entspricht nicht dem Tag {tag}.\n"
             "Erst einchecken (und neu taggen) oder die Aenderungen verwerfen."
         )
+    return tag, None
+
+
+def make_update_file(target, source, env):
+    tag, err = release_check()
+    if err:
+        return stop(err)
     version = firmware_version()
     if version != re.sub(r"[^A-Za-z0-9._+/-]", "_", tag):
         return stop(
@@ -77,6 +85,13 @@ def make_update_file(target, source, env):
     print(f"\nUpdate-Datei fuer Version {tag}: {dest}\n")
     return 0
 
+
+# Schon vor dem Bauen pruefen, damit ohne Tag nicht erst minutenlang kompiliert wird
+if "update_file" in COMMAND_LINE_TARGETS:  # noqa: F821
+    _, err = release_check()
+    if err:
+        stop(err)
+        env.Exit(1)  # noqa: F821
 
 env.AddCustomTarget(  # noqa: F821
     name="update_file",

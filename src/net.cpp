@@ -216,11 +216,14 @@ void handleUpdateUpload() {
     updStarted = true;
     updOk = false;
     updSize = server.clientContentLength();
-    if (u.filename.indexOf("_" BOARD_TAG "_") < 0) {
+    if (display::updateAnswer(strtoul(server.arg("t").c_str(), nullptr, 10)) != 1) {
+      updErr = "Das Update wurde nicht am Display erlaubt.";
+    } else if (u.filename.indexOf("_" BOARD_TAG "_") < 0) {
       updErr = "Die Datei passt nicht zu diesem Board. Ihr Name muss _" BOARD_TAG "_ enthalten.";
     } else if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
       updErr = Update.errorString();
     } else {
+      display::clearUpdateAnswer();  // Erlaubnis gilt fuer genau einen Upload
       Serial.printf("Web-Update: %s\n", u.filename.c_str());
       updShown = true;
       display::updateProgress(0);
@@ -447,6 +450,18 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/wifi", HTTP_POST, handleSaveWifi);
   server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
   server.on("/api/matter/unpair", HTTP_POST, handleMatterUnpair);
+  // Ablauf: /api/update/ask zeigt am Display "Update erlauben?", der Browser fragt
+  // /api/update/answer ab (1 = erlaubt, -1 = abgelehnt/abgelaufen, 0 = offen) und laedt erst dann hoch.
+  // Die Kennung (t) bindet die Erlaubnis an den Browser, der gefragt hat.
+  server.on("/api/update/ask", HTTP_POST, []() {
+    uint32_t t = display::askUpdate();
+    if (!t) server.send(409, "text/plain; charset=utf-8", "Am Display wartet schon eine Anfrage. Bitte kurz warten.");
+    else server.send(200, "application/json", "{\"token\":" + String(t) + "}");
+  });
+  server.on("/api/update/answer", HTTP_GET, []() {
+    uint32_t t = strtoul(server.arg("t").c_str(), nullptr, 10);
+    server.send(200, "application/json", "{\"answer\":" + String(display::updateAnswer(t)) + "}");
+  });
   server.on("/api/update", HTTP_POST, handleUpdateDone, handleUpdateUpload);
   // WLED-kompatibel fuer Home Assistant, WLED-App und Sync-Programme (siehe wled_api.h)
   server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledapi::info(*st)); });

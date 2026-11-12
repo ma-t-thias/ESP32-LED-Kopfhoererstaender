@@ -205,12 +205,11 @@ Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestel
 ## Firmware-Update über die Weboberfläche
 
 1. Nur für getaggte Stände: Den Commit in Fork taggen (Rechtsklick auf den Commit → „New Tag…“, z. B. `V1.0.0`) und den Tag pushen. Dann in VS Code unter *PlatformIO → Project Tasks → env → Custom* **Update-Datei erzeugen** ausführen. Danach liegt im Projektordner unter `update/` die Datei `LED-Kopfhoerer_LCD19_V1.0.0.bin` (altes 1,3-Zoll-Board: `_LCD13_`). Das ist die normale `firmware.bin` mit sprechendem Namen (`tools/update_file.py`). Hat der Commit keinen Tag oder gibt es nicht eingecheckte Änderungen, bricht die Aufgabe mit einer Meldung ab und erzeugt keine Datei. So ist jede Update-Datei einem Tag zugeordnet. Prototypen flasht man weiter wie gewohnt mit Build/Upload per USB oder WLAN.
-2. In der Weboberfläche **Info → Firmware-Update → Datei wählen**, die Datei auswählen und **Update installieren**.
+2. In der Weboberfläche **Info → Firmware-Update → Datei wählen**, die Datei auswählen und **Update installieren**. Der Ständer fragt dann am Display **„Update?“**: dort **Erlauben** tippen (altes 1,3-Zoll-Board: BOOT-Taste kurz drücken). Ohne Antwort innerhalb von 60 s oder mit **Ablehnen** wird nichts hochgeladen. Erst nach der Bestätigung beginnt der Upload; so kann niemand im WLAN ohne Zugriff auf den Ständer eine Firmware aufspielen.
 3. Ein Balken zeigt den Upload in Prozent, das Display den Fortschritt mit Sanduhr. Danach prüft der Ständer die Datei, startet neu, und die Seite lädt sich neu. Die neue Version steht unter **Info → Gerät → Firmware**.
 
 Geprüft wird vorher: der Name enthält die Board-Kennung (`_LCD19_` bzw. `_LCD13_`, deshalb die Datei nicht umbenennen), es ist eine Firmware für den ESP32-C6, und die Prüfsumme stimmt. Bei einem Fehler bleibt die alte Firmware aktiv. Die Partitionstabelle ändert ein Update nicht; dafür bleibt USB nötig.
 
-Hinweis: Wie die übrige Weboberfläche ist das Update ohne Passwort erreichbar, also für jeden im eigenen WLAN.
 
 ## Update über WLAN aus VS Code (nur Testbetrieb)
 
@@ -231,7 +230,9 @@ Findet der PC `led-kopfhoerer.local` nicht, in `test_ota.ini` bei `host` die IP-
 | POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu) |
 | GET | `/api/info` | Firmware-Version (`fw`), Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
-| POST | `/api/update` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), danach Neustart |
+| POST | `/api/update/ask` | fragt am Display „Update?“, liefert `token` (409, wenn schon eine Frage läuft) |
+| GET | `/api/update/answer?t=` | Antwort für dieses Token: 1 erlaubt, -1 abgelehnt/abgelaufen, 0 offen |
+| POST | `/api/update?t=` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), nur nach Erlauben, danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
 | GET | `/json`, `/json/si`, `/json/info`, `/json/state`, `/json/eff`, `/json/pal`, `/presets.json` | WLED-kompatible Abfrage |

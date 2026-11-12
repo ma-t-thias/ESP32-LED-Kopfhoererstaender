@@ -611,7 +611,7 @@ $('ma').onchange=e=>send({ma:+e.target.value});
 // ---------- Firmware-Update: .bin aus VS Code (Ordner update) hochladen ----------
 let fwFile=null, fwBusy=false;
 const fwTag=()=>'_'+((info&&info.board)||'LCD19')+'_';
-function fwMsg(t,err){ const f=$('fwFoot'); f.textContent=t||`Die Datei erzeugt VS Code für getaggte Stände mit der Aufgabe „Update-Datei erzeugen“ im Ordner „update“; ihr Name enthält ${fwTag()}. Während des Updates den Strom nicht trennen.`; f.style.color=err?'var(--red)':''; }
+function fwMsg(t,err){ const f=$('fwFoot'); f.textContent=t||`Die Datei erzeugt VS Code für getaggte Stände mit der Aufgabe „Update-Datei erzeugen“ im Ordner „update“; ihr Name enthält ${fwTag()}. Vor dem Hochladen fragt der Ständer am Display nach. Während des Updates den Strom nicht trennen.`; f.style.color=err?'var(--red)':''; }
 function fwProg(p){ $('fwBar').style.width=p+'%'; $('fwBarW').setAttribute('aria-valuenow',p); $('fwPct').textContent=p<100?`Übertrage … ${p} %`:'Prüfe und schreibe …'; }
 function fwDone(ok,msg){
  const restart=ok||msg.includes('startet neu');
@@ -630,15 +630,29 @@ $('fwStart').onclick=()=>{
  if(!fwFile||fwBusy) return;
  if(!fwFile.name.includes(fwTag())) return fwMsg(`Diese Datei passt nicht zu diesem Board: Ihr Name muss ${fwTag()} enthalten.`,true);
  if(!confirm(`Firmware „${fwFile.name}“ installieren? Der Ständer startet danach neu.`)) return;
- fwBusy=true; $('fwStart').disabled=$('fwPick').disabled=true; $('fwProg').hidden=false; fwProg(0); fwMsg('');
- if(DEMO){ let p=0; const t=setInterval(()=>{ p=Math.min(100,p+5); fwProg(p); if(p===100){ clearInterval(t); setTimeout(()=>fwDone(true,'Vorschau: Update nur simuliert.'),600); } },120); return; }
+ fwBusy=true; $('fwStart').disabled=$('fwPick').disabled=true; $('fwProg').hidden=false; $('fwBar').style.width='0'; fwMsg('');
+ $('fwPct').textContent='Bitte am Display „Erlauben“ tippen (altes Board: BOOT-Taste) …';
+ if(DEMO){ return setTimeout(()=>{ let p=0; const t=setInterval(()=>{ p=Math.min(100,p+5); fwProg(p); if(p===100){ clearInterval(t); setTimeout(()=>fwDone(true,'Vorschau: Update nur simuliert.'),600); } },120); },1500); }
+ // Erst am Ständer bestätigen lassen (Schutz vor fremden Updates im WLAN), dann hochladen
+ const t0=Date.now(); let tok=0;
+ const ask=()=>fetch('/api/update/answer?t='+tok,{signal:to()}).then(r=>r.json()).then(a=>{
+  if(a.answer===1) return fwUpload(tok);
+  if(a.answer===-1) return fwDone(false,'Am Display abgelehnt oder nicht rechtzeitig bestätigt.');
+  if(Date.now()-t0>70000) return fwDone(false,'Keine Antwort vom Display.');
+  setTimeout(ask,1000); }).catch(()=>Date.now()-t0>70000 ? fwDone(false,'Ständer nicht erreichbar.') : setTimeout(ask,1500));
+ fetch('/api/update/ask',{method:'POST',signal:to()})
+  .then(r=>r.ok ? r.json().then(j=>{ tok=j.token; setTimeout(ask,1000); }) : r.text().then(t=>fwDone(false,t)))
+  .catch(()=>fwDone(false,'Ständer nicht erreichbar.'));
+};
+function fwUpload(tok){
+ fwProg(0);
  const fd=new FormData(); fd.append('firmware',fwFile,fwFile.name);
- const x=new XMLHttpRequest(); x.open('POST','/api/update');
+ const x=new XMLHttpRequest(); x.open('POST','/api/update?t='+tok);
  x.upload.onprogress=e=>{ if(e.lengthComputable) fwProg(Math.round(e.loaded*100/e.total)); };
  x.onload=()=>fwDone(x.status===200,x.responseText||'Keine Antwort vom Ständer.');
  x.onerror=()=>fwDone(false,'Verbindung unterbrochen. Bitte erneut versuchen.');
  x.send(fd);
-};
+}
 $('wifiReset').onclick=()=>{ if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?')) api.wifiReset().then(t=>alert(t)); };
 
 // ---------- Animation ----------

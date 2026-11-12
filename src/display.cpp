@@ -1,6 +1,7 @@
 #include "display.h"
 
 #include <Arduino_GFX_Library.h>
+#include <esp_random.h>
 
 #include "config.h"
 #include "fw_version.h"
@@ -23,7 +24,8 @@ Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true /* IPS */
 bool ok = false;
 // STATUS = mit WLAN-Zeilen, HOME = aufgeraeumt (Touch-Board und WLAN verbunden),
 // SETTINGS = Regler und Netzdaten hinter dem Zahnrad
-enum Screen : uint8_t { SCR_STATUS, SCR_HOME, SCR_SETTINGS, SCR_PAIRING, SCR_OFF };
+// CONFIRM = Rueckfrage, ob ein im Browser gestartetes Firmware-Update erlaubt ist
+enum Screen : uint8_t { SCR_STATUS, SCR_HOME, SCR_SETTINGS, SCR_PAIRING, SCR_OFF, SCR_CONFIRM };
 #ifdef TOUCH_ADDR
 constexpr bool HAS_TOUCH = true;
 #else
@@ -32,6 +34,14 @@ constexpr bool HAS_TOUCH = false;
 bool settingsOpen = false;
 uint32_t settingsTouched = 0;               // letzte Beruehrung auf der Einstellseite
 constexpr uint32_t SETTINGS_TIMEOUT_MS = 20000;  // danach zurueck zur Startseite
+// Firmware-Update aus dem Browser: erst nach "Erlauben" am Display (Anwesenheit am Geraet)
+constexpr uint32_t CONFIRM_ASK_MS = 60000;    // so lange steht die Frage
+constexpr uint32_t CONFIRM_VALID_MS = 120000;  // so lange gilt "Erlauben" fuer den Upload
+bool confirmAskedSet = false;                   // Frage wurde gestellt
+uint32_t confirmAsked = 0, confirmAnswered = 0;  // Zeitpunkte von Frage und Antwort
+int8_t confirmAnswer = 0;                       // 1 = erlaubt, -1 = abgelehnt
+uint32_t confirmToken = 0;                      // gehoert zu genau der Anfrage, die gefragt hat
+int okX, okY, okW, okH, noX, noY, noW, noH;      // Lage der beiden Knoepfe
 Screen shown = SCR_STATUS;  // welcher Bildschirm gerade zu sehen ist
 uint8_t rotation = LCD_ROTATION;
 
@@ -278,6 +288,75 @@ void drawPairing(const NetInfo &net) {
   }
 }
 
+// ---------- Rueckfrage Firmware-Update ----------
+// Zeitablauf fest eintragen (sonst kaeme die Frage nach dem millis()-Ueberlauf wieder)
+void confirmTick() {
+  uint32_t now = millis();
+  if (!confirmAskedSet) return;
+  if (!confirmAnswer && now - confirmAsked >= CONFIRM_ASK_MS) confirmAnswer = -1, confirmAnswered = now;
+  if (confirmAnswer == 1 && now - confirmAnswered >= CONFIRM_VALID_MS) confirmAnswer = -1, confirmAnswered = now;
+  if (confirmAnswer == -1 && now - confirmAnswered >= CONFIRM_VALID_MS) confirmAskedSet = false, confirmAnswer = 0;
+}
+bool confirmOpen() {
+  confirmTick();
+  return confirmAskedSet && !confirmAnswer;
+}
+
+void drawButton(int x, int y, int w, int h, uint16_t bg, uint16_t fg, const char *t) {
+  gfx->fillRoundRect(x, y, w, h, 10, bg);
+  gfx->setTextSize(2);
+  gfx->setTextColor(fg);
+  gfx->setCursor(x + (w - (int)strlen(t) * 12) / 2, y + (h - 16) / 2);
+  gfx->print(t);
+}
+
+void drawConfirm() {
+  setLayout();
+  gfx->fillScreen(BG);
+  bool wide = W > H;
+  gfx->setTextSize(2);
+  gfx->setTextColor(WARN);
+  gfx->setCursor(8, 10);
+  gfx->print("Update?");
+  gfx->drawFastHLine(8, 34, W - 16, ACCENT);
+  gfx->setTextSize(1);
+  gfx->setTextColor(FG);
+  const char *lines[] = {"Im Browser wurde ein", "Firmware-Update", "gestartet. Nur erlauben,", "wenn du das warst."};
+  if (!HAS_TOUCH) {
+    gfx->setTextColor(MUTED);
+    gfx->setCursor(8, 180);
+    gfx->print("Sonst 60 s warten = abgelehnt");
+    gfx->setTextColor(FG);
+  }
+  for (int i = 0; i < 4; i++) {
+    gfx->setCursor(8, 46 + i * 14);
+    gfx->print(lines[i]);
+  }
+  if (!HAS_TOUCH) {  // altes Board: BOOT-Taste
+    gfx->setTextSize(2);
+    gfx->setTextColor(GOOD);
+    gfx->setCursor(8, 130);
+    gfx->print("BOOT-Taste");
+    gfx->setCursor(8, 150);
+    gfx->print("= erlauben");
+    okW = noW = 0;
+    return;
+  }
+  if (wide) {  // nebeneinander unten
+    okY = noY = H - 54;
+    okH = noH = 46;
+    noX = 8, noW = W / 2 - 12;
+    okX = W / 2 + 4, okW = W / 2 - 12;
+  } else {     // untereinander
+    okX = noX = 8;
+    okW = noW = W - 16;
+    okY = H - 112, okH = 50;
+    noY = H - 54, noH = 46;
+  }
+  drawButton(okX, okY, okW, okH, GOOD, BG, "Erlauben");
+  drawButton(noX, noY, noW, noH, 0x31A6, FG, "Ablehnen");
+}
+
 // ---------- Einstellseite: drei Regler (Helligkeit, Tempo, Effekt-Staerke) und Netzdaten ----------
 // Hochkant untereinander, quer: Regler links, Netzdaten rechts.
 constexpr int SL_X = 12, SL_Y0 = 44;
@@ -413,12 +492,13 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (want == ROT_AUTO) want = imu::rotation() >= 0 ? imu::rotation() : LCD_ROTATION;
   // Koppeln geht vor; aus = Logo (ausser bei der WLAN-Einrichtung, die braucht die Hinweise)
   if (settingsOpen && millis() - settingsTouched > SETTINGS_TIMEOUT_MS) settingsOpen = false;
-  Screen screen = wantPairing                ? SCR_PAIRING
+  Screen screen = confirmOpen()              ? SCR_CONFIRM
+                  : wantPairing                ? SCR_PAIRING
                   : (!s.on && !net.setupAp)  ? SCR_OFF
                   : settingsOpen             ? SCR_SETTINGS
                   : HAS_TOUCH && net.connected ? SCR_HOME
                                              : SCR_STATUS;
-  if (screen == SCR_PAIRING || screen == SCR_OFF) settingsOpen = false;
+  if (screen == SCR_PAIRING || screen == SCR_OFF || screen == SCR_CONFIRM) settingsOpen = false;
   bool redraw = false;
   if (logoUntil) {  // Startbild: nur bei Drehung neu zeichnen, danach normale Anzeige
     if ((want & 3) != rotation) {
@@ -435,7 +515,8 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   }
   if (screen != shown || redraw) {
     shown = screen;
-    if (screen == SCR_PAIRING) drawPairing(net);
+    if (screen == SCR_CONFIRM) drawConfirm();
+    else if (screen == SCR_PAIRING) drawPairing(net);
     else if (screen == SCR_OFF) drawLogo(OFF_HINT);
     else if (screen == SCR_SETTINGS) drawSettings();
     else drawStatic(screen == SCR_HOME);
@@ -482,9 +563,41 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
 
 uint8_t currentRotation() { return rotation; }
 
+uint32_t askUpdate() {
+  if (confirmOpen()) return 0;  // es laeuft schon eine Frage: nicht verlaengern
+  confirmAskedSet = true;
+  confirmAsked = millis();
+  confirmAnswer = 0;
+  do confirmToken = esp_random(); while (!confirmToken);
+  return confirmToken;
+}
+bool confirming() { return confirmOpen(); }
+void answerUpdate(bool yes) {
+  if (!confirmOpen()) return;
+  confirmAnswer = yes ? 1 : -1;
+  confirmAnswered = millis();
+}
+int8_t updateAnswer(uint32_t token) {
+  confirmTick();
+  if (!confirmAskedSet || !token || token != confirmToken) return -1;
+  return confirmAnswer;
+}
+void clearUpdateAnswer() {
+  confirmAskedSet = false;
+  confirmAnswer = 0;
+}
+
 int handleTouch(uint8_t gesture, const touch::Point &p, LedState &s) {
-  if (!HAS_TOUCH || !ok || updating || logoUntil) return 0;
   bool tap = gesture == touch::TAP_TOP || gesture == touch::TAP_BOTTOM;
+  if (confirmOpen()) {  // Frage offen: nur die beiden Knoepfe zaehlen, sonst nichts durchlassen
+    auto in = [&](int x, int y, int w, int h) { return p.x >= x && p.x < x + w && p.y >= y && p.y < y + h; };
+    if (tap && shown == SCR_CONFIRM && !logoUntil) {
+      if (in(okX, okY, okW, okH)) answerUpdate(true);
+      else if (in(noX, noY, noW, noH)) answerUpdate(false);
+    }
+    return 1;
+  }
+  if (!HAS_TOUCH || !ok || updating || logoUntil) return 0;
   if (shown == SCR_STATUS || shown == SCR_HOME) {
     if (!tap || !inCorner(p)) return 0;
     settingsOpen = true;  // Zahnrad: loop() zeichnet die Einstellseite
