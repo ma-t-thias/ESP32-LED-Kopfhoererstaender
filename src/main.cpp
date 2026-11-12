@@ -27,10 +27,11 @@ uint32_t lastFrame = 0;
 
 // BOOT-Taster
 constexpr uint32_t DEBOUNCE_MS = 40;
-constexpr uint32_t LONG_PRESS_MS = 5000;
+constexpr uint32_t LONG_PRESS_MS = 5000;      // loslassen: WLAN-Daten loeschen
+constexpr uint32_t FACTORY_PRESS_MS = 10000;  // weiter halten: Werkseinstellungen
 bool btnDown = false;
 uint32_t btnSince = 0;
-bool longHandled = false;
+bool longHandled = false;  // 5 s erreicht, Hinweis steht am Display
 
 void applyPowerLimit() { FastLED.setMaxPowerInVoltsAndMilliamps(5, state.maxMilliamps); }
 
@@ -84,11 +85,15 @@ void handleButton() {
     longHandled = false;
   } else if (pressed && btnDown && !longHandled && now - btnSince > LONG_PRESS_MS) {
     longHandled = true;
-    net::resetWifiAndRestart();
+    display::message("Loslassen:", "WLAN-Reset");  // weiter halten bis 10 s = Werksreset
+  } else if (pressed && btnDown && longHandled && now - btnSince > FACTORY_PRESS_MS) {
+    display::message("Werksreset", "Neustart...");
+    delay(800);
+    settings::factoryReset();
   } else if (!pressed && btnDown && now - btnSince > DEBOUNCE_MS) {
     btnDown = false;
     btnSince = now;
-    if (longHandled) return;
+    if (longHandled) return net::resetWifiAndRestart();
     if (display::confirming()) display::answerUpdate(true);  // Firmware-Update am Geraet erlauben
     else if (!turnOnIfOff()) nextEffect();                    // kurzer Druck
   }
@@ -103,6 +108,7 @@ void setup() {
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   settings::begin(state);
+  Serial.printf("Geraetepasswort fuer die Weboberflaeche: %s\n", settings::devicePassword().c_str());
 
   FastLED.addLeds<WS2812B, LED_PIN, LED_COLOR_ORDER>(leds, LED_COUNT).setCorrection(TypicalLEDStrip);
   applyPowerLimit();

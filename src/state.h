@@ -20,6 +20,7 @@ struct LedState {
   bool argbEnabled = false;   // Signal vom Mainboard-ARGB-Header (Aura) uebernehmen
   uint8_t displayRotation = ROT_DEFAULT;  // 0..3 = 0/90/180/270 Grad im Uhrzeigersinn, 4 = Auto
   bool matterEnabled = false;  // Apple Home & Co. ueber Matter; wirkt nach Neustart
+  bool wledOpen = false;       // WLED-Schnittstelle (Home Assistant, WLED-App) ohne Passwort steuerbar
 };
 
 namespace settings {
@@ -36,4 +37,12 @@ String loadPresets();
 // Matter ein/aus sofort speichern (danach folgt ein Neustart)
 void saveMatter(bool enabled);
 void savePresets(const String &json);
+
+// Geraetepasswort fuer die Weboberflaeche: beim ersten Start zufaellig erzeugt (8 Zeichen),
+// steht am Display (Einrichten) und laesst sich in der Weboberflaeche aendern.
+String devicePassword();
+void setDevicePassword(const String &pw);
+// Werkseinstellungen: loescht alle gespeicherten Daten (WLAN, Einstellungen, Presets,
+// Passwort, Matter-Kopplung) und startet neu. Kehrt nicht zurueck.
+void factoryReset();
 }  // namespace settings
