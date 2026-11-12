@@ -6,6 +6,14 @@
 // Board: Standard ist das Waveshare ESP32-C6-Touch-LCD-1.9.
 // Das alte ESP32-C6-LCD-1.3 baut die Umgebung env:esp32-c6-lcd-13 (setzt BOARD_LCD_13).
 
+// Kennung des Boards im Namen der Update-Datei (tools/update_file.py), z. B.
+// "LED-Kopfhoerer_LCD19_Prototyp_001.bin". Das Web-Update nimmt nur passende Dateien an.
+#ifdef BOARD_LCD_13
+#define BOARD_TAG "LCD13"
+#else
+#define BOARD_TAG "LCD19"
+#endif
+
 // ---------------- LED-Streifen ----------------
 #ifdef BOARD_LCD_13
 #define LED_PIN 1            // GPIO1 -> 74AHCT125 Pin 2 (1A)

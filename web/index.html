@@ -172,6 +172,11 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
 .li.more summary::-webkit-details-marker{display:none}
 .li.more .val,.li.link .val{transition:transform .2s;font-size:1.25rem;line-height:1}
 .li.more[open] summary .val{transform:rotate(90deg)}
+.li.btn.tint{color:var(--tint)}
+#fwName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50vw;font-size:.875rem}
+.li.btn:disabled{opacity:.35;cursor:default}
+.prog{height:6px;border-radius:3px;background:var(--fill);overflow:hidden}
+.prog i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--red),var(--orange),var(--green),var(--tint));transition:width .2s}
 .legal{padding:0 16px 14px;color:var(--muted);font-size:.8125rem;line-height:1.45}
 .legal p{margin:0 0 8px}.legal b{color:var(--fg);font-weight:600}
 .foot{color:var(--muted);font-size:0.8125rem;margin:0 16px}
@@ -270,6 +275,15 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
   <div class="col">
    <div class="group"><h2>Gerät</h2>
     <section class="glass list" id="meta"></section>
+   </div>
+   <div class="group"><h2>Firmware-Update</h2>
+    <section class="glass list">
+     <button class="li btn tint" id="fwPick" type="button"><span>Datei wählen</span><span class="val" id="fwName">keine</span></button>
+     <input type="file" id="fwFile" accept=".bin" hidden>
+     <div class="li stack" id="fwProg" hidden><div class="prog" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" id="fwBarW"><i id="fwBar"></i></div><small id="fwPct" aria-live="polite"></small></div>
+     <button class="li btn tint" id="fwStart" type="button" disabled>Update installieren</button>
+    </section>
+    <p class="foot" id="fwFoot"></p>
    </div>
    <div class="group"><h2>Über dieses Projekt</h2>
     <section class="glass list">
@@ -440,7 +454,7 @@ const LICENSE = {
 // ---------- Schnittstelle ----------
 const demoState = {on:true,bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
- palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3-1a2b3c4',maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
+ palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3-1a2b3c4',board:'LCD19',maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
 const to = () => window.AbortSignal && AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
 const api = DEMO ? {
@@ -513,6 +527,7 @@ function build(){
  $('licName').textContent=LICENSE.name;
  $('licText').textContent=LICENSE.text;
  $('aboutFoot').textContent='© 2026 Matthias Steis · '+LICENSE.name;
+ if(!fwBusy) fwMsg('');
 }
 function setRange(id,v){ const el=$(id); if(document.activeElement!==el) el.value=v; el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%'); }
 function render(){
@@ -589,11 +604,42 @@ $('argb').onclick=()=>send({argb:st.argb?0:1}); $('sync').onclick=()=>send({sync
 $('matter').onclick=()=>{ if(DEMO || confirm(st.matter?'Matter ausschalten? Der Ständer startet dafür neu.':'Matter einschalten? Der Ständer startet dafür neu.')) send({matter:st.matter?0:1}); };
 $('mUnpair').onclick=()=>{ if(confirm('Kopplung mit Apple Home & Co. löschen? Der Ständer startet neu und kann dann wieder gekoppelt werden.')) api.matterUnpair().then(t=>alert(t)); };
 $('ma').onchange=e=>send({ma:+e.target.value});
+// ---------- Firmware-Update: .bin aus VS Code (Ordner update) hochladen ----------
+let fwFile=null, fwBusy=false;
+const fwTag=()=>'_'+((info&&info.board)||'LCD19')+'_';
+function fwMsg(t,err){ const f=$('fwFoot'); f.textContent=t||`Die Datei erzeugt VS Code für getaggte Stände mit der Aufgabe „Update-Datei erzeugen“ im Ordner „update“; ihr Name enthält ${fwTag()}. Während des Updates den Strom nicht trennen.`; f.style.color=err?'var(--red)':''; }
+function fwProg(p){ $('fwBar').style.width=p+'%'; $('fwBarW').setAttribute('aria-valuenow',p); $('fwPct').textContent=p<100?`Übertrage … ${p} %`:'Prüfe und schreibe …'; }
+function fwDone(ok,msg){
+ const restart=ok||msg.includes('startet neu');
+ if(DEMO || !restart) fwBusy=false;
+ if(DEMO && ok) setTimeout(()=>{ $('fwProg').hidden=true; $('fwStart').disabled=!fwFile; $('fwPick').disabled=false; },2500);
+ if(restart && !ok){ $('fwPct').textContent='Neustart …'; fwMsg(msg,true); const poll=()=>api.info().then(()=>location.reload(),()=>setTimeout(poll,2000)); return setTimeout(poll,6000); }
+ if(!ok){ $('fwProg').hidden=true; $('fwStart').disabled=!fwFile; $('fwPick').disabled=false; return fwMsg(msg,true); }
+ $('fwPct').textContent='Neustart … die Seite lädt gleich neu.'; fwMsg(msg);
+ if(DEMO) return;
+ const poll=()=>api.info().then(()=>location.reload(),()=>setTimeout(poll,2000));
+ setTimeout(poll,6000);  // erst warten, bis der Ständer wirklich neu startet
+}
+$('fwPick').onclick=()=>{ if(!fwBusy) $('fwFile').click(); };
+$('fwFile').onchange=e=>{ fwFile=e.target.files[0]||null; $('fwName').textContent=fwFile?fwFile.name:'keine'; $('fwStart').disabled=!fwFile; fwMsg(''); };
+$('fwStart').onclick=()=>{
+ if(!fwFile||fwBusy) return;
+ if(!fwFile.name.includes(fwTag())) return fwMsg(`Diese Datei passt nicht zu diesem Board: Ihr Name muss ${fwTag()} enthalten.`,true);
+ if(!confirm(`Firmware „${fwFile.name}“ installieren? Der Ständer startet danach neu.`)) return;
+ fwBusy=true; $('fwStart').disabled=$('fwPick').disabled=true; $('fwProg').hidden=false; fwProg(0); fwMsg('');
+ if(DEMO){ let p=0; const t=setInterval(()=>{ p=Math.min(100,p+5); fwProg(p); if(p===100){ clearInterval(t); setTimeout(()=>fwDone(true,'Vorschau: Update nur simuliert.'),600); } },120); return; }
+ const fd=new FormData(); fd.append('firmware',fwFile,fwFile.name);
+ const x=new XMLHttpRequest(); x.open('POST','/api/update');
+ x.upload.onprogress=e=>{ if(e.lengthComputable) fwProg(Math.round(e.loaded*100/e.total)); };
+ x.onload=()=>fwDone(x.status===200,x.responseText||'Keine Antwort vom Ständer.');
+ x.onerror=()=>fwDone(false,'Verbindung unterbrochen. Bitte erneut versuchen.');
+ x.send(fd);
+};
 $('wifiReset').onclick=()=>{ if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?')) api.wifiReset().then(t=>alert(t)); };
 
 // ---------- Animation ----------
 let mainSim, last=performance.now(), acc=0, liveCols=null, liveAt=0;
-function pollLive(){ if(!api.live || document.hidden) return setTimeout(pollLive,1000);
+function pollLive(){ if(!api.live || document.hidden || fwBusy) return setTimeout(pollLive,1000);
  api.live().then(c=>{ if(c.length){ liveCols=c; liveAt=performance.now(); } }).catch(()=>{}).finally(()=>setTimeout(pollLive,180)); }
 function loop(now){
  const dt=Math.min(.1,(now-last)/1000); last=now; acc+=dt;
@@ -633,6 +679,6 @@ function start(){
 }
 start();
 let polling=false;
-if (!DEMO) setInterval(()=>{ if(!ready || polling || Object.keys(pending).length) return; polling=true;
+if (!DEMO) setInterval(()=>{ if(!ready || polling || fwBusy || Object.keys(pending).length) return; polling=true;
  api.state().then(s=>{ setOnline(true); st=s; render(); }).catch(()=>setOnline(false)).finally(()=>polling=false); },3000);
 </script></body></html>

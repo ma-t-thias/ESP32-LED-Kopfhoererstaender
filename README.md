@@ -202,9 +202,19 @@ Der Schalter **PC-Sync** gilt auch für USB, auf dem Display steht dann „PC-Sy
 
 Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 2400 mA (`include/config.h`), passend zum USB-C-Netzteil 5 V / 3 A. Farbige Effekte laufen damit in voller Helligkeit, nur Vollweiß auf allen LEDs wird gedimmt. War schon ein anderer Wert gespeichert, stellst du ihn in der Weboberfläche auf 2400 mA. Mit einem stärkeren Netzteil (z. B. USB-C PD 12 V und Step-down auf 5 V / 6 A) kannst du auf etwa 85 % von dessen Strom erhöhen.
 
-## Update über WLAN (nur Testbetrieb)
+## Firmware-Update über die Weboberfläche
 
-Die normale Firmware hat kein Update per WLAN. Für den Testbetrieb gibt es zwei zusätzliche Umgebungen, die nur lokal existieren:
+1. Nur für getaggte Stände: Den Commit in Fork taggen (Rechtsklick auf den Commit → „New Tag…“, z. B. `V1.0.0`) und den Tag pushen. Dann in VS Code unter *PlatformIO → Project Tasks → env → Custom* **Update-Datei erzeugen** ausführen. Danach liegt im Projektordner unter `update/` die Datei `LED-Kopfhoerer_LCD19_V1.0.0.bin` (altes 1,3-Zoll-Board: `_LCD13_`). Das ist die normale `firmware.bin` mit sprechendem Namen (`tools/update_file.py`). Hat der Commit keinen Tag oder gibt es nicht eingecheckte Änderungen, bricht die Aufgabe mit einer Meldung ab und erzeugt keine Datei. So ist jede Update-Datei einem Tag zugeordnet. Prototypen flasht man weiter wie gewohnt mit Build/Upload per USB oder WLAN.
+2. In der Weboberfläche **Info → Firmware-Update → Datei wählen**, die Datei auswählen und **Update installieren**.
+3. Ein Balken zeigt den Upload in Prozent, das Display den Fortschritt mit Sanduhr. Danach prüft der Ständer die Datei, startet neu, und die Seite lädt sich neu. Die neue Version steht unter **Info → Gerät → Firmware**.
+
+Geprüft wird vorher: der Name enthält die Board-Kennung (`_LCD19_` bzw. `_LCD13_`, deshalb die Datei nicht umbenennen), es ist eine Firmware für den ESP32-C6, und die Prüfsumme stimmt. Bei einem Fehler bleibt die alte Firmware aktiv. Die Partitionstabelle ändert ein Update nicht; dafür bleibt USB nötig.
+
+Hinweis: Wie die übrige Weboberfläche ist das Update ohne Passwort erreichbar, also für jeden im eigenen WLAN.
+
+## Update über WLAN aus VS Code (nur Testbetrieb)
+
+Die normale Firmware nimmt kein Update direkt aus VS Code an (dafür gibt es die Weboberfläche). Für den Testbetrieb gibt es zwei zusätzliche Umgebungen, die nur lokal existieren:
 
 1. `test_ota.example.ini` nach `test_ota.ini` kopieren (wird nicht eingecheckt) und dort ein eigenes Passwort eintragen.
 2. VS Code neu laden. Unten in der Statusleiste gibt es jetzt `env:test-usb` und `env:test-ota`.
@@ -221,6 +231,7 @@ Findet der PC `led-kopfhoerer.local` nicht, in `test_ota.ini` bei `host` die IP-
 | POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu) |
 | GET | `/api/info` | Firmware-Version (`fw`), Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
+| POST | `/api/update` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
 | GET | `/json`, `/json/si`, `/json/info`, `/json/state`, `/json/eff`, `/json/pal`, `/presets.json` | WLED-kompatible Abfrage |
@@ -234,9 +245,10 @@ Beispiel: `curl -X POST -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state
 |---|---|
 | `include/config.h` | Pins, LED-Anzahl, Stromgrenze, Hostname |
 | `tools/version.py` | schreibt beim Bauen die Versionskennung nach `include/fw_version.h` (nicht eingecheckt) |
+| `tools/update_file.py` | Aufgabe „Update-Datei erzeugen“: legt für getaggte Stände die Update-Datei in `update/` an (nicht eingecheckt) |
 | `src/main.cpp` | Ablauf, Bildrate, Ein-/Ausblenden, BOOT-Taster |
 | `src/effects.cpp` | alle Effekte und Paletten |
-| `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA |
+| `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA, Firmware-Update per Weboberfläche |
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, Adalight über USB |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |

@@ -3,6 +3,7 @@
 #include <ArduinoOTA.h>
 #include <DNSServer.h>
 #include <ESPmDNS.h>
+#include <Update.h>
 #include <WebServer.h>
 #include <WiFi.h>
 #include <esp_system.h>
@@ -120,7 +121,7 @@ String infoJson() {
   j += "],\"palettes\":[";
   for (uint8_t i = 0; i < effects::PALETTE_COUNT; i++) j += String(i ? "," : "") + "\"" + effects::PALETTE_NAMES[i] + "\"";
   j += "],\"leds\":" + String(LED_COUNT);
-  j += ",\"fw\":\"" + jsonEscape(FW_VERSION) + "\"";
+  j += ",\"fw\":\"" + jsonEscape(FW_VERSION) + "\",\"board\":\"" BOARD_TAG "\"";
   j += ",\"maMax\":" + String(LED_MAX_MILLIAMPS_LIMIT);
   j += ",\"host\":\"" + String(HOSTNAME) + "\"";
   j += ",\"ssid\":\"" + jsonEscape(staSsid) + "\"";
@@ -190,6 +191,88 @@ void startServices() {
     });
     ArduinoOTA.begin();
   }
+}
+
+// ---------- Firmware-Update ueber die Weboberflaeche ----------
+// Der Browser schickt die .bin-Datei als Formular-Upload; sie wird blockweise in den freien
+// App-Slot geschrieben (wie beim Update per VS Code). Geprueft werden Dateiname (Board-Kennung),
+// Kopf des Images (ESP32-C6) und am Ende die Pruefsumme. Erst danach wird umgeschaltet.
+#ifndef CONFIG_IDF_FIRMWARE_CHIP_ID
+#define CONFIG_IDF_FIRMWARE_CHIP_ID 0x000D  // ESP32-C6
+#endif
+String updErr;          // leer = alles gut
+bool updShown = false;  // Fortschritt laeuft auf dem Display (danach nur per Neustart weiter)
+bool updFirst = false;  // naechster Block ist der Anfang der Datei
+bool updStarted = false;  // eine Datei kam an
+bool updOk = false;       // Update.end() erfolgreich: neue Firmware ist gesetzt
+size_t updSize = 0;     // Groesse der Anfrage, fuer die Prozentanzeige
+
+void handleUpdateUpload() {
+  HTTPUpload &u = server.upload();
+  if (u.status == UPLOAD_FILE_START) {
+    updErr = "";
+    updShown = false;
+    updFirst = true;
+    updStarted = true;
+    updOk = false;
+    updSize = server.clientContentLength();
+    if (u.filename.indexOf("_" BOARD_TAG "_") < 0) {
+      updErr = "Die Datei passt nicht zu diesem Board. Ihr Name muss _" BOARD_TAG "_ enthalten.";
+    } else if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+      updErr = Update.errorString();
+    } else {
+      Serial.printf("Web-Update: %s\n", u.filename.c_str());
+      updShown = true;
+      display::updateProgress(0);
+    }
+  } else if (u.status == UPLOAD_FILE_WRITE) {
+    if (updErr.length()) return;
+    if (updFirst) {  // Image-Kopf: Magic 0xE9, Chip-ID an Byte 12/13 (ESP32-C6 = 13)
+      updFirst = false;
+      if (u.currentSize < 16 || u.buf[0] != 0xE9 || (u.buf[12] | (u.buf[13] << 8)) != CONFIG_IDF_FIRMWARE_CHIP_ID) {
+        updErr = "Das ist keine Firmware fuer den ESP32-C6.";
+        Update.abort();
+        return;
+      }
+    }
+    if (Update.write(u.buf, u.currentSize) != u.currentSize) {
+      updErr = Update.errorString();
+      Update.abort();
+      return;
+    }
+    if (updSize) display::updateProgress(min<size_t>(99, Update.progress() * 100ULL / updSize));
+  } else if (u.status == UPLOAD_FILE_END) {
+    if (updErr.length()) return;
+    if (Update.end(true)) updOk = true;  // prueft auch die Pruefsumme
+    else updErr = Update.errorString();
+  } else if (u.status == UPLOAD_FILE_ABORTED) {
+    // Verbindung abgerissen: handleUpdateDone() kommt dann nicht mehr. Die Anzeige ruht
+    // seit dem Start (bzw. die neue Firmware ist schon gesetzt), also hier neu starten.
+    if (!updOk) Update.abort();
+    updStarted = false;
+    if (updShown || updOk) {
+      display::message(updOk ? "Update fertig" : "Update Fehler", "Neustart...");
+      delay(1500);
+      ESP.restart();
+    }
+  }
+}
+
+void handleUpdateDone() {
+  bool ok = updOk;
+  if (!updStarted) updErr = "Keine Datei empfangen.";
+  bool restart = ok || updShown;  // Anzeige ruht seit dem Start des Schreibens: dann immer neu starten
+  String msg = ok ? String("Update erfolgreich.") : "Update fehlgeschlagen: " + updErr;
+  if (restart) msg += " Der Staender startet neu.";
+  server.send(ok ? 200 : 400, "text/plain; charset=utf-8", msg);
+  updStarted = updOk = false;
+  updErr = "";
+  if (!restart) return;  // falsche Datei: es wurde nichts geschrieben, normal weiter
+  server.client().stop();
+  if (ok) display::updateProgress(100);
+  else display::message("Update Fehler", "Neustart...");  // Anzeige ruht seit dem Start, also neu starten
+  delay(ok ? 800 : 2000);
+  ESP.restart();
 }
 
 // ---------- HTTP-Handler ----------
@@ -364,6 +447,7 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/wifi", HTTP_POST, handleSaveWifi);
   server.on("/api/wifi/reset", HTTP_POST, handleResetWifi);
   server.on("/api/matter/unpair", HTTP_POST, handleMatterUnpair);
+  server.on("/api/update", HTTP_POST, handleUpdateDone, handleUpdateUpload);
   // WLED-kompatibel fuer Home Assistant, WLED-App und Sync-Programme (siehe wled_api.h)
   server.on("/json/info", HTTP_GET, []() { server.send(200, "application/json", wledapi::info(*st)); });
   server.on("/json/state", HTTP_GET, []() { server.send(200, "application/json", wledapi::state(*st)); });
