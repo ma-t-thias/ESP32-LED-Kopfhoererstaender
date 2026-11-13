@@ -16,5 +16,8 @@ void loop(bool enabled);    // Pakete lesen; bei enabled == false werden sie ver
 bool active();              // gerade Daten vom PC?
 const char *source();       // Name des Protokolls, das zuletzt Daten geliefert hat
 void copyTo(CRGB *leds, uint16_t n);
+// Textbefehle ueber USB (z. B. "selftest"), eine Zeile je Befehl, ausserhalb von Adalight-Rahmen
+using LineHandler = void (*)(const String &line);
+void onSerialLine(LineHandler handler);
 
 }  // namespace realtime

@@ -100,6 +100,10 @@ void handleWled(size_t len) {
 // Rahmen: 'A' 'd' 'a', Anzahl LEDs - 1 (High, Low), Pruefsumme High ^ Low ^ 0x55, dann R, G, B je LED.
 // Kommt ueber die USB-Datenleitungen der Sockel-Buchse (Jumper JP1) oder die USB-C-Buchse am ESP.
 // Die Baudrate ist bei USB egal.
+LineHandler lineHandler = nullptr;
+char line[48];
+uint8_t lineLen = 0;
+
 void handleUsb(bool enabled) {
   static uint8_t hdr[6];
   static uint8_t hdrLen = 0, rgbLen = 0;
@@ -116,7 +120,14 @@ void handleUsb(bool enabled) {
       if (--ledsLeft == 0 && enabled) received("Adalight USB", REALTIME_TIMEOUT_MS);
       continue;
     }
-    if (hdrLen < 3) {  // "Ada" suchen
+    if (hdrLen < 3) {  // "Ada" suchen; daneben Textzeilen fuer Befehle sammeln
+      if (c == '\n' || c == '\r') {
+        line[lineLen] = 0;
+        if (lineLen && lineHandler) lineHandler(String(line));
+        lineLen = 0;
+      } else if (c >= 32 && c < 127 && lineLen < sizeof(line) - 1) {
+        line[lineLen++] = c;
+      }
       hdrLen = (c == "Ada"[hdrLen]) ? hdrLen + 1 : (c == 'A' ? 1 : 0);
       continue;
     }
@@ -126,6 +137,7 @@ void handleUsb(bool enabled) {
     if ((hdr[3] ^ hdr[4] ^ 0x55) != hdr[5]) continue;  // Pruefsumme falsch: weiter suchen
     ledsLeft = ((uint32_t(hdr[3]) << 8) | hdr[4]) + 1;
     idx = 0;
+    lineLen = 0;  // "Ada..." war kein Befehl
   }
 }
 
@@ -161,6 +173,8 @@ void loop(bool enabled) {
 bool active() { return lastPacketMs != 0 && millis() - lastPacketMs < timeoutMs; }
 
 const char *source() { return lastSource; }
+
+void onSerialLine(LineHandler handler) { lineHandler = handler; }
 
 void copyTo(CRGB *leds, uint16_t n) { memcpy(leds, frame, sizeof(CRGB) * min<uint16_t>(n, LED_COUNT)); }
 

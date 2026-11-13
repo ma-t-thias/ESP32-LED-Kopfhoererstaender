@@ -50,4 +50,9 @@ void setDevicePassword(const String &pw);
 // Werkseinstellungen: loescht alle gespeicherten Daten (WLAN, Einstellungen, Presets,
 // Passwort, Matter-Kopplung) und startet neu. Kehrt nicht zurueck.
 void factoryReset();
+// Seriennummer aus der Fertigung. Liegt im Bereich "fctry" und bleibt auch bei Werkseinstellungen
+// erhalten. Leer, solange keine vergeben ist. Setzen nur ueber USB (Befehl "sn ..."), einmalig;
+// force = ueberschreiben (Befehl "sn! ..."). 1-20 Zeichen A-Z a-z 0-9 - _ . (ohne "Ada")
+String serialNumber();
+bool setSerialNumber(const String &sn, bool force);
 }  // namespace settings

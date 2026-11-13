@@ -25,7 +25,7 @@ bool ok = false;
 // STATUS = mit WLAN-Zeilen, HOME = aufgeraeumt (Touch-Board und WLAN verbunden),
 // SETTINGS = Regler und Netzdaten hinter dem Zahnrad
 // CONFIRM = Rueckfrage, ob ein im Browser gestartetes Firmware-Update erlaubt ist
-enum Screen : uint8_t { SCR_STATUS, SCR_HOME, SCR_SETTINGS, SCR_PAIRING, SCR_OFF, SCR_CONFIRM };
+enum Screen : uint8_t { SCR_STATUS, SCR_HOME, SCR_SETTINGS, SCR_PAIRING, SCR_OFF, SCR_CONFIRM, SCR_TEST };
 #ifdef TOUCH_ADDR
 constexpr bool HAS_TOUCH = true;
 #else
@@ -240,6 +240,7 @@ constexpr const char *OFF_HINT = "Aus - Taste druecken";
 #endif
 uint32_t logoUntil = 0;  // bis dahin bleibt das Startbild stehen
 bool updating = false;  // Update oder Meldung vor Neustart: normale Anzeige ruht
+bool testing = false;   // Selbsttest zeigt eigene Seiten
 
 // QR-Code zeichnen: Die Bibliothek ruft uns mit dem fertigen Code auf.
 constexpr int QR_BOX = 156;
@@ -496,7 +497,7 @@ bool begin() {
 }
 
 void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
-  if (!ok || updating) return;
+  if (!ok || updating || testing) return;
 
   bool wantPairing = matterdev::started() && !matterdev::paired() && net.connected;
   uint8_t want = s.displayRotation;
@@ -642,6 +643,48 @@ int handleTouch(uint8_t gesture, const touch::Point &p, LedState &s) {
   }
   if (tap && inCorner(p)) settingsOpen = false;
   return 1;  // auf der Einstellseite wechseln Tippen und Wischen keinen Effekt
+}
+
+void testScreen(const char *title, const String &body, uint8_t status, const String &foot) {
+  if (!ok || updating) return;
+  testing = true;
+  shown = SCR_TEST;  // danach zeichnet loop() alles neu
+  settingsOpen = false;
+  logoUntil = 0;
+  gfx->setRotation(rotation);
+  int w = gfx->width();
+  gfx->fillScreen(BG);
+  gfx->setTextSize(2);
+  gfx->setTextColor(status == 1 ? GOOD : status == 2 ? 0xF800 : ACCENT);
+  gfx->setCursor(8, 14);
+  gfx->print(title);
+  gfx->drawFastHLine(8, 38, w - 16, MUTED);
+  gfx->setTextColor(FG);
+  int y = 50;
+  // Zeilen ohne Umbruch, zu lange werden abgeschnitten (Textgroesse 2 = 12 px je Zeichen, 1 = 6 px)
+  auto lines = [&](const String &text, int maxLines, int step, int charW) {
+    int from = 0;
+    for (int i = 0; i < maxLines && from < (int)text.length(); i++) {
+      int nl = text.indexOf('\n', from);
+      if (nl < 0) nl = text.length();
+      gfx->setCursor(8, y);
+      gfx->print(text.substring(from, min(nl, from + (w - 16) / charW)));
+      from = nl + 1;
+      y += step;
+    }
+  };
+  lines(body, 4, 24, 12);
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  y += 4;
+  lines(foot, 4, 12, 6);
+}
+
+void testEnd() {
+  if (!testing) return;
+  testing = false;
+  lastHeader = lastNet1 = lastNet2 = lastFx = lastInfo = lastSetInfo = "";
+  if (ok) gfx->fillScreen(BG);
 }
 
 void message(const char *line1, const char *line2) {

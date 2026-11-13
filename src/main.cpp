@@ -3,6 +3,7 @@
 // Board: Waveshare ESP32-C6-LCD-1.3. Schaltung: docs/hardware/
 #include <Arduino.h>
 #include <FastLED.h>
+#include <esp_mac.h>
 
 #include "config.h"
 #include "fw_version.h"
@@ -14,6 +15,7 @@
 #include "argb_in.h"
 #include "matter_dev.h"
 #include "realtime.h"
+#include "selftest.h"
 #include "state.h"
 
 namespace {
@@ -98,6 +100,34 @@ void handleButton() {
     else if (!turnOnIfOff()) nextEffect();                    // kurzer Druck
   }
 }
+// Befehle ueber USB (serieller Monitor, 115200 Baud), z. B. fuer die Fertigung
+void onSerialCommand(const String &raw) {
+  String cmd = raw;
+  cmd.trim();
+  if (cmd == "selftest" || cmd == "selbsttest") {
+    if (selftest::running()) Serial.println("Der Selbsttest laeuft schon.");
+    else selftest::start();
+  } else if (cmd == "sn") {
+    String sn = settings::serialNumber();
+    Serial.printf("Seriennummer: %s\n", sn.length() ? sn.c_str() : "(keine)");
+  } else if (cmd.startsWith("sn ") || cmd.startsWith("sn! ")) {
+    bool force = cmd[2] == '!';
+    String v = cmd.substring(force ? 4 : 3);
+    v.trim();
+    if (settings::setSerialNumber(v, force)) Serial.printf("Seriennummer gespeichert: %s\n", v.c_str());
+    else if (settings::serialNumber().length() && !force)
+      Serial.println("Seriennummer ist schon vergeben. Ueberschreiben mit: sn! <neue Nummer>");
+    else Serial.println("Ungueltig: 1-20 Zeichen A-Z a-z 0-9 - _ . (ohne \"Ada\")");
+  } else if (cmd == "info") {
+    uint8_t m[6];
+    esp_read_mac(m, ESP_MAC_WIFI_STA);  // fest im Chip, auch ohne eingeschaltetes WLAN
+    String sn = settings::serialNumber();
+    Serial.printf("Firmware %s, Board %s, Seriennummer %s, MAC %02X:%02X:%02X:%02X:%02X:%02X\n", FW_FULL, BOARD_TAG,
+                  sn.length() ? sn.c_str() : "(keine)", m[0], m[1], m[2], m[3], m[4], m[5]);
+  } else {
+    Serial.println("Befehle: selftest | sn | sn <Nummer> | sn! <Nummer> | info");
+  }
+}
 }  // namespace
 
 void setup() {
@@ -121,9 +151,36 @@ void setup() {
 
   net::setLeds(leds, LED_COUNT);
   net::begin(state, onWebChange);
+  realtime::onSerialLine(onSerialCommand);
+  String sn = settings::serialNumber();
+  Serial.printf("Seriennummer: %s (Befehle: hilfe)\n", sn.length() ? sn.c_str() : "(keine)");
 }
 
+// Selbsttest: LEDs, Taste und Touch gehoeren dem Test, Netz und Weboberflaeche laufen weiter
+void loopSelftest() {
+  net::loop();
+  realtime::loop(false);  // liest weiter USB-Befehle, verwirft Lichtdaten
+  bool btn = digitalRead(BUTTON_PIN) == LOW;
+  bool touched = touch::read(display::currentRotation()) != touch::NONE;
+  uint32_t now = millis();
+  if (now - lastFrame >= FRAME_MS) {
+    lastFrame = now;
+    selftest::loop(leds, LED_COUNT, btn, touched);
+    FastLED.setBrightness(selftest::brightness());
+    FastLED.show();
+  } else if (touched) {
+    selftest::loop(leds, LED_COUNT, btn, touched);  // Geste kommt nur einmal: nicht verlieren
+  }
+  if (!selftest::running()) {  // fertig: Taste neu einlesen, Helligkeit weich auf den Zustand
+    btnDown = longHandled = false;
+    btnSince = now;
+    outputLevel = 0;
+  }
+}
+
+
 void loop() {
+  if (selftest::running()) return loopSelftest();
   net::loop();
   realtime::loop(state.syncEnabled);
   argb::loop(state.argbEnabled);
