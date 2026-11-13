@@ -34,5 +34,9 @@ uint8_t currentRotation();
 void message(const char *line1, const char *line2);
 // Startbild mit Fortschrittsbalken waehrend eines Updates (0..100 %)
 void updateProgress(uint8_t percent);
+// Selbsttest: eigene Anzeige mit Titel und bis zu 5 Zeilen (getrennt durch '\n').
+// status 0 = laeuft, 1 = bestanden, 2 = Fehler. testEnd() kehrt zur normalen Anzeige zurueck.
+void testScreen(const char *title, const String &body, uint8_t status);
+void testEnd();
 
 }  // namespace display

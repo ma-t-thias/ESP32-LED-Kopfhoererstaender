@@ -93,7 +93,7 @@ Beim ersten Start erzeugt der Ständer ein eigenes, zufälliges Passwort aus 8 Z
 - **Zahnrad oben rechts** (nur 1,9-Zoll-Board mit Touch) öffnet die Seite **Einrichten**: Schieberegler für Helligkeit, Tempo und die Effekt-Stärke (Beschriftung je Effekt, z. B. „Anzahl Punkte“ bei Jonglieren; ausgegraut, wenn der Effekt sie nicht nutzt), dazu IP-Adresse, Hostname, WLAN, das Passwort für die Weboberfläche und die Firmware-Version. Das X an derselben Stelle schließt sie, nach 20 s ohne Berührung geht es von selbst zurück. Mit verbundenem WLAN ist die Startseite dafür aufgeräumt: nur Effekt, Helligkeit/Tempo und LED-Vorschau. Ohne WLAN oder bei der Einrichtung stehen die Netzhinweise weiter auf der Startseite.
 - **Ausgeschaltet** (über Weboberfläche, Matter oder Apple Home) zeigt das Display das Logo statt der Statusseite. Die erste Berührung oder ein kurzer Druck auf den BOOT-Taster schaltet nur wieder ein, Effekt und Farbe bleiben wie zuvor, und die Statusseite erscheint wieder. Ausnahme: Während der WLAN-Einrichtung oder des Koppelns bleiben deren Hinweise zu sehen.
 - **BOOT-Taster 5 s halten:** Das Display zeigt „Loslassen: WLAN-Reset“. Jetzt loslassen löscht die WLAN-Daten, Neustart ins Einrichtungs-WLAN.
-- **BOOT-Taster 10 s halten:** Werkseinstellungen. Löscht alles (WLAN, Einstellungen, Presets, Gerätepasswort, Matter-Kopplung) und startet ins Einrichtungs-WLAN; danach gibt es ein neues Passwort. Geht auch in der Weboberfläche unter **Einstellungen → Zugang → Werkseinstellungen**.
+- **BOOT-Taster 10 s halten:** Werkseinstellungen. Löscht alles (WLAN, Einstellungen, Presets, Gerätepasswort, Matter-Kopplung; die Seriennummer bleibt) und startet ins Einrichtungs-WLAN; danach gibt es ein neues Passwort. Geht auch in der Weboberfläche unter **Einstellungen → Zugang → Werkseinstellungen**.
 - **Nachtmodus** (Einstellungen → Nachtmodus): Im Zeitfenster *Von*–*Bis* (z. B. 22:00–07:00, auch über Mitternacht) leuchtet der Ständer höchstens mit der gewählten Nacht-Helligkeit (Aus, 5 %, 15 % oder 30 %) und dimmt beim Beginn langsam herunter (ca. 10 s). Nach dem Zeitfenster gilt wieder die normale Helligkeit. Sind *Von* und *Bis* gleich, ist der Nachtmodus wirkungslos. Solange der Ständer nach dem Einschalten die Uhrzeit noch nicht kennt (höchstens 30 s), leuchtet er bei eingeschaltetem Nachtmodus vorsichtshalber nur mit der Nacht-Helligkeit. Die Uhrzeit holt sich der Ständer per NTP aus dem Internet (Zeitzone in `config.h`, `TIMEZONE`); ohne Internet bleibt der Nachtmodus wirkungslos. Die Weboberfläche zeigt die Uhrzeit des Ständers zur Kontrolle.
 - **Anzeige drehen** (Einstellungen): 0° und 180° ergeben Hochformat, 90° und 270° Querformat, passend zur Gehäusevariante. Die Anzeige ordnet sich selbst neu an.
 
@@ -217,6 +217,19 @@ Der Schalter **PC-Sync** gilt auch für USB, auf dem Display steht dann „PC-Sy
 
 Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestellte Grenze nicht überschreitet. Startwert ist 2400 mA (`include/config.h`), passend zum USB-C-Netzteil 5 V / 3 A. Farbige Effekte laufen damit in voller Helligkeit, nur Vollweiß auf allen LEDs wird gedimmt. War schon ein anderer Wert gespeichert, stellst du ihn in der Weboberfläche auf 2400 mA. Mit einem stärkeren Netzteil (z. B. USB-C PD 12 V und Step-down auf 5 V / 6 A) kannst du auf etwa 85 % von dessen Strom erhöhen.
 
+## Selbsttest und Seriennummer (Fertigung)
+
+**Selbsttest** starten: in der Weboberfläche **Info → Selbsttest → Selbsttest starten** oder im seriellen Monitor (115200 Baud) mit dem Befehl `selftest`. Ablauf, jeweils mit Anzeige am Display:
+
+1. Alle LEDs leuchten je 1,5 s rot, grün, blau und weiß, danach läuft ein weißer Lichtpunkt einmal über den Streifen. Das prüft man mit dem Auge: Fehlt eine Farbe, sind Datenleitung oder LEDs defekt. Bleibt der Punkt stehen, ist der Streifen ab dort unterbrochen.
+2. **Touch:** Display antippen (15 s Zeit, das alte 1,3-Zoll-Board hat keinen Touch und überspringt das).
+3. **Taste:** BOOT-Taste drücken und loslassen (15 s Zeit).
+4. **Lagesensor:** wird selbst gemessen und muss in Ruhe etwa 1 g ergeben (0,8–1,2 g).
+
+Das Ergebnis steht 30 s am Display (Tippen beendet früher), in der Weboberfläche und im seriellen Monitor als eine Zeile, z. B. `SELBSTTEST BESTANDEN touch=ok taste=ok lage=ok g=1.01 sn=KS-2026-0001 fw=…`. Der Streifen leuchtet dabei schwach grün (bestanden) oder rot (Fehler). „Bestanden“ heißt: Touch, Taste und Lagesensor haben reagiert. Die LEDs bewertet der Prüfer selbst. Während des Tests laufen WLAN und Weboberfläche weiter, die LEDs zeigen nur die Testbilder.
+
+**Seriennummer:** wird einmal in der Fertigung über USB vergeben, im seriellen Monitor mit `sn KS-2026-0001` (1–24 Zeichen: Buchstaben, Ziffern, `-`, `_`, `.`). Sie liegt in einem eigenen Flash-Bereich (`fctry`) und bleibt auch bei Werkseinstellungen erhalten. Ein zweites `sn …` wird abgelehnt; korrigieren nur mit `sn! <neue Nummer>`. Anzeigen: `sn` im Monitor, **Info → Gerät → Seriennummer** in der Weboberfläche, `/api/info` (Feld `sn`) und das Selbsttest-Ergebnis. Weitere Befehle: `info` (Firmware, Board, Seriennummer, MAC-Adresse) und `hilfe`.
+
 ## Firmware-Update über die Weboberfläche
 
 1. Nur für getaggte Stände: Den Commit in Fork taggen (Rechtsklick auf den Commit → „New Tag…“, z. B. `V1.0.0`) und den Tag pushen. Dann in VS Code unter *PlatformIO → Project Tasks → env → Custom* **Update-Datei erzeugen** ausführen. Danach liegt im Projektordner unter `update/` die Datei `LED-Kopfhoerer_LCD19_V1.0.0.bin` (altes 1,3-Zoll-Board: `_LCD13_`). Das ist die normale `firmware.bin` mit sprechendem Namen (`tools/update_file.py`). Hat der Commit keinen Tag oder gibt es nicht eingecheckte Änderungen, bricht die Aufgabe mit einer Meldung ab und erzeugt keine Datei. So ist jede Update-Datei einem Tag zugeordnet. Prototypen flasht man weiter wie gewohnt mit Build/Upload per USB oder WLAN.
@@ -245,11 +258,13 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 |---|---|---|
 | GET | `/api/state` | aktueller Zustand als JSON (dazu `nActive` = Nachtmodus gerade aktiv, `time` = Uhrzeit am Ständer) |
 | POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu), `wled` (0/1, WLED-Schnittstelle ohne Passwort), `night` (0/1), `nFrom`/`nTo` (Minuten ab Mitternacht), `nBri` (0–255, 0 = aus) |
-| GET | `/api/info` | Firmware-Version (`fw`), Platz für Updates in Byte (`fwMax`), Effekt- und Palettennamen, Netzwerkdaten |
+| GET | `/api/info` | Firmware-Version (`fw`), Seriennummer (`sn`, leer = keine), Platz für Updates in Byte (`fwMax`), Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
 | POST | `/api/login` | prüft nur das Passwort (200 oder 401) |
 | POST | `/api/password` | neues Gerätepasswort, Feld `new` (8–32 Zeichen) |
-| POST | `/api/factory-reset` | Werkseinstellungen, danach Neustart |
+| POST | `/api/factory-reset` | Werkseinstellungen, danach Neustart (Seriennummer bleibt) |
+| POST | `/api/selftest` | Selbsttest starten (409, wenn er schon läuft) |
+| GET | `/api/selftest` | Stand des Selbsttests: `running`, `step` (`leds`, `touch`, `button`, `result`), `passed`, je Prüfung `touch`/`button`/`sensor` (`ok`, `fehlt`, `fehler`, `-`), `g` |
 | POST | `/api/update/ask?size=` | prüft die Dateigröße (413, wenn zu groß), fragt dann am Display „Update?“, liefert `token` (409, wenn schon eine Frage läuft) |
 | GET | `/api/update/answer?t=` | Antwort für dieses Token: 1 erlaubt, -1 abgelehnt/abgelaufen, 0 offen |
 | POST | `/api/update?t=&size=` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), nur nach Erlauben, danach Neustart |
@@ -270,7 +285,7 @@ Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfh
 | `src/main.cpp` | Ablauf, Bildrate, Ein-/Ausblenden, BOOT-Taster |
 | `src/effects.cpp` | alle Effekte und Paletten |
 | `src/net.cpp` | WLAN, Einrichtungs-WLAN, Webserver, mDNS, OTA, Firmware-Update per Weboberfläche |
-| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, Adalight über USB |
+| `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, Adalight über USB, Textbefehle über USB |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO23 mit |
@@ -280,7 +295,8 @@ Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfh
 | `src/display.cpp` | Anzeige auf dem LCD, passt sich an Hoch- und Querformat an |
 | `src/touch.cpp` | Touch: Tippen (oben/unten) und Wischen erkennen |
 | `src/imu.cpp` | Lagesensor: Displaydrehung „Auto“ nach der Schwerkraft |
-| `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash |
+| `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash, Seriennummer im Bereich `fctry` |
+| `src/selftest.cpp` | Selbsttest für die Fertigung (LEDs, Touch, Taste, Lagesensor) |
 
 ## Lizenz
 

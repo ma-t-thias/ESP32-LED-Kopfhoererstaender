@@ -84,6 +84,36 @@ void factoryReset() {
   ESP.restart();
 }
 
+namespace {
+String sn;  // Seriennummer, beim ersten Abruf geladen
+bool snLoaded = false;
+}  // namespace
+
+String serialNumber() {
+  if (!snLoaded) {
+    snLoaded = true;
+    Preferences p;
+    if (p.begin("dev", true, "fctry")) {  // eigener Bereich, nvs_flash_erase() laesst ihn stehen
+      sn = p.getString("sn", "");
+      p.end();
+    }
+  }
+  return sn;
+}
+
+bool setSerialNumber(const String &v, bool force) {
+  if (v.length() < 1 || v.length() > 24) return false;
+  for (char c : v)
+    if (!isalnum((unsigned char)c) && c != '-' && c != '_' && c != '.') return false;
+  if (serialNumber().length() && !force) return false;  // einmal vergeben bleibt sie
+  Preferences p;
+  if (!p.begin("dev", false, "fctry")) return false;
+  bool ok = p.putString("sn", v) == v.length();
+  p.end();
+  if (ok) sn = v;
+  return ok;
+}
+
 void markDirty() {
   dirty = true;
   dirtySince = millis();

@@ -10,6 +10,7 @@
 #include <esp_system.h>
 
 #include "config.h"
+#include "selftest.h"
 #include "fw_version.h"
 #include "effects.h"
 #include "argb_in.h"
@@ -227,6 +228,7 @@ String infoJson() {
   for (uint8_t i = 0; i < effects::PALETTE_COUNT; i++) j += String(i ? "," : "") + "\"" + effects::PALETTE_NAMES[i] + "\"";
   j += "],\"leds\":" + String(LED_COUNT);
   j += ",\"fw\":\"" + jsonEscape(FW_FULL) + "\",\"board\":\"" BOARD_TAG "\"";
+  j += ",\"sn\":\"" + jsonEscape(settings::serialNumber()) + "\"";
   j += ",\"fwMax\":" + String(otaSpace());
   j += ",\"maMax\":" + String(LED_MAX_MILLIAMPS_LIMIT);
   j += ",\"host\":\"" + String(HOSTNAME) + "\"";
@@ -576,6 +578,13 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/login", HTTP_POST, prot([]() { server.send(200, "text/plain", "ok"); }));
   server.on("/api/password", HTTP_POST, prot(handlePassword));
   server.on("/api/factory-reset", HTTP_POST, prot(handleFactoryReset));
+  // Selbsttest fuer die Fertigung: starten (Passwort) und Stand/Ergebnis abfragen
+  server.on("/api/selftest", HTTP_GET, []() { server.send(200, "application/json", selftest::json()); });
+  server.on("/api/selftest", HTTP_POST, prot([]() {
+    if (selftest::running()) return server.send(409, "text/plain; charset=utf-8", "Der Selbsttest laeuft schon.");
+    selftest::start();
+    server.send(200, "application/json", selftest::json());
+  }));
   // Ablauf: /api/update/ask zeigt am Display "Update erlauben?", der Browser fragt
   // /api/update/answer ab (1 = erlaubt, -1 = abgelehnt/abgelaufen, 0 = offen) und laedt erst dann hoch.
   // Die Kennung (t) bindet die Erlaubnis an den Browser, der gefragt hat.
