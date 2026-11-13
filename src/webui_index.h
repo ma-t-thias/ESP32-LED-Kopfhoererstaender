@@ -330,7 +330,7 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
      <details class="li more"><summary>Herkunft und Rechtliches<span class="val" aria-hidden="true">›</span></summary>
       <div class="legal">
        <p id="licText"></p>
-       <p><b>Ständer:</b> Grundkörper aus „RGB Headphone Stand“ von FaisLeFr (thingiverse.com/thing:4722406, Remix nach NoycePrints), Lizenz Creative Commons Namensnennung (CC BY). Der Sockel ist verändert, Display-Gehäuse und Platine sind neu (Matthias Steis).</p>
+       <p><b>Ständer:</b> Grundkörper aus „RGB Headphone Stand“ von FaisLeFr (thingiverse.com/thing:4722406), Remix von „Headphone stand (setup themed)“ von NoycePrints (thingiverse.com/thing:3534573), Lizenz Creative Commons Namensnennung – Nicht kommerziell (CC BY-NC). Der Sockel ist verändert, Display-Gehäuse und Platine sind neu (Matthias Steis).</p>
        <p><b>Verwendete Software:</b> FastLED (MIT) · GFX Library for Arduino von moononournation, auf Basis Adafruit GFX (BSD) · ArduinoJson von Benoît Blanchon (MIT) · Arduino-Core für ESP32 von Espressif (LGPL-2.1) · ESP-IDF und Matter-SDK (Apache-2.0). Die Lizenztexte stehen im Projekt in THIRD_PARTY_NOTICES.md. Der vollständige Quelltext ist öffentlich, so lässt sich die Firmware auch mit einer geänderten Fassung des Arduino-Cores neu bauen (LGPL).</p>
        <p><b>Kompatibilität:</b> Die JSON-Schnittstelle ist mit WLED kompatibel, enthält aber keinen WLED-Code. Apple, Apple Home, Matter, ASUS Aura, SignalRGB und OpenRGB sind Marken ihrer jeweiligen Inhaber. Dieses Projekt ist mit keinem dieser Unternehmen verbunden.</p>
        <p><b>Haftung:</b> Bereitgestellt ohne Gewähr. Nachbau und Betrieb auf eigene Verantwortung, besonders bei Netzteil und Verkabelung.</p>
