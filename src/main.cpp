@@ -117,7 +117,7 @@ void onSerialCommand(const String &raw) {
     if (settings::setSerialNumber(v, force)) Serial.printf("Seriennummer gespeichert: %s\n", v.c_str());
     else if (settings::serialNumber().length() && !force)
       Serial.println("Seriennummer ist schon vergeben. Ueberschreiben mit: sn! <neue Nummer>");
-    else Serial.println("Ungueltig: 1-24 Zeichen A-Z a-z 0-9 - _ .");
+    else Serial.println("Ungueltig: 1-20 Zeichen A-Z a-z 0-9 - _ . (ohne \"Ada\")");
   } else if (cmd == "info") {
     uint8_t m[6];
     esp_read_mac(m, ESP_MAC_WIFI_STA);  // fest im Chip, auch ohne eingeschaltetes WLAN

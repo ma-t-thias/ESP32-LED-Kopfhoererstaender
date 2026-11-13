@@ -52,7 +52,7 @@ void setDevicePassword(const String &pw);
 void factoryReset();
 // Seriennummer aus der Fertigung. Liegt im Bereich "fctry" und bleibt auch bei Werkseinstellungen
 // erhalten. Leer, solange keine vergeben ist. Setzen nur ueber USB (Befehl "sn ..."), einmalig;
-// force = ueberschreiben (Befehl "sn! ..."). 1-24 Zeichen A-Z a-z 0-9 - _ . (ohne "Ada")
+// force = ueberschreiben (Befehl "sn! ..."). 1-20 Zeichen A-Z a-z 0-9 - _ . (ohne "Ada")
 String serialNumber();
 bool setSerialNumber(const String &sn, bool force);
 }  // namespace settings

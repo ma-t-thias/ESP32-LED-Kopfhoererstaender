@@ -142,7 +142,7 @@ void loop(CRGB *leds, uint16_t n, bool buttonDown, bool touched) {
     case RESULT:
       // gruen bzw. rot leuchten lassen, damit man das Ergebnis auch von weitem sieht
       fill_solid(leds, n, passed ? CRGB(0, 60, 0) : CRGB(60, 0, 0));
-      if (buttonDown) btnSeen = true;  // BOOT druecken und loslassen beendet ebenfalls (1,3-Zoll ohne Touch)
+      if (buttonDown && t > 400) btnSeen = true;  // nach 0,4 s (Prellen der letzten Taste); BOOT druecken und loslassen beendet ebenfalls (1,3-Zoll ohne Touch)
       if (touched || (btnSeen && !buttonDown) || t >= RESULT_MS) {
         step = IDLE;
         fill_solid(leds, n, CRGB::Black);

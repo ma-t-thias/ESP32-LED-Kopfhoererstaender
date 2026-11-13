@@ -102,7 +102,7 @@ String serialNumber() {
 }
 
 bool setSerialNumber(const String &v, bool force) {
-  if (v.length() < 1 || v.length() > 24) return false;
+  if (v.length() < 1 || v.length() > 20) return false;  // passt so noch in die Ergebnis-Anzeige
   for (char c : v)
     if (!isalnum((unsigned char)c) && c != '-' && c != '_' && c != '.') return false;
   if (v.indexOf("Ada") >= 0) return false;  // wuerde der USB-Empfang als Adalight-Rahmen lesen
