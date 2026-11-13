@@ -115,6 +115,24 @@ bool setSerialNumber(const String &v, bool force) {
   return ok;
 }
 
+void saveSelftest(bool passed, uint32_t when) {
+  Preferences p;
+  if (!p.begin("dev", false, "fctry")) return;
+  p.putUChar("stOk", passed ? 1 : 0);
+  p.putUInt("stT", when);
+  p.end();
+}
+
+int8_t lastSelftest(uint32_t &when) {
+  when = 0;
+  Preferences p;
+  if (!p.begin("dev", true, "fctry")) return -1;
+  int8_t r = p.isKey("stOk") ? p.getUChar("stOk", 0) : -1;
+  when = p.getUInt("stT", 0);
+  p.end();
+  return r;
+}
+
 void markDirty() {
   dirty = true;
   dirtySince = millis();

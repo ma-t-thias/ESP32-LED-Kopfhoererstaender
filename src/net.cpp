@@ -229,6 +229,9 @@ String infoJson() {
   j += "],\"leds\":" + String(LED_COUNT);
   j += ",\"fw\":\"" + jsonEscape(FW_FULL) + "\",\"board\":\"" BOARD_TAG "\"";
   j += ",\"sn\":\"" + jsonEscape(settings::serialNumber()) + "\"";
+  uint32_t stTime;
+  int8_t stLast = settings::lastSelftest(stTime);
+  j += ",\"stLast\":" + String(stLast) + ",\"stTime\":" + String(stTime);
   j += ",\"fwMax\":" + String(otaSpace());
   j += ",\"maMax\":" + String(LED_MAX_MILLIAMPS_LIMIT);
   j += ",\"host\":\"" + String(HOSTNAME) + "\"";

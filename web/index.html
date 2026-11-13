@@ -285,25 +285,30 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     </section>
     <p class="foot" id="mFoot"></p>
    </div>
-   <div class="group"><h2>Firmware-Update</h2>
+   <div class="group"><h2>Zugang</h2>
     <section class="glass list">
-     <div class="li"><span>Installiert</span><span class="val" id="fwCur">–</span></div>
+     <div class="li"><span>Home Assistant und WLED-App</span><button class="switch" id="wled" type="button" role="switch" aria-checked="false" aria-label="WLED-Schnittstelle ohne Passwort"></button><small>steuern ohne Passwort erlauben</small></div>
+     <button class="li btn tint" id="pwChange" type="button">Gerätepasswort ändern</button>
+     <button class="li btn tint" id="logout" type="button">In diesem Browser abmelden</button>
+    </section>
+    <p class="foot">Das Gerätepasswort steht am Ständer: Zahnrad oben rechts → Einrichten (altes 1,3-Zoll-Board: Startanzeige).</p>
+   </div>
+   <div class="group"><h2>Wartung</h2>
+    <section class="glass list">
+     <div class="li"><span>Firmware installiert</span><span class="val" id="fwCur">–</span></div>
      <button class="li btn tint" id="fwPick" type="button"><span>Datei wählen</span><span class="val" id="fwName">keine</span></button>
      <input type="file" id="fwFile" accept=".bin" hidden>
      <div class="li stack" id="fwProg" hidden><div class="prog" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" id="fwBarW"><i id="fwBar"></i></div><small id="fwPct" aria-live="polite"></small></div>
      <button class="li btn tint" id="fwStart" type="button" disabled>Update installieren</button>
     </section>
     <p class="foot" id="fwFoot"></p>
-   </div>
-   <div class="group"><h2>Zugang</h2>
-    <section class="glass list">
-     <div class="li"><span>Home Assistant und WLED-App</span><button class="switch" id="wled" type="button" role="switch" aria-checked="false" aria-label="WLED-Schnittstelle ohne Passwort"></button><small>steuern ohne Passwort erlauben</small></div>
-     <button class="li btn tint" id="pwChange" type="button">Gerätepasswort ändern</button>
-     <button class="li btn tint" id="logout" type="button">In diesem Browser abmelden</button>
+    <section class="glass list" style="margin-top:14px">
+     <button class="li btn tint" id="stStart" type="button">Selbsttest starten</button>
+     <div class="li" id="stRow" hidden><span>Ergebnis</span><span class="val" id="stRes"></span></div>
      <button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button>
      <button class="li btn" id="factory" type="button">Werkseinstellungen</button>
     </section>
-    <p class="foot">Das Gerätepasswort steht am Ständer: Zahnrad oben rechts → Einrichten (altes 1,3-Zoll-Board: Startanzeige). Werkseinstellungen löschen alles, auch WLAN und Passwort; am Gerät geht das mit 10&nbsp;s BOOT-Taste.</p>
+    <p class="foot" id="stFoot">Selbsttest: Die LEDs leuchten nacheinander rot, grün, blau und weiß, danach läuft ein Lichtpunkt über den Streifen (bitte hinschauen). Dann das Display antippen (altes 1,3-Zoll-Board: entfällt) und die BOOT-Taste drücken; der Lagesensor wird selbst geprüft. Das Ergebnis steht am Display, hier und unter Info. Werkseinstellungen löschen alles außer der Seriennummer, auch WLAN und Passwort; am Gerät geht das mit 10&nbsp;s BOOT-Taste.</p>
    </div>
   </div>
  </div>
@@ -312,13 +317,6 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
   <div class="col">
    <div class="group"><h2>Gerät</h2>
     <section class="glass list" id="meta"></section>
-   </div>
-   <div class="group"><h2>Selbsttest</h2>
-    <section class="glass list">
-     <button class="li btn tint" id="stStart" type="button">Selbsttest starten</button>
-     <div class="li" id="stRow" hidden><span>Ergebnis</span><span class="val" id="stRes"></span></div>
-    </section>
-    <p class="foot" id="stFoot">Für die Fertigung: Die LEDs leuchten nacheinander rot, grün, blau und weiß, danach läuft ein Lichtpunkt über den Streifen (bitte hinschauen). Dann bitte das Display antippen (altes 1,3-Zoll-Board: entfällt) und die BOOT-Taste drücken. Der Lagesensor wird selbst geprüft. Das Ergebnis steht am Display, hier und im seriellen Monitor.</p>
    </div>
    <div class="group"><h2>Über dieses Projekt</h2>
     <section class="glass list">
@@ -504,7 +502,7 @@ const LICENSE = {
 // ---------- Schnittstelle ----------
 const demoState = {on:true,wled:false,night:true,nFrom:1320,nTo:420,nBri:13,nActive:false,time:'21:47',bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
- palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3 (1a2b3c4)',board:'LCD19',sn:'KS-2026-0001',fwMax:3932160,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
+ palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3 (1a2b3c4)',board:'LCD19',sn:'KS-2026-0001',stLast:1,stTime:1794550000,fwMax:3932160,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
 const to = () => window.AbortSignal && AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
 const api = DEMO ? {
@@ -572,8 +570,7 @@ function build(){
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
  $('fwCur').textContent=info.fw||'–';
- $('meta').innerHTML=[['Firmware',info.fw||'–'],['Seriennummer',info.sn||'keine'],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
-  .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${esc(v)}</span></div>`).join('');
+ renderMeta();
  buildPresets();
 
  $('licName').textContent=LICENSE.name;
@@ -714,7 +711,13 @@ function fwUpload(tok){
  x.send(fd);
 }
 $('wifiReset').onclick=()=>{ if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?')) api.wifiReset().then(t=>alert(t)); };
+function renderMeta(){
+ $('meta').innerHTML=[['Firmware',info.fw||'–'],['Seriennummer',info.sn||'keine'],['Letzter Selbsttest',stLast(info)],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
+  .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${esc(v)}</span></div>`).join('');
+}
 // ---------- Selbsttest (Fertigung) ----------
+function stLast(i){ if(!(i.stLast>=0)) return 'noch keiner';
+ return (i.stLast?'bestanden':'nicht bestanden')+(i.stTime?' · '+new Date(i.stTime*1000).toLocaleDateString('de-DE'):''); }
 const ST_STEP={leds:'LEDs ansehen …',touch:'Bitte Display antippen …',button:'Bitte BOOT-Taste drücken …',sensor:'Lagesensor …'};
 const ST_WORD={ok:'OK',fehlt:'keine Reaktion',fehler:'Fehler','-':'–'};
 function stShow(r){
@@ -724,7 +727,7 @@ function stShow(r){
  $('stRes').textContent=(r.passed?'Bestanden':'Nicht bestanden')+' · '+parts.join(' · ');
  $('stRes').style.color=r.passed?'var(--green)':'var(--red)';
 }
-function stPoll(){ fetch('/api/selftest').then(r=>r.json()).then(r=>{ stShow(r); if(r.running&&r.step!=='result') setTimeout(stPoll,1000); else $('stStart').disabled=false; },()=>setTimeout(stPoll,2000)); }
+function stPoll(){ fetch('/api/selftest').then(r=>r.json()).then(r=>{ stShow(r); if(r.running&&r.step!=='result') setTimeout(stPoll,1000); else { $('stStart').disabled=false; api.info().then(i=>{ info=i; renderMeta(); }).catch(()=>{}); } },()=>setTimeout(stPoll,2000)); }
 $('stStart').onclick=()=>{ if(DEMO) return stShow({running:false,passed:true,touch:'ok',button:'ok',sensor:'ok'});
  $('stStart').disabled=true; $('stRes').style.color=''; $('stRow').hidden=false; $('stRes').textContent='startet …';
  fetch('/api/selftest',{method:'POST'}).then(r=>{ if(r.ok||r.status===409) stPoll(); else $('stStart').disabled=false; },()=>{ $('stStart').disabled=false; }); };

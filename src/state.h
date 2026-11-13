@@ -55,4 +55,8 @@ void factoryReset();
 // force = ueberschreiben (Befehl "sn! ..."). 1-20 Zeichen A-Z a-z 0-9 - _ . (ohne "Ada")
 String serialNumber();
 bool setSerialNumber(const String &sn, bool force);
+// Letztes Selbsttest-Ergebnis, ebenfalls im Bereich "fctry" (fuer Reklamationen nachvollziehbar).
+// result -1 = noch keiner, 0 = nicht bestanden, 1 = bestanden; when = Unixzeit (0 = Uhrzeit war unbekannt)
+void saveSelftest(bool passed, uint32_t when);
+int8_t lastSelftest(uint32_t &when);
 }  // namespace settings
