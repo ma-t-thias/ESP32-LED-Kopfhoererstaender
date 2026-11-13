@@ -1,10 +1,14 @@
 # Platine für den Sockel (bedrahtet, zum Bestellen oder Selbstätzen)
 
-Die Platine ersetzt den Breadboard-Aufbau und die WAGO-Klemmen. Sie sitzt im Sockel (Base_Box) in der Mitte zwischen den drei Diffusorscheiben, mit einer Zunge Richtung ESP-Gehäuse. Die Lichtöffnungen bleiben frei.
+Die Platine ersetzt den Breadboard-Aufbau und die WAGO-Klemmen. Sie sitzt im Sockel (Base_Box) in der Mitte zwischen den drei Diffusor-Einlagen im Sockelboden, mit einer Zunge Richtung ESP-Gehäuse. Die Lichtöffnungen bleiben frei.
 
 ![Bestückungsplan](out/platine_bestueckung.png)
 
 Ansicht von der Bauteilseite. Gelb ist die Massefläche (GND), die farbigen Bahnen sind die übrigen Netze. Das Kupfer liegt unten.
+
+![Explosionszeichnung der Sockel-Platine mit allen Bauteilen, Stiftleisten und Steckern](../../images/explosion/platine_explosion.png)
+
+Explosionszeichnung (aus dem SolidCraft-Modell): welches Bauteil wohin gehört, mit Stiftleisten, Dupont- und ARGB-Steckern und der USB-C-Buchsenplatine.
 
 ## Dateien
 
