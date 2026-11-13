@@ -47,13 +47,14 @@ void go(Step s) {
   stepSince = millis();
   btnSeen = false;
   switch (s) {
-    case RED: display::testScreen("Selbsttest", "LEDs: Rot\nAlle LEDs rot?", 0); break;
-    case GREEN: display::testScreen("Selbsttest", "LEDs: Gruen\nAlle LEDs gruen?", 0); break;
-    case BLUE: display::testScreen("Selbsttest", "LEDs: Blau\nAlle LEDs blau?", 0); break;
-    case WHITE: display::testScreen("Selbsttest", "LEDs: Weiss\nAlle LEDs weiss?", 0); break;
-    case CHASE: display::testScreen("Selbsttest", "Lauflicht\nPunkt laeuft\nbis zum Ende?", 0); break;
-    case TOUCH: display::testScreen("Selbsttest", "Touch:\nbitte Display\nantippen", 0); break;
-    case BUTTON: display::testScreen("Selbsttest", "Taste:\nbitte BOOT\ndruecken", 0); break;
+    // grosse Zeilen hoechstens 12 Zeichen (Hochformat 170 px)
+    case RED: display::testScreen("Selbsttest", "Alle LEDs\nrot?", 0); break;
+    case GREEN: display::testScreen("Selbsttest", "Alle LEDs\ngruen?", 0); break;
+    case BLUE: display::testScreen("Selbsttest", "Alle LEDs\nblau?", 0); break;
+    case WHITE: display::testScreen("Selbsttest", "Alle LEDs\nweiss?", 0); break;
+    case CHASE: display::testScreen("Selbsttest", "Lichtpunkt\nlaeuft bis\nzum Ende?", 0); break;
+    case TOUCH: display::testScreen("Selbsttest", "Bitte das\nDisplay\nantippen", 0); break;
+    case BUTTON: display::testScreen("Selbsttest", "Bitte BOOT-\nTaste\ndruecken", 0); break;
     default: break;
   }
 }
@@ -77,17 +78,18 @@ void checkSensor() {
 void finish() {
   done = true;
   passed = rTouch != "fehlt" && rButton == "ok" && rSensor != "fehlt" && rSensor != "fehler";
-  String body = String("Touch:  ") + rTouch + "\nTaste:  " + rButton + "\nLage:   " + rSensor;
-  if (rSensor == "ok" || rSensor == "fehler") body += " " + String(gValue, 2) + "g";
+  String body = "Touch " + rTouch + "\nTaste " + rButton + "\nLage " + rSensor;  // je max. 12 Zeichen
   String sn = settings::serialNumber();
-  body += "\nSN: " + (sn.length() ? sn : String("keine"));
-  body += "\nLEDs: Sichtpruefung";
-  display::testScreen(passed ? "Test OK" : "Test FEHLER", body, passed ? 1 : 2);
+  String foot = "SN " + (sn.length() ? sn : String("keine"));
+  if (rSensor == "ok" || rSensor == "fehler") foot += "\nLagesensor " + String(gValue, 2) + " g";
+  foot += "\nLEDs: selbst ansehen";
+  display::testScreen(passed ? "Test OK" : "Test FEHLER", body, passed ? 1 : 2, foot);
   // eine Zeile fuer Pruefprogramme am USB
   Serial.printf("SELBSTTEST %s touch=%s taste=%s lage=%s g=%.2f sn=%s fw=%s\n", passed ? "BESTANDEN" : "FEHLER",
                 rTouch.c_str(), rButton.c_str(), rSensor.c_str(), gValue, sn.length() ? sn.c_str() : "-", FW_FULL);
   step = RESULT;
   stepSince = millis();
+  btnSeen = false;
 }
 }  // namespace
 
@@ -140,7 +142,8 @@ void loop(CRGB *leds, uint16_t n, bool buttonDown, bool touched) {
     case RESULT:
       // gruen bzw. rot leuchten lassen, damit man das Ergebnis auch von weitem sieht
       fill_solid(leds, n, passed ? CRGB(0, 60, 0) : CRGB(60, 0, 0));
-      if (touched || t >= RESULT_MS) {
+      if (buttonDown) btnSeen = true;  // BOOT druecken und loslassen beendet ebenfalls (1,3-Zoll ohne Touch)
+      if (touched || (btnSeen && !buttonDown) || t >= RESULT_MS) {
         step = IDLE;
         fill_solid(leds, n, CRGB::Black);
         display::testEnd();

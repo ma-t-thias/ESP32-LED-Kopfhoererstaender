@@ -105,6 +105,7 @@ bool setSerialNumber(const String &v, bool force) {
   if (v.length() < 1 || v.length() > 24) return false;
   for (char c : v)
     if (!isalnum((unsigned char)c) && c != '-' && c != '_' && c != '.') return false;
+  if (v.indexOf("Ada") >= 0) return false;  // wuerde der USB-Empfang als Adalight-Rahmen lesen
   if (serialNumber().length() && !force) return false;  // einmal vergeben bleibt sie
   Preferences p;
   if (!p.begin("dev", false, "fctry")) return false;

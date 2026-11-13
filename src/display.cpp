@@ -645,7 +645,7 @@ int handleTouch(uint8_t gesture, const touch::Point &p, LedState &s) {
   return 1;  // auf der Einstellseite wechseln Tippen und Wischen keinen Effekt
 }
 
-void testScreen(const char *title, const String &body, uint8_t status) {
+void testScreen(const char *title, const String &body, uint8_t status, const String &foot) {
   if (!ok || updating) return;
   testing = true;
   shown = SCR_TEST;  // danach zeichnet loop() alles neu
@@ -660,15 +660,24 @@ void testScreen(const char *title, const String &body, uint8_t status) {
   gfx->print(title);
   gfx->drawFastHLine(8, 38, w - 16, MUTED);
   gfx->setTextColor(FG);
-  int y = 50, from = 0;
-  for (int i = 0; i < 5 && from <= (int)body.length(); i++) {
-    int nl = body.indexOf('\n', from);
-    if (nl < 0) nl = body.length();
-    gfx->setCursor(8, y);
-    gfx->print(body.substring(from, min(nl, from + (w - 16) / 12)));  // 12 px je Zeichen
-    from = nl + 1;
-    y += 24;
-  }
+  int y = 50;
+  // Zeilen ohne Umbruch, zu lange werden abgeschnitten (Textgroesse 2 = 12 px je Zeichen, 1 = 6 px)
+  auto lines = [&](const String &text, int maxLines, int step, int charW) {
+    int from = 0;
+    for (int i = 0; i < maxLines && from < (int)text.length(); i++) {
+      int nl = text.indexOf('\n', from);
+      if (nl < 0) nl = text.length();
+      gfx->setCursor(8, y);
+      gfx->print(text.substring(from, min(nl, from + (w - 16) / charW)));
+      from = nl + 1;
+      y += step;
+    }
+  };
+  lines(body, 4, 24, 12);
+  gfx->setTextSize(1);
+  gfx->setTextColor(MUTED);
+  y += 4;
+  lines(foot, 4, 12, 6);
 }
 
 void testEnd() {

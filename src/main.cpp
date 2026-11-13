@@ -3,7 +3,7 @@
 // Board: Waveshare ESP32-C6-LCD-1.3. Schaltung: docs/hardware/
 #include <Arduino.h>
 #include <FastLED.h>
-#include <WiFi.h>
+#include <esp_mac.h>
 
 #include "config.h"
 #include "fw_version.h"
@@ -105,7 +105,8 @@ void onSerialCommand(const String &raw) {
   String cmd = raw;
   cmd.trim();
   if (cmd == "selftest" || cmd == "selbsttest") {
-    selftest::start();
+    if (selftest::running()) Serial.println("Der Selbsttest laeuft schon.");
+    else selftest::start();
   } else if (cmd == "sn") {
     String sn = settings::serialNumber();
     Serial.printf("Seriennummer: %s\n", sn.length() ? sn.c_str() : "(keine)");
@@ -118,9 +119,12 @@ void onSerialCommand(const String &raw) {
       Serial.println("Seriennummer ist schon vergeben. Ueberschreiben mit: sn! <neue Nummer>");
     else Serial.println("Ungueltig: 1-24 Zeichen A-Z a-z 0-9 - _ .");
   } else if (cmd == "info") {
-    Serial.printf("Firmware %s, Board %s, Seriennummer %s, MAC %s\n", FW_FULL, BOARD_TAG,
-                  settings::serialNumber().length() ? settings::serialNumber().c_str() : "(keine)", WiFi.macAddress().c_str());
-  } else if (cmd == "help" || cmd == "hilfe" || cmd == "?") {
+    uint8_t m[6];
+    esp_read_mac(m, ESP_MAC_WIFI_STA);  // fest im Chip, auch ohne eingeschaltetes WLAN
+    String sn = settings::serialNumber();
+    Serial.printf("Firmware %s, Board %s, Seriennummer %s, MAC %02X:%02X:%02X:%02X:%02X:%02X\n", FW_FULL, BOARD_TAG,
+                  sn.length() ? sn.c_str() : "(keine)", m[0], m[1], m[2], m[3], m[4], m[5]);
+  } else {
     Serial.println("Befehle: selftest | sn | sn <Nummer> | sn! <Nummer> | info");
   }
 }

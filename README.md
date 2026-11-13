@@ -226,9 +226,11 @@ Die Firmware begrenzt die Helligkeit so, dass der berechnete Strom die eingestel
 3. **Taste:** BOOT-Taste drücken und loslassen (15 s Zeit).
 4. **Lagesensor:** wird selbst gemessen und muss in Ruhe etwa 1 g ergeben (0,8–1,2 g).
 
-Das Ergebnis steht 30 s am Display (Tippen beendet früher), in der Weboberfläche und im seriellen Monitor als eine Zeile, z. B. `SELBSTTEST BESTANDEN touch=ok taste=ok lage=ok g=1.01 sn=KS-2026-0001 fw=…`. Der Streifen leuchtet dabei schwach grün (bestanden) oder rot (Fehler). „Bestanden“ heißt: Touch, Taste und Lagesensor haben reagiert. Die LEDs bewertet der Prüfer selbst. Während des Tests laufen WLAN und Weboberfläche weiter, die LEDs zeigen nur die Testbilder.
+Das Ergebnis steht 30 s am Display (Tippen oder BOOT-Taste beendet früher), in der Weboberfläche und im seriellen Monitor als eine Zeile, z. B. `SELBSTTEST BESTANDEN touch=ok taste=ok lage=ok g=1.01 sn=KS-2026-0001 fw=…`. Der Streifen leuchtet dabei schwach grün (bestanden) oder rot (Fehler). „Bestanden“ heißt: Touch und Taste haben reagiert, und der Lagesensor misst etwa 1 g. Die LEDs bewertet der Prüfer selbst. Während des Tests laufen WLAN und Weboberfläche weiter, die LEDs zeigen nur die Testbilder.
 
-**Seriennummer:** wird einmal in der Fertigung über USB vergeben, im seriellen Monitor mit `sn KS-2026-0001` (1–24 Zeichen: Buchstaben, Ziffern, `-`, `_`, `.`). Sie liegt in einem eigenen Flash-Bereich (`fctry`) und bleibt auch bei Werkseinstellungen erhalten. Ein zweites `sn …` wird abgelehnt; korrigieren nur mit `sn! <neue Nummer>`. Anzeigen: `sn` im Monitor, **Info → Gerät → Seriennummer** in der Weboberfläche, `/api/info` (Feld `sn`) und das Selbsttest-Ergebnis. Weitere Befehle: `info` (Firmware, Board, Seriennummer, MAC-Adresse) und `hilfe`.
+**Seriennummer:** wird einmal in der Fertigung über USB vergeben, im seriellen Monitor mit `sn KS-2026-0001` (1–24 Zeichen: Buchstaben, Ziffern, `-`, `_`, `.`). Sie liegt in einem eigenen Flash-Bereich (`fctry`) und bleibt auch bei Werkseinstellungen erhalten. Ein zweites `sn …` wird abgelehnt; korrigieren nur mit `sn! <neue Nummer>`. Die Folge „Ada“ ist nicht erlaubt (Kennung des PC-Sync über USB). Die Befehle brauchen kein Passwort, wer am USB-Anschluss ist, hat ohnehin Zugriff auf das Gerät. Anzeigen: `sn` im Monitor, **Info → Gerät → Seriennummer** in der Weboberfläche, `/api/info` (Feld `sn`) und das Selbsttest-Ergebnis. Weitere Befehle: `info` (Firmware, Board, Seriennummer, MAC-Adresse) und `hilfe`.
+
+Für die Fertigung den Flash vor dem ersten Aufspielen ganz löschen (PlatformIO: *Platform → Erase Flash*, oder `esptool.py erase_flash`). Ältere Prototypen hatten an der Stelle des Bereichs `fctry` früher ihre Einstellungen; ohne Löschen bleiben dort alte Daten liegen.
 
 ## Firmware-Update über die Weboberfläche
 
@@ -264,7 +266,7 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 | POST | `/api/password` | neues Gerätepasswort, Feld `new` (8–32 Zeichen) |
 | POST | `/api/factory-reset` | Werkseinstellungen, danach Neustart (Seriennummer bleibt) |
 | POST | `/api/selftest` | Selbsttest starten (409, wenn er schon läuft) |
-| GET | `/api/selftest` | Stand des Selbsttests: `running`, `step` (`leds`, `touch`, `button`, `result`), `passed`, je Prüfung `touch`/`button`/`sensor` (`ok`, `fehlt`, `fehler`, `-`), `g` |
+| GET | `/api/selftest` | Stand des Selbsttests: `running`, `step` (`idle`, `leds`, `touch`, `button`, `result`), `done` (ein Ergebnis liegt vor), `passed`, je Prüfung `touch`/`button`/`sensor` (`ok`, `fehlt`, `fehler`, `-`), `g` |
 | POST | `/api/update/ask?size=` | prüft die Dateigröße (413, wenn zu groß), fragt dann am Display „Update?“, liefert `token` (409, wenn schon eine Frage läuft) |
 | GET | `/api/update/answer?t=` | Antwort für dieses Token: 1 erlaubt, -1 abgelehnt/abgelaufen, 0 offen |
 | POST | `/api/update?t=&size=` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), nur nach Erlauben, danach Neustart |
