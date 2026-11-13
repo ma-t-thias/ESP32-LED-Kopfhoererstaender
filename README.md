@@ -5,11 +5,16 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
 <p align="center">
   <img src="docs/images/weboberflaeche-handy-licht.jpg" alt="Seite Licht mit Presets, Tempo und Effekten, heller Modus" width="250">
   <img src="docs/images/weboberflaeche-handy-farben.jpg" alt="Seite Farben mit Farbrad und Paletten, dunkler Modus" width="250">
-  <img src="docs/images/weboberflaeche-handy-einstellungen.jpg" alt="Seite Einstellungen mit Aura, Stromgrenze und Gerätedaten" width="250">
+  <img src="docs/images/weboberflaeche-handy-einstellungen.jpg" alt="Seite Einstellungen mit Aura, PC-Sync und Stromgrenze, heller Modus" width="250">
 </p>
 
 <p align="center">
-  <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht mit allen Effekten" width="800">
+  <img src="docs/images/weboberflaeche-handy-wartung.jpg" alt="Einstellungen, Gruppe Wartung mit Firmware-Update, Selbsttest, WLAN und Werkseinstellungen, dunkler Modus" width="250">
+  <img src="docs/images/weboberflaeche-handy-info.jpg" alt="Seite Info mit Firmware, Seriennummer und letztem Selbsttest" width="250">
+</p>
+
+<p align="center">
+  <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht im dunklen Modus" width="800">
 </p>
 
 Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Nachtmodus, Zugang, Wartung mit Firmware-Update, Selbsttest, WLAN und Werkseinstellungen) und **Info** (Gerätedaten mit Firmware-Version, Seriennummer und letztem Selbsttest, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
