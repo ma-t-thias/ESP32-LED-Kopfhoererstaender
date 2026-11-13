@@ -302,7 +302,7 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
      <button class="li btn tint" id="fwStart" type="button" disabled>Update installieren</button>
     </section>
     <p class="foot" id="fwFoot"></p>
-    <section class="glass list">
+    <section class="glass list" style="margin-top:14px">
      <button class="li btn tint" id="stStart" type="button">Selbsttest starten</button>
      <div class="li" id="stRow" hidden><span>Ergebnis</span><span class="val" id="stRes"></span></div>
      <button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button>
@@ -570,8 +570,7 @@ function build(){
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
  $('fwCur').textContent=info.fw||'–';
- $('meta').innerHTML=[['Firmware',info.fw||'–'],['Seriennummer',info.sn||'keine'],['Letzter Selbsttest',stLast(info)],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
-  .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${esc(v)}</span></div>`).join('');
+ renderMeta();
  buildPresets();
 
  $('licName').textContent=LICENSE.name;
@@ -712,6 +711,10 @@ function fwUpload(tok){
  x.send(fd);
 }
 $('wifiReset').onclick=()=>{ if(confirm('Gespeicherte WLAN-Daten löschen und Einrichtungs-WLAN starten?')) api.wifiReset().then(t=>alert(t)); };
+function renderMeta(){
+ $('meta').innerHTML=[['Firmware',info.fw||'–'],['Seriennummer',info.sn||'keine'],['Letzter Selbsttest',stLast(info)],['Adresse',info.host+'.local'],['IP-Adresse',info.ip],['WLAN',info.ssid+' · '+info.rssi+' dBm'],['LEDs',info.leds],['Letzter Start',info.reset],['WLAN-Abbrüche',info.drops+(info.drops?' ('+info.dropReason+')':'')]]
+  .map(([k,v])=>`<div class="li"><span>${k}</span><span class="val">${esc(v)}</span></div>`).join('');
+}
 // ---------- Selbsttest (Fertigung) ----------
 function stLast(i){ if(!(i.stLast>=0)) return 'noch keiner';
  return (i.stLast?'bestanden':'nicht bestanden')+(i.stTime?' · '+new Date(i.stTime*1000).toLocaleDateString('de-DE'):''); }
@@ -724,7 +727,7 @@ function stShow(r){
  $('stRes').textContent=(r.passed?'Bestanden':'Nicht bestanden')+' · '+parts.join(' · ');
  $('stRes').style.color=r.passed?'var(--green)':'var(--red)';
 }
-function stPoll(){ fetch('/api/selftest').then(r=>r.json()).then(r=>{ stShow(r); if(r.running&&r.step!=='result') setTimeout(stPoll,1000); else $('stStart').disabled=false; },()=>setTimeout(stPoll,2000)); }
+function stPoll(){ fetch('/api/selftest').then(r=>r.json()).then(r=>{ stShow(r); if(r.running&&r.step!=='result') setTimeout(stPoll,1000); else { $('stStart').disabled=false; api.info().then(i=>{ info=i; renderMeta(); }).catch(()=>{}); } },()=>setTimeout(stPoll,2000)); }
 $('stStart').onclick=()=>{ if(DEMO) return stShow({running:false,passed:true,touch:'ok',button:'ok',sensor:'ok'});
  $('stStart').disabled=true; $('stRes').style.color=''; $('stRow').hidden=false; $('stRes').textContent='startet …';
  fetch('/api/selftest',{method:'POST'}).then(r=>{ if(r.ok||r.status===409) stPoll(); else $('stStart').disabled=false; },()=>{ $('stStart').disabled=false; }); };
