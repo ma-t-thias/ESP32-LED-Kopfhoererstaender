@@ -1,6 +1,6 @@
 # Platine für den Sockel (bedrahtet, zum Bestellen oder Selbstätzen)
 
-Die Platine ersetzt den Breadboard-Aufbau und die WAGO-Klemmen. Sie sitzt im Sockel (Base_Box) in der Mitte zwischen den drei Diffusorscheiben, mit einer Zunge Richtung ESP-Gehäuse. Die Lichtöffnungen bleiben frei.
+Die Platine ersetzt den Breadboard-Aufbau und die WAGO-Klemmen. Sie sitzt im Sockel (Base_Box) in der Mitte zwischen den drei Diffusor-Einlagen im Sockelboden, mit einer Zunge Richtung ESP-Gehäuse. Die Lichtöffnungen bleiben frei.
 
 ![Bestückungsplan](out/platine_bestueckung.png)
 

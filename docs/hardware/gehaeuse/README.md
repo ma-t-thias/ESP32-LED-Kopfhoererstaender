@@ -4,13 +4,13 @@ Angepasster Grundkörper (`Base_Box`) für den [RGB Headphone Stand von FaisLeFr
 
 Aktuelles Board ist das **Waveshare ESP32-C6-Touch-LCD-1.9** (1,9", 170 × 320, Touch). Für das defekte ESP32-C6-LCD-1.3 liegt das alte Gehäuse im Archiv [`c6-lcd-1.3/`](#archiv-esp32-c6-lcd-13).
 
+Für das C6-Touch-LCD-1.9 gibt es zwei Varianten, **hochkant** und **quer**. Welche es wird, entscheidet ein Probedruck.
+
 <p align="center">
   <img src="../../images/explosion/staender_explosion.png" alt="Explosionszeichnung des ganzen Ständers, Variante hochkant" width="600">
 </p>
 
 Explosionszeichnung des ganzen Ständers (Variante hochkant), die Legende steht im Bild.
-
-Für das C6-Touch-LCD-1.9 gibt es zwei Varianten, **hochkant** und **quer**. Welche es wird, entscheidet ein Probedruck.
 
 | Hochkant | Quer |
 |---|---|
@@ -65,7 +65,7 @@ Waveshare liefert auf der [Seite zum ESP32-C6-LCD-1.9](https://docs.waveshare.co
 - **Halteleisten:** Sie liegen 0,1 mm hinter den Spitzen der M2-Bolzen und halten das Board gegen das Fenster. Zu den Stiftleisten bleiben mindestens 0,5 mm.
 - **Kabelraum:** 5,5 mm hinter den Pinspitzen für gelötete Litzen (5V, GND, GPIO1, GPIO2). Ein Trichter über die ganze Taschenbreite führt in den Kanal (8 × 7 mm) ins Innere des Grundkörpers.
 - **USB-C-Öffnung:** 12,5 × 7,5 mm mit R1,5, ausgelegt auf den Steckerkörper.
-- **Vertiefung für die Diffuser_box:** Die drei Diffusorscheiben liegen in einer 0,5 mm tiefen Vertiefung im Boden (Spiel ca. 0,25 mm, Restboden 1,0 mm).
+- **Vertiefung für die Diffuser_box:** Die drei Diffusor-Einlagen liegen in einer 0,5 mm tiefen Vertiefung im Boden (Spiel ca. 0,25 mm, Restboden 1,0 mm).
 - **Optionale Antennen-Durchführung:** Das Feature `Antenna_Feedthrough` setzt ein Loch mit 6 mm Durchmesser in die Rückwand über den Deckplatten, für eine externe U.FL-Antenne (beim Touch-Board per Lötbrücke umschaltbar). Es ist in beiden Varianten unterdrückt, die STL-Dateien haben das Loch also nicht. In SolidCraft lässt es sich einschalten, danach STL neu exportieren.
 
 ## Rastdeckel v2
