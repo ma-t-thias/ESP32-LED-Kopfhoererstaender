@@ -4,6 +4,12 @@ Angepasster Grundkörper (`Base_Box`) für den [RGB Headphone Stand von FaisLeFr
 
 Aktuelles Board ist das **Waveshare ESP32-C6-Touch-LCD-1.9** (1,9", 170 × 320, Touch). Für das defekte ESP32-C6-LCD-1.3 liegt das alte Gehäuse im Archiv [`c6-lcd-1.3/`](#archiv-esp32-c6-lcd-13).
 
+<p align="center">
+  <img src="../../images/explosion/staender_explosion.png" alt="Explosionszeichnung des ganzen Ständers, Variante hochkant" width="600">
+</p>
+
+Explosionszeichnung des ganzen Ständers (Variante hochkant), die Legende steht im Bild.
+
 Für das C6-Touch-LCD-1.9 gibt es zwei Varianten, **hochkant** und **quer**. Welche es wird, entscheidet ein Probedruck.
 
 | Hochkant | Quer |

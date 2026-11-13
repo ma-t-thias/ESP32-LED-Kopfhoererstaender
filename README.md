@@ -35,6 +35,20 @@ Beim ESP32-C6-Touch-LCD-1.9 sind GPIO1 und GPIO2 mit der Lagesensor-IMU verbunde
 
 Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html`](docs/hardware/schaltung.html). Die Zeichnung zeigt das ESP32-C6-Touch-LCD-1.9 (VBUS = J4 Pin 1, GPIO3 = J3 Pin 7, GPIO23 = J4 Pin 9). Im Browser öffnen. Die Seite wird mit `python3 docs/hardware/gen_schaltung.py` aus der Vorlage neu erzeugt.
 
+### Aufbau (Explosionszeichnungen)
+
+<p align="center">
+  <img src="docs/images/explosion/staender_explosion.png" alt="Explosionszeichnung des ganzen Ständers mit 12 nummerierten Teilen von der Kopfhörer-Auflage bis zum Sockel mit Display-Gehäuse" width="700">
+</p>
+
+Der ganze Ständer, Variante ESP32-C6-Touch-LCD-1.9 mit Display hochkant: oben die Kopfhörer-Auflage (1), dann die Seitenteile (2), die transparenten Seitendiffusoren (3) und die Abdeckungen vorne über dem LED-Streifen (4) und hinten (5). Darunter Sockel-Oberteil (6), Diffusorscheibe (7), Deckel des Display-Gehäuses (8), Sockel-Platine mit USB-C-Buchse (9), Sockel mit Display-Gehäuse (10), das ESP32-Board (11) und die drei Diffusor-Einlagen im Sockelboden (12). Der Grundkörper stammt aus dem „RGB Headphone Stand“ von FaisLeFr (CC BY), Sockel und Display-Gehäuse sind neu. Druckdateien und weitere Ansichten: [`docs/hardware/gehaeuse/`](docs/hardware/gehaeuse/).
+
+<p align="center">
+  <img src="docs/images/explosion/platine_explosion.png" alt="Explosionszeichnung der Sockel-Platine mit 16 nummerierten Bauteilen, Stiftleisten und Steckern" width="800">
+</p>
+
+Die Sockel-Platine (46,5 × 46 mm) mit allen Bauteilen: Pegelwandler U1 74AHCT125, R1 330 Ω in der Datenleitung, R3/R4 als Spannungsteiler für den ARGB-Eingang, Elko C1 1000 µF, C2 100 nF, Schottky-Diode D1 vor dem 5-V-Pin des ESP, dazu die Stiftleisten (2,54 mm) für ESP, LED-Streifen, USB-C-Strom und -Daten und den ARGB-Stecker vom Mainboard. Rechts die USB-C-Buchsenplatine mit ihrer 8er-Leiste. Fertigungsdaten, Bestückungsplan und Bestellhinweise: [`docs/hardware/platine/`](docs/hardware/platine/).
+
 ## Bauen und flashen
 
 Voraussetzung: VS Code mit PlatformIO.
