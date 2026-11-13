@@ -1,6 +1,7 @@
 #include "selftest.h"
 
 #include <math.h>
+#include <time.h>
 
 #include "config.h"
 #include "display.h"
@@ -87,6 +88,8 @@ void finish() {
   // eine Zeile fuer Pruefprogramme am USB
   Serial.printf("SELBSTTEST %s touch=%s taste=%s lage=%s g=%.2f sn=%s fw=%s\n", passed ? "BESTANDEN" : "FEHLER",
                 rTouch.c_str(), rButton.c_str(), rSensor.c_str(), gValue, sn.length() ? sn.c_str() : "-", FW_FULL);
+  time_t now = time(nullptr);
+  settings::saveSelftest(passed, now > 1700000000 ? uint32_t(now) : 0);  // Datum nur mit Uhrzeit aus dem Netz
   step = RESULT;
   stepSince = millis();
   btnSeen = false;
