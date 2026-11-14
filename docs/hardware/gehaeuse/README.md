@@ -158,7 +158,7 @@ Die Baugruppen enthalten das Board-Modell (STEP von der Waveshare-Seite, siehe o
 
 ## Benötigte Originalteile und Lizenz
 
-Alle anderen Teile stammen unverändert aus dem [RGB Headphone Stand (Thingiverse 4722406)](https://www.thingiverse.com/thing:4722406) von **FaisLeFr**, einem Remix des Designs von NoycePrints. Lizenz: **Creative Commons – Attribution (CC BY)**. `Base_Box_ESP32` ist eine Abwandlung der dortigen `Base_Box`.
+Alle anderen Teile stammen unverändert aus dem [RGB Headphone Stand (Thingiverse 4722406)](https://www.thingiverse.com/thing:4722406) von **FaisLeFr**, einem Remix von [„Headphone stand (setup themed)“ (Thingiverse 3534573)](https://www.thingiverse.com/thing:3534573) von **NoycePrints**. Lizenz laut `LICENSE.txt` im Download-Paket: **Creative Commons Namensnennung – Nicht kommerziell (CC BY-NC)**. Die Teile, auch das abgewandelte `Base_Box_ESP32` mit Display-Gehäuse, dürfen ohne Erlaubnis der Rechteinhaber (NoycePrints, ggf. FaisLeFr) nicht für kommerzielle Zwecke genutzt werden. `Base_Box_ESP32` ist eine Abwandlung der dortigen `Base_Box`.
 
 Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sides (eine Seite gespiegelt), Side_Diffuser LEFT und RIGHT, Front_Cover, Back_Cover, Headpone_post / mount, Cable_hook sowie die M3-Schrauben laut Original-Anleitung. Die `Base_Box` des Originals wird durch `Base_Box_ESP32` ersetzt.
 
