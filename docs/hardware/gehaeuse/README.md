@@ -172,6 +172,10 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 - **Stops:** Um 0,75 mm gekürzt. Sie stehen noch 0,25 mm über die Buchsenplatine, fixieren sie bei der Montage und sind so gewollt.
 - Der Grundkörper ist aus der Original-STL nachgebaut. Die Mulde für den alten Controller entfällt, die Wände sind leicht facettiert (ca. 0,05 mm).
 
+## Ständer v2 (neu konstruiert, in Arbeit)
+
+Ein komplett neu gezeichneter Ständer mit ovalem Sockel, gebogener Säule, Inlays aus fluoreszierendem PLA, Leuchtring von unten und TPU-Füßen. Er ist eine eigene Konstruktion (CC BY-NC-SA 4.0) ohne Teile aus dem Thingiverse-Original. Der erste, noch ungetestete Stand liegt in [`staender-v2/entwurf-1/`](staender-v2/entwurf-1/).
+
 ## Archiv: ESP32-C6-LCD-1.3
 
 Das erste Gehäuse war für das Waveshare ESP32-C6-LCD-1.3 (1,3", 240 × 240) gebaut. Das Board ist defekt, das Display ist gebrochen. Die Dateien liegen unverändert in [`c6-lcd-1.3/`](c6-lcd-1.3/): Hochkant-Einbau mit Fenster 24,5 × 24,5 mm, Halteleisten an den M2-Bolzen, Kabelraum und Deckel mit USB-C-Öffnung.

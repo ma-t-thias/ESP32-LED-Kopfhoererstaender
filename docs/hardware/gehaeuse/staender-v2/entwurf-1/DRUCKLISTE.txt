@@ -1,0 +1,30 @@
+Staender v2 - Druckliste (Passprobe, Stand 14.11.2026, Saeulenfenster oben halbrund)
+
+TRAGENDE TEILE - Standard-PLA (z. B. schwarz), 0,2 mm Schicht, 3 Waende, 20 % Fuellung
+  Auflage_v2.stl            Kopfhoerer-Auflage, auf der Rueckseite liegend drucken
+  Druckplatte_FSR.stl       Druckplatte FSR (Bajonett), flach, Noppe nach oben
+  Saeule_v2.stl             Saeule, auf der Seite liegend (46-mm-Seite aufs Bett), Stuetzen nur im Fussbereich falls noetig
+  Sockel_oval_v1.stl        Sockel-Schale, Oberseite nach unten aufs Bett
+  Boden_v1.stl              Bodenplatte mit Platinen-Domen und LED-Rippe, flach
+  (USB-C-Halter ist jetzt in Schale + Boden integriert: Platine in die Schienen schieben, Boden-Anschlag sichert sie)
+  ESP32_Lid_Mikro_hochkant.stl  Deckel Display-Gehaeuse hochkant mit Mikro-Halter (ICS-43434)
+  ESP32_Lid_Mikro_quer.stl      Deckel Display-Gehaeuse quer mit Mikro-Halter (nur fuer Quer-Variante)
+
+INLAYS - fluoreszierendes/nachleuchtendes PLA, 100 % Fuellung, konzentrisch, 0,4-mm-Duese
+  Inlay_Saeule.stl          Saeulen-Streifen, flach (Vorderseite aufs Bett); von unten in die Nut schieben
+  Inlay_Front_links.stl     Frontstreifen links (Langloch), Vorderseite aufs Bett; von innen einsetzen
+  Inlay_Front_rechts.stl    Frontstreifen rechts
+  Inlay_Leuchtring.stl      Leuchtring unten (C-Profil), flach
+
+TPU (Shore 95A), 100 % Fuellung
+  TPU_Fuss_4x.stl           Fuss Oe12 x 5 mm, 4x drucken, Zapfen mit Pilzkopf durch das Loch im Boden druecken, rastet ein (Zapfen Oe6,1 in Loch Oe6,0, Kopf Oe7)
+
+SCHRAUBEN / TEILE
+  4x M3x10 Linsenkopf + 4x Einschmelzmutter M3 (Boden -> Schale, Dome im Sockel)
+  2x M3x8 + 2x Einschmelzmutter M3 (Sockel-Deckflaeche von innen -> Saeulenfuss)
+  2x M3x12 von hinten (Saeule -> Zapfen der Auflage, selbstschneidend ins Kernloch 2,6)
+  FSR402, ICS-43434-Breakout, LED-Streifen fuer Sockel (auf LED-Rippe, LEDs nach aussen)
+
+PASSPROBE (nur oberes Saeulenstueck, zum Testen der Inlay-Passung)
+  Passprobe_v2_Saeule_oben.stl        Standard-PLA, wie Saeule
+  Passprobe_v2_Inlay_Saeule_oben.stl  fluoreszierendes PLA, wie Inlays
