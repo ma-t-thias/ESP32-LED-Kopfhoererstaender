@@ -50,6 +50,8 @@ void begin(LedState &s) {
   s.nightFrom = prefs.getUShort("nFr", s.nightFrom) % 1440;
   s.nightTo = prefs.getUShort("nTo", s.nightTo) % 1440;
   s.nightBri = prefs.getUChar("nBr", s.nightBri);
+  s.hpEnabled = prefs.getBool("hpOn", s.hpEnabled);
+  s.hpBri = prefs.getUChar("hpBr", s.hpBri);
   prefs.end();
   if (s.maxMilliamps == 0 || s.maxMilliamps > LED_MAX_MILLIAMPS_LIMIT) s.maxMilliamps = LED_MAX_MILLIAMPS_DEFAULT;
 
@@ -159,6 +161,8 @@ void loop(const LedState &s) {
   prefs.putUShort("nFr", s.nightFrom);
   prefs.putUShort("nTo", s.nightTo);
   prefs.putUChar("nBr", s.nightBri);
+  prefs.putBool("hpOn", s.hpEnabled);
+  prefs.putUChar("hpBr", s.hpBri);
   prefs.end();
 }
 

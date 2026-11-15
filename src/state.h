@@ -26,6 +26,10 @@ struct LedState {
   uint16_t nightFrom = 22 * 60;
   uint16_t nightTo = 7 * 60;
   uint8_t nightBri = 13;  // ca. 5 %
+  // Kopfhoerer-Erkennung (FSR in der Auflage): ohne Kopfhoerer hoechstens hpBri hell. Ab Werk aus,
+  // weil ein Staender ohne Sensor sonst immer gedimmt waere.
+  bool hpEnabled = false;
+  uint8_t hpBri = 26;  // ca. 10 %
 };
 
 namespace settings {

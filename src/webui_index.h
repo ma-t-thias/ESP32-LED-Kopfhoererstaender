@@ -279,6 +279,13 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     </section>
     <p class="foot" id="nightFoot">Die Uhrzeit holt sich der Ständer aus dem Internet (Zeitzone Deutschland). Zu Beginn der Nacht dimmt er langsam herunter; nach dem Zeitfenster gilt wieder die normale Helligkeit. Von und Bis gleich = Nachtmodus wirkungslos.</p>
    </div>
+   <div class="group" id="hpGroup" hidden><h2>Kopfhörer</h2>
+    <section class="glass list">
+     <div class="li"><span>Ohne Kopfhörer dimmen</span><button class="switch" id="hp" type="button" role="switch" aria-checked="false" aria-label="Ohne Kopfhörer dimmen"></button><small id="hpHint"></small></div>
+     <div class="li stack"><span id="hpBriL">Helligkeit ohne Kopfhörer</span><div class="seg" id="hpBri" role="group" aria-labelledby="hpBriL"></div></div>
+    </section>
+    <p class="foot">Ein Drucksensor in der Auflage merkt, ob der Kopfhörer aufliegt. Nimmst du ihn ab, dimmt der Ständer nach 2 Sekunden langsam herunter, legst du ihn zurück, leuchtet er wieder normal. Nur mit der Platine v2 und eingebautem Sensor einschalten.</p>
+   </div>
   </div>
   <div class="col">
    <div class="group" id="mGroup"><h2>Apple Home · Matter</h2>
@@ -403,7 +410,7 @@ function palCss(p, s){
 // ---------- Effekte (Vorschau im Browser, angelehnt an die Firmware) ----------
 const FX_INT = ['','Anzahl Regenbögen','Wiederholungen','Dichte','','','Abstand','Schweiflänge','Schweiflänge',
  'Häufigkeit','Menge','Flammenhöhe','Anzahl Punkte','Wellengröße','Frequenz','',
- 'Kontrast','Feinheit','Anzahl Meteore','Häufigkeit','Ausbreitung','Flackern','Dichte','Schaum'];
+ 'Kontrast','Feinheit','Anzahl Meteore','Häufigkeit','Ausbreitung','Flackern','Dichte','Schaum','Empfindlichkeit'];
 const AURORA=[[0,[0,0,0]],[70,[0,40,10]],[130,[0,200,60]],[180,[0,160,140]],[220,[70,0,160]],[255,[140,40,200]]];
 const OCEAN=[[0,[0,4,24]],[90,[0,30,90]],[170,[0,110,150]],[220,[40,170,200]],[255,[200,240,255]]];
 function grad(G,x){ x=Math.max(0,Math.min(255,x)); for(let k=1;k<G.length;k++) if(x<=G[k][0]){ const [a,ca]=G[k-1],[b,cb]=G[k]; return mix(ca,cb,(x-a)/(b-a)); } return G[G.length-1][1].slice(); }
@@ -456,6 +463,8 @@ function makeSim(n){
    case 22: { const sc=(2+it*10)/n*4, mid=n/2; for (let i=0;i<n;i++) put(i,palAt(s.pal,Math.abs(i-mid)*sc/4-ph*.2,s)); } break;
    case 23: { const foam=1-it/3; for (let i=0;i<n;i++){ const x=i/n*Math.PI*2; const v=(Math.sin(x*4*1.6+ph)+Math.sin(x*7*1.6-ph*2+.9)+Math.sin(x*2*1.6+ph/2+2.6)+3)/6;
               let c=grad(OCEAN,v*235); if(v>foam){const f=(v-foam)*3*255; c=c.map(q=>Math.min(255,q+f));} put(i,c);} } break;
+   case 24: { const mid=Math.floor(n/2), lv=Math.min(1,(.35+.35*Math.abs(Math.sin(ph*5))+.3*noise(ph*9))*(.4+it)), len=Math.floor(lv*mid); fade(.6);
+              for (let i=0;i<len;i++){ const c=palAt(s.pal,i/mid*.8+ph*.05,s); put(mid+i,c); put(mid-1-i,c); } } break;
   }
   return out;
  };
@@ -504,8 +513,8 @@ const LICENSE = {
 };
 
 // ---------- Schnittstelle ----------
-const demoState = {on:true,wled:false,night:true,nFrom:1320,nTo:420,nBri:13,nActive:false,time:'21:47',bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
-const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean'],
+const demoState = {on:true,wled:false,night:true,nFrom:1320,nTo:420,nBri:13,nActive:false,hpAvail:true,hp:true,hpBri:26,hpOn:true,hpMv:1830,micOk:true,time:'21:47',bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
+const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean','Musik'],
  palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3 (1a2b3c4)',board:'LCD19',sn:'KS-2026-0001',stLast:1,stTime:1794550000,fwMax:3932160,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
 const to = () => window.AbortSignal && AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
@@ -571,6 +580,7 @@ function build(){
   b.innerHTML=`<i></i><span>${name}</span>`; b.onclick=()=>send({pal:i}); $('pals').appendChild(b); });
  ['0°','90°','180°','270°','Auto'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
  [['Aus',0],['5 %',13],['15 %',38],['30 %',77]].forEach(([t,v])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({nBri:v}); $('nBri').appendChild(b); });
+ [['Aus',0],['10 %',26],['30 %',77],['50 %',128]].forEach(([t,v])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({hpBri:v}); $('hpBri').appendChild(b); });
  $('ma').max=info.maMax;
  $('sub').textContent=`${info.host}.local · ${info.leds} LEDs`;
  $('fwCur').textContent=info.fw||'–';
@@ -601,6 +611,9 @@ function render(){
  const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
  if(document.activeElement!==$('nFrom')) $('nFrom').value=hm(st.nFrom??1320);
  if(document.activeElement!==$('nTo')) $('nTo').value=hm(st.nTo??420);
+ $('hpGroup').hidden=!st.hpAvail; $('hp').setAttribute('aria-checked',!!st.hp);
+ [...$('hpBri').children].forEach((b,i)=>b.setAttribute('aria-pressed',[0,26,77,128][i]===st.hpBri));
+ $('hpHint').textContent=(st.hp?(st.hpOn?'Kopfhörer liegt auf':'abgenommen'):'aus')+` · Sensor ${st.hpMv??0} mV`;
  $('nightHint').textContent=!st.night?'aus':!st.time?'wartet auf die Uhrzeit':st.nActive?`jetzt aktiv · ${st.time} Uhr`:`Uhrzeit am Ständer: ${st.time}`;
  $('b1').value=st.c1; $('b2').value=st.c2; $('h1').textContent='Farbe 1 · '+st.c1.toUpperCase(); $('h2').textContent='Farbe 2 · '+st.c2.toUpperCase();
  placeKnob(editing===1?st.c1:st.c2);
@@ -664,6 +677,7 @@ $('matter').onclick=()=>{ if(DEMO || confirm(st.matter?'Matter ausschalten? Der 
 $('mUnpair').onclick=()=>{ if(confirm('Kopplung mit Apple Home & Co. löschen? Der Ständer startet neu und kann dann wieder gekoppelt werden.')) api.matterUnpair().then(t=>alert(t)); };
 $('ma').onchange=e=>send({ma:+e.target.value});
 $('night').onclick=()=>send({night:st.night?0:1});
+$('hp').onclick=()=>send({hp:st.hp?0:1});
 const toMin=v=>{ const [h,m]=v.split(':').map(Number); return h*60+m; };
 $('nFrom').onchange=e=>{ if(e.target.value) send({nFrom:toMin(e.target.value)}); };
 $('nTo').onchange=e=>{ if(e.target.value) send({nTo:toMin(e.target.value)}); };

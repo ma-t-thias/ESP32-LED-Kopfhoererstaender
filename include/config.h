@@ -59,6 +59,20 @@
 #define ARGB_IN_ORDER_G 0
 #define ARGB_IN_ORDER_B 2
 
+// ---------------- Sensoren der Platine v2 (nur ESP32-C6-Touch-LCD-1.9) ----------------
+#ifndef BOARD_LCD_13
+// Kopfhoerer-Erkennung: FSR-Drucksensor in der Auflage zwischen 3V3 und GPIO0, 22 kOhm nach GND.
+// Ohne Kopfhoerer ca. 0 V, mit Kopfhoerer je nach Gewicht ca. 1-3 V. Schwellen mit Hysterese in mV.
+#define HP_SENSE_PIN 0
+#define HP_ON_MV 900     // darueber: Kopfhoerer liegt auf
+#define HP_OFF_MV 450    // darunter: Kopfhoerer abgenommen
+#define HP_DELAY_MS 2000 // erst so lange abgenommen, dann wird gedimmt
+// I2S-Mikrofon INMP441 (L/R auf GND = linker Kanal) fuer den Effekt "Musik"
+#define MIC_SCK 19
+#define MIC_WS 20
+#define MIC_SD 21
+#endif
+
 // ---------------- Display ----------------
 #ifdef BOARD_LCD_13
 // Waveshare ESP32-C6-LCD-1.3: 240x240, Hintergrundlicht HIGH = an

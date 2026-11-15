@@ -1,6 +1,6 @@
 # Platine v2 für den Ständer v2 (mit Kopfhörer-Sensor und Mikrofon)
 
-Status: **Entwurf, noch nicht bestellt und nicht getestet.** Die Firmware für Sensor und Mikrofon fehlt noch.
+Status: **Entwurf, noch nicht bestellt und nicht getestet.** Die Firmware kennt Sensor und Mikrofon (Einstellungen → Kopfhörer, Effekt „Musik“), am echten Aufbau ist beides noch ungetestet.
 
 Die Platine v2 sitzt im neuen ovalen Sockel des Ständers v2 (siehe [`../gehaeuse/staender-v2/`](../gehaeuse/staender-v2/)). Dort ist deutlich mehr Platz als im alten Sockel, deshalb ist sie ein schlichtes Rechteck mit 4 Befestigungslöchern. Gegenüber der [Platine v1](../platine/) kommt Folgendes dazu:
 
@@ -105,4 +105,4 @@ Beim Einlöten auf die Beschriftung achten: GND am eckigen Pad, Beschriftung nac
 
 - Dicke des INMP441-Moduls nachmessen, wenn es da ist (für die Höhe der Schallöffnung).
 - Dome, Schallöffnung über dem Mikrofon und Kabeldurchführungen im Sockel v2 an die neue Platine anpassen.
-- Firmware: Kopfhörer-Erkennung (GPIO0, Schwellwert mit Hysterese) und Musik-Reaktion (I2S).
+- Firmware am echten Aufbau testen: Schwellen des FSR (`HP_ON_MV`/`HP_OFF_MV` in `config.h`) und Empfindlichkeit des Mikrofons.
