@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Platine v2 fuer den Sockel des Kopfhoererstaenders v2 (ovaler Sockel).
 
-Neu gegenueber v1: Kopfhoerer-Sensor (FSR-Folie an GPIO0), I2S-Mikrofon ICS-43434 (GPIO19/20/21),
+Neu gegenueber v1: Kopfhoerer-Sensor (FSR-Folie an GPIO0), I2S-Mikrofon INMP441 (GPIO19/20/21),
 Polyfuse F1 und TVS-Diode D2 am USB-Eingang, ein gemeinsamer 10-poliger Anschluss zum ESP.
 Die USB-Datenleitungen (PC-Sync) laufen nicht mehr ueber die Platine, sondern direkt von der
 USB-C-Buchsenplatine zum ESP.
@@ -92,12 +92,15 @@ for i, net in enumerate(J7):
     J7X[i] = x
     pad(f"J7.{i + 1}", x, EY, net, drill=1.0, shape="square" if i == 0 else "round")
 
-# --- Mikrofon ICS-43434 (I2S-Modul, J6 1x6, vorne rechts). L/R auf GND = linker Kanal
-J6 = ["IO21", "IO20", "IO19", "GND", "GND", "3V3"]           # SD, WS, SCK, L/R, GND, VDD
-J6N = ["SD", "WS", "SCK", "LR", "G", "3V3"]
-J6X0 = 12.0                                   # 1,5 mm Abstand des Moduls zum Schraubenkopf bei (29/21)
-for i, net in enumerate(J6):
-    pad(f"J6.{i + 1}", round(J6X0 + i * P, 2), EY, net, drill=1.0, shape="square" if i == 0 else "round")
+# --- Mikrofon INMP441 (rundes I2S-Modul Ø 14 mm, 2 x 3 Pins, Reihenabstand 7,62). L/R auf GND = linker Kanal.
+# Das Modul liegt flach auf einer kurzen Stiftleiste, Mikrofonchip nach unten, Beschriftung und Schallloch nach oben.
+# Von oben gesehen (Beschriftungsseite) um 180 Grad gedreht: obere Reihe GND, VDD, SD; untere Reihe L/R, WS, SCK.
+J6X0, J6Y2 = 14.5, EY - 3 * P
+J6 = {"GND": (J6X0, EY, "GND"), "VDD": (J6X0 + P, EY, "3V3"), "SD": (J6X0 + 2 * P, EY, "IO21"),
+      "LR": (J6X0, J6Y2, "GND"), "WS": (J6X0 + P, J6Y2, "IO20"), "SCK": (J6X0 + 2 * P, J6Y2, "IO19")}
+for n, (x, y, net) in J6.items():
+    pad(f"J6.{n}", round(x, 2), round(y, 2), net, drill=1.0, shape="square" if n == "GND" else "round")
+MIC_C = (J6X0 + P, (EY + J6Y2) / 2)            # Mitte des Moduls = Schallloch
 
 # --- ARGB-Eingang vom Mainboard (J4, 1x4 90 Grad an der rechten Kante): 5V (nc), D, Luecke, G
 AX = 29.5
@@ -132,9 +135,9 @@ tracks = [
     ("IO0", W_SIG, [at("R5.1"), at("C3.1")]),
     ("ARGB_D", W_SIG, [at("J4.D"), at("R3.1")]),
     ("IO23", W_SIG, [at("R3.2"), at("R4.1"), (at("R4.1")[0], 11.0), (J7X[5], 11.0), at("J7.6")]),
-    ("IO21", W_SIG, [at("J6.1"), (at("J6.1")[0], 23.5), (J7X[8], 23.5), at("J7.9")]),
-    ("IO20", W_SIG, [at("J6.2"), (at("J6.2")[0], 21.5), (J7X[7], 21.5), at("J7.8")]),
-    ("IO19", W_SIG, [at("J6.3"), (at("J6.3")[0], 19.5), (J7X[6], 19.5), at("J7.7")]),
+    ("IO21", W_SIG, [at("J6.SD"), (at("J6.SD")[0], 23.5), (J7X[8], 23.5), at("J7.9")]),
+    ("IO20", W_SIG, [at("J6.WS"), (at("J6.WS")[0], 21.3), (J7X[7], 21.3), at("J7.8")]),
+    ("IO19", W_SIG, [at("J6.SCK"), (at("J6.SCK")[0], 16.4), (J7X[6], 16.4), at("J7.7")]),
 ]
 
 # ---------------- Geometrie ----------------
@@ -155,7 +158,9 @@ def track_shape(t):
 def sj(n):
     return smd[n][:2]
 top_tracks = [
-    ("3V3", W_SIG, [at("J7.3"), (J7X[2], 28.8), (at("J6.6")[0], 28.8), at("J6.6")]),
+    ("3V3", W_SIG, [at("J7.3"), (J7X[2], 28.8), (at("J6.VDD")[0], 28.8), at("J6.VDD")]),
+    # L/R des Mikrofons zur Masse (die Bahnen WS/SCK schliessen das Pad unten ein)
+    ("GND", W_SIG, [at("J6.LR"), at("J6.GND")]),
 ]
 
 def smd_shape(n):
@@ -422,7 +427,7 @@ silk_items = [
     # ESP-Anschluss
     silk_text("ESP32 GPIO", -2.0, 24.2, 1.0),
     # Mikrofon (Umriss des Moduls)
-    silk_rect(11.0, 13.5, 25.9, 25.2), silk_text("MIC ICS-43434", 18.35, 15.0, 1.0),
+    silk_circle(MIC_C[0], MIC_C[1], 7.1), silk_text("MIC", MIC_C[0], MIC_C[1], 1.0),
     # ARGB
     silk_text("ARGB", AX, 10.0, 1.0), silk_text("R3", 25.0, 7.1), silk_text("R4", 20.5, 3.8),
     silk_text("5V", 27.4, 0.0, 1.0), silk_text("D", 27.4, P, 1.0), silk_text("G", 27.4, 3 * P, 1.0),
@@ -434,8 +439,10 @@ silk_items = [
 J7L = ["5V", "G", "3V3", "0", "3", "23", "19", "20", "21", "G"]
 for i, t in enumerate(J7L):
     silk_items.append(silk_text(t, J7X[i], 28.6, 0.9))
-for i, t in enumerate(J6N):
-    silk_items.append(silk_text(t, J6X0 + i * P, 28.6, 0.9))
+for n, t in (("GND", "G"), ("VDD", "3V3"), ("SD", "SD")):
+    silk_items.append(silk_text(t, at("J6." + n)[0], 28.6, 0.9))
+for n in ("LR", "WS", "SCK"):
+    silk_items.append(silk_text(n, at("J6." + n)[0], J6Y2 + 1.8, 0.8))
 silk = unary_union(silk_items)
 silk = silk.difference(unary_union([mask_open, mask_open_top_extra]).buffer(0.15)).intersection(board.buffer(-0.3))
 for m in MOUNT:
@@ -601,10 +608,11 @@ label(-24.46, 16.3, "LED  + G D", f2)
 label(-2.0, 24.0, "ESP32 (J7)", f2)
 for i, t in enumerate(J7L):
     label(J7X[i], 28.6, t, fs)
-box(11.0, 13.5, 25.9, 25.2, "")
-label(18.35, 17.0, "Mikrofon ICS-43434", f2)
-for i, t in enumerate(J6N):
-    label(J6X0 + i * P, 28.6, t, fs)
+X, Y = tf(*MIC_C)
+dr.ellipse([X - 7 * s, Y - 7 * s, X + 7 * s, Y + 7 * s], outline="white", width=4)
+label(MIC_C[0], MIC_C[1], "Mikrofon INMP441", fs)
+for n, (x, y, net) in J6.items():
+    label(x, y + (1.9 if y == EY else -1.6), n, fs)
 label(AX - 0.4, 10.2, "ARGB 90°", fs)
 label(27.3, 0.0, "5V nc", fs)
 label(27.4, P, "D", f2)
