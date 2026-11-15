@@ -8,6 +8,8 @@ namespace effects {
 // Namen fuer Weboberflaeche und Display (Reihenfolge = Index im LedState)
 extern const char *const NAMES[];
 extern const uint8_t COUNT;
+// Effekt "Musik" (Mikrofon): nur solange er laeuft, ist das Mikrofon eingeschaltet
+constexpr uint8_t MUSIC = 24;
 // Bedeutung des Intensitaets-Reglers je Effekt, "" = ohne Wirkung
 extern const char *const INT_NAMES[];
 extern const char *const PALETTE_NAMES[];

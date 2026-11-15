@@ -1,6 +1,7 @@
 #include "effects.h"
 
 #include "config.h"
+#include "sensors.h"
 
 namespace effects {
 
@@ -29,6 +30,7 @@ const char *const NAMES[] = {
     "Kerze",          // 21
     "Lichtwelle",     // 22
     "Ozean",          // 23
+    "Musik",          // 24, braucht das Mikrofon der Platine v2
 };
 const uint8_t COUNT = sizeof(NAMES) / sizeof(NAMES[0]);
 
@@ -37,7 +39,7 @@ const char *const INT_NAMES[] = {
     "", "Anzahl Regenboegen", "Wiederholungen", "Dichte", "", "", "Abstand", "Schweiflaenge",
     "Schweiflaenge", "Haeufigkeit", "Menge", "Flammenhoehe", "Anzahl Punkte", "Wellengroesse",
     "Frequenz", "", "Kontrast", "Feinheit", "Anzahl Meteore", "Haeufigkeit", "Ausbreitung",
-    "Flackern", "Dichte", "Schaum",
+    "Flackern", "Dichte", "Schaum", "Empfindlichkeit",
 };
 static_assert(sizeof(INT_NAMES) == sizeof(NAMES), "INT_NAMES passend zu NAMES pflegen");
 
@@ -370,6 +372,29 @@ void render(CRGB *leds, uint16_t n, const LedState &s, uint32_t now) {
         CRGB c = ColorFromPalette(ocean, scale8(lvl, 235), 255, LINEARBLEND);
         if (lvl > foam) c += CRGB(qsub8(lvl, foam) * 3, qsub8(lvl, foam) * 3, qsub8(lvl, foam) * 3);
         leds[i] = c;
+      }
+      break;
+    }
+
+    case 24: {  // Musik: Pegel vom Mikrofon als Balken von der Mitte nach aussen, mit fallender Spitze.
+                // Intensitaet = Empfindlichkeit, Tempo = wie schnell die Spitze faellt
+      static uint32_t peakQ = 0;  // Spitze in 1/256 LED
+      uint16_t half = n / 2;
+      uint32_t l = min<uint32_t>(255, uint32_t(sensors::micLevel()) * (64 + s.intensity) / 160);
+      uint32_t len = l * half / 255;
+      uint32_t fall = s.speed ? 48 + s.speed : 0;  // Tempo 0: Spitze bleibt stehen
+      peakQ = max<uint32_t>(len << 8, peakQ > fall ? peakQ - fall : 0);
+      fadeToBlackBy(leds, n, 70);
+      uint8_t shift = phase >> 13;
+      for (uint16_t i = 0; i < len && i < half; i++) {
+        CRGB c = ColorFromPalette(pal, uint8_t(i * 200 / half + shift), 255, LINEARBLEND);
+        leds[half + i] = c;
+        leds[half - 1 - i] = c;
+      }
+      uint16_t pk = peakQ >> 8;
+      if (pk > 0 && pk < half) {
+        leds[half + pk] = CRGB(180, 180, 180);
+        leds[half - 1 - pk] = CRGB(180, 180, 180);
       }
       break;
     }

@@ -16,6 +16,7 @@
 #include "matter_dev.h"
 #include "realtime.h"
 #include "selftest.h"
+#include "sensors.h"
 #include "state.h"
 
 namespace {
@@ -148,6 +149,7 @@ void setup() {
   if (!display::begin()) Serial.println("Display nicht gefunden - laeuft ohne Anzeige weiter");
   touch::begin();
   imu::begin();  // nach touch::begin, das den I2C-Bus startet
+  sensors::begin();
 
   net::setLeds(leds, LED_COUNT);
   net::begin(state, onWebChange);
@@ -200,6 +202,7 @@ void loop() {
     default: break;
   }
   imu::loop();
+  sensors::loop(state.on && state.effect == effects::MUSIC);
   settings::loop(state);
 
   if (state.matterEnabled && matterdev::available() && !matterdev::started() && net::info().connected) matterdev::begin(state);
@@ -226,8 +229,13 @@ void loop() {
       // Ohne Internet gilt danach wieder die normale Helligkeit.
       night = net::nightActive(state) || (state.nightEnabled && !net::clockKnown() && now < 30000);
     }
-    uint8_t target = state.on ? (night ? min(state.brightness, state.nightBri) : state.brightness) : 0;
-    if (night && outputLevel > target && state.on) {  // sanft herunterdimmen statt schnell ausblenden
+    // Kopfhoerer abgenommen (Sensor in der Auflage): hoechstens die eingestellte Helligkeit
+    bool away = state.hpEnabled && sensors::hpAvailable() && !sensors::headphonePresent();
+    uint8_t target = state.brightness;
+    if (night) target = min(target, state.nightBri);
+    if (away) target = min(target, state.hpBri);
+    if (!state.on) target = 0;
+    if ((night || away) && outputLevel > target && state.on) {  // sanft herunterdimmen statt schnell ausblenden
       static uint32_t lastDim = 0;
       if (now - lastDim >= 40) {
         lastDim = now;

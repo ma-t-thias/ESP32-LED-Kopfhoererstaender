@@ -17,6 +17,7 @@
 #include "matter_dev.h"
 #include "wled_api.h"
 #include "realtime.h"
+#include "sensors.h"
 #include "webui.h"
 
 namespace net {
@@ -195,6 +196,10 @@ String stateJson() {
   j += ",\"nFrom\":" + String(s.nightFrom) + ",\"nTo\":" + String(s.nightTo) + ",\"nBri\":" + String(s.nightBri);
   j += ",\"nActive\":" + String(nightActive(s) ? "true" : "false");
   j += ",\"time\":\"" + clockText() + "\"";
+  j += ",\"hpAvail\":" + String(sensors::hpAvailable() ? "true" : "false");
+  j += ",\"hp\":" + String(s.hpEnabled ? "true" : "false") + ",\"hpBri\":" + String(s.hpBri);
+  j += ",\"hpOn\":" + String(sensors::headphonePresent() ? "true" : "false") + ",\"hpMv\":" + String(sensors::hpMilliVolts());
+  j += ",\"micOk\":" + String(sensors::micOk() ? "true" : "false");
   j += ",\"matterAvail\":" + String(matterdev::available() ? "true" : "false");
   j += ",\"matter\":" + String(s.matterEnabled ? "true" : "false");
   j += ",\"matterPaired\":" + String(matterdev::paired() ? "true" : "false");
@@ -423,6 +428,8 @@ void handleSetState() {
   v = argInt("nFrom", 0, 1439, p);     if (p) s.nightFrom = v;
   v = argInt("nTo", 0, 1439, p);       if (p) s.nightTo = v;
   v = argInt("nBri", 0, 255, p);       if (p) s.nightBri = v;
+  v = argInt("hp", 0, 1, p);           if (p) s.hpEnabled = v;
+  v = argInt("hpBri", 0, 255, p);      if (p) s.hpBri = v;
   v = argInt("matter", 0, 1, p);
   if (p && matterdev::available() && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
     s.matterEnabled = v;

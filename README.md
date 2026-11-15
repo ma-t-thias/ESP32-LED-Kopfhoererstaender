@@ -17,7 +17,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
   <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht im dunklen Modus" width="800">
 </p>
 
-Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Nachtmodus, Zugang, Wartung mit Firmware-Update, Selbsttest, WLAN und Werkseinstellungen) und **Info** (Gerätedaten mit Firmware-Version, Seriennummer und letztem Selbsttest, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
+Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Nachtmodus, Kopfhörer-Erkennung, Zugang, Wartung mit Firmware-Update, Selbsttest, WLAN und Werkseinstellungen) und **Info** (Gerätedaten mit Firmware-Version, Seriennummer und letztem Selbsttest, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
 
 Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
 
@@ -114,6 +114,7 @@ Beim ersten Start erzeugt der Ständer ein eigenes, zufälliges Passwort aus 8 Z
 - **BOOT-Taster 5 s halten:** Das Display zeigt „Loslassen: WLAN-Reset“. Jetzt loslassen löscht die WLAN-Daten, Neustart ins Einrichtungs-WLAN.
 - **BOOT-Taster 10 s halten:** Werkseinstellungen. Löscht alles (WLAN, Einstellungen, Presets, Gerätepasswort, Matter-Kopplung; die Seriennummer bleibt) und startet ins Einrichtungs-WLAN; danach gibt es ein neues Passwort. Geht auch in der Weboberfläche unter **Einstellungen → Wartung → Werkseinstellungen**.
 - **Nachtmodus** (Einstellungen → Nachtmodus): Im Zeitfenster *Von*–*Bis* (z. B. 22:00–07:00, auch über Mitternacht) leuchtet der Ständer höchstens mit der gewählten Nacht-Helligkeit (Aus, 5 %, 15 % oder 30 %) und dimmt beim Beginn langsam herunter (ca. 10 s). Nach dem Zeitfenster gilt wieder die normale Helligkeit. Sind *Von* und *Bis* gleich, ist der Nachtmodus wirkungslos. Solange der Ständer nach dem Einschalten die Uhrzeit noch nicht kennt (höchstens 30 s), leuchtet er bei eingeschaltetem Nachtmodus vorsichtshalber nur mit der Nacht-Helligkeit. Die Uhrzeit holt sich der Ständer per NTP aus dem Internet (Zeitzone in `config.h`, `TIMEZONE`); ohne Internet bleibt der Nachtmodus wirkungslos. Die Weboberfläche zeigt die Uhrzeit des Ständers zur Kontrolle.
+- **Kopfhörer-Erkennung** (Einstellungen → Kopfhörer, nur mit [Platine v2](docs/hardware/platine-v2/) und FSR-Drucksensor in der Auflage): Mit „Ohne Kopfhörer dimmen“ dimmt der Ständer 2 s nach dem Abnehmen langsam auf die gewählte Helligkeit (Aus, 10 %, 30 % oder 50 %) und leuchtet normal, sobald der Kopfhörer wieder aufliegt. Ab Werk aus, weil ein Ständer ohne Sensor sonst immer gedimmt wäre. Die Weboberfläche zeigt den Messwert des Sensors (mV) zum Prüfen; die Schwellen (`HP_ON_MV`, `HP_OFF_MV`) stehen in `config.h`.
 - **Anzeige drehen** (Einstellungen): 0° und 180° ergeben Hochformat, 90° und 270° Querformat, passend zur Gehäusevariante. Die Anzeige ordnet sich selbst neu an.
 
 Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert und nach einem Neustart wiederhergestellt.
@@ -146,8 +147,11 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 | Kerze | Farbe 1 (warm wählen) | Flackern |
 | Lichtwelle | Palette | Dichte |
 | Ozean | eigene Blautöne | Schaum |
+| Musik | Palette | Empfindlichkeit (Tempo = wie schnell die Spitze fällt) |
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
+
+**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft.
 
 ## ASUS Aura über das Mainboard-Kabel
 
@@ -277,8 +281,8 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET | `/api/state` | aktueller Zustand als JSON (dazu `nActive` = Nachtmodus gerade aktiv, `time` = Uhrzeit am Ständer) |
-| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu), `wled` (0/1, WLED-Schnittstelle ohne Passwort), `night` (0/1), `nFrom`/`nTo` (Minuten ab Mitternacht), `nBri` (0–255, 0 = aus) |
+| GET | `/api/state` | aktueller Zustand als JSON (dazu `nActive` = Nachtmodus gerade aktiv, `time` = Uhrzeit am Ständer, `hpAvail` = Board hat den Sensoreingang, `hpOn` = Kopfhörer liegt auf, `hpMv` = Messwert des Sensors, `micOk` = Mikrofon liefert Daten) |
+| POST | `/api/state` | Felder `on`, `bri`, `fx`, `pal`, `spd`, `int`, `c1`, `c2` (`#rrggbb`), `ma`, `sync`, `argb`, `rot` (0–3, 4 = Auto), `matter` (0/1, startet neu), `wled` (0/1, WLED-Schnittstelle ohne Passwort), `night` (0/1), `nFrom`/`nTo` (Minuten ab Mitternacht), `nBri` (0–255, 0 = aus), `hp` (0/1, ohne Kopfhörer dimmen), `hpBri` (0–255) |
 | GET | `/api/info` | Firmware-Version (`fw`), Seriennummer (`sn`, leer = keine), letzter Selbsttest (`stLast`: -1 keiner, 0 nicht bestanden, 1 bestanden; `stTime` Unixzeit, 0 = ohne Datum), Platz für Updates in Byte (`fwMax`), Effekt- und Palettennamen, Netzwerkdaten |
 | POST | `/api/matter/unpair` | Matter-Kopplung löschen, danach Neustart |
 | POST | `/api/login` | prüft nur das Passwort (200 oder 401) |
@@ -309,6 +313,7 @@ Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfh
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, Adalight über USB, Textbefehle über USB |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
+| `src/sensors.cpp` | Platine v2: Kopfhörer-Erkennung (FSR an GPIO0) und I2S-Mikrofon für den Effekt „Musik“ |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO23 mit |
 | `web/index.html` | Weboberfläche (Quelle) |
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |
