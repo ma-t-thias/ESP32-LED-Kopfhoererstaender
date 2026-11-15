@@ -382,7 +382,7 @@ void render(CRGB *leds, uint16_t n, const LedState &s, uint32_t now) {
       uint16_t half = n / 2;
       uint32_t l = min<uint32_t>(255, uint32_t(sensors::micLevel()) * (64 + s.intensity) / 160);
       uint32_t len = l * half / 255;
-      uint32_t fall = 48 + s.speed;
+      uint32_t fall = s.speed ? 48 + s.speed : 0;  // Tempo 0: Spitze bleibt stehen
       peakQ = max<uint32_t>(len << 8, peakQ > fall ? peakQ - fall : 0);
       fadeToBlackBy(leds, n, 70);
       uint8_t shift = phase >> 13;

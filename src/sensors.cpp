@@ -18,10 +18,12 @@ uint32_t lastRead = 0;
 // ---- Mikrofon ----
 I2SClass i2s;
 bool micRunning = false;
-int32_t buf[64];  // 4 ms bei 16 kHz
+uint32_t micStartAt = 0;  // die ersten 300 ms liefert das Mikrofon nur Nullen
+uint32_t micRetryAt = 0;  // nach einem Fehlstart erst spaeter erneut versuchen
+int32_t buf[64];
 float dc = 0, acc = 0;
 uint16_t count = 0;
-float floorDb = 40;     // Grundrauschen, passt sich an
+float floorDb = -1;     // Grundrauschen, passt sich an (-1 = noch unbekannt)
 uint8_t level = 0;
 uint32_t lastData = 0;  // letzter Block mit Signal
 
@@ -38,9 +40,13 @@ void readHeadphone(uint32_t now) {
 
 void micStart() {
   i2s.setPins(MIC_SCK, MIC_WS, -1, MIC_SD);
-  i2s.setTimeout(5);  // wartet hoechstens 5 ms auf den naechsten Block
   micRunning = i2s.begin(I2S_MODE_STD, 16000, I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO, I2S_STD_SLOT_LEFT);
-  if (!micRunning) Serial.println("Mikrofon: I2S startet nicht");
+  if (!micRunning) {
+    Serial.println("Mikrofon: I2S startet nicht");
+    micRetryAt = millis() + 5000;
+  }
+  micStartAt = millis();
+  floorDb = -1;
   count = 0;
   acc = 0;
 }
@@ -51,21 +57,28 @@ void block() {
   acc = 0;
   count = 0;
   float db = 20.0f * log10f(env + 1.0f);
-  if (env > 0) lastData = millis();
-  if (db < floorDb) floorDb = db;               // leiser geworden: Grundrauschen sofort nachziehen
-  else floorDb += 0.02f;                        // sonst langsam hochlaufen (ca. 1 dB/s)
+  if (env <= 0 || millis() - micStartAt < 300) return;  // Anlaufphase: nur Nullen
+  lastData = millis();
+  if (floorDb < 0 || db < floorDb) floorDb = db;  // leiser geworden: Grundrauschen sofort nachziehen
+  else floorDb += 0.005f;                         // sonst langsam hochlaufen (ca. 0,3 dB/s)
   float x = (db - floorDb - 3.0f) * (255.0f / 36.0f);
   uint8_t l = x <= 0 ? 0 : x >= 255 ? 255 : uint8_t(x);
   level = l > level ? l : (level > 8 ? level - 8 : 0);  // schnell hoch, langsam runter
 }
 
+// Liest, was im DMA-Puffer liegt, ohne zu warten (auch Teilbloecke)
 void readMic() {
-  size_t n = i2s.readBytes((char *)buf, sizeof(buf)) / sizeof(int32_t);
-  for (size_t i = 0; i < n; i++) {
-    float x = float(buf[i] >> 8);  // 24 Bit Nutzdaten oben im 32-Bit-Wort
-    dc += (x - dc) * 0.001f;       // Gleichanteil entfernen
-    acc += fabsf(x - dc);
-    if (++count >= 256) block();
+  for (int k = 0; k < 8; k++) {
+    size_t got = 0;
+    i2s_channel_read(i2s.rxChan(), buf, sizeof(buf), &got, 0);
+    size_t n = got / sizeof(int32_t);
+    for (size_t i = 0; i < n; i++) {
+      float x = float(buf[i] >> 8);  // 24 Bit Nutzdaten oben im 32-Bit-Wort
+      dc += (x - dc) * 0.001f;       // Gleichanteil entfernen
+      acc += fabsf(x - dc);
+      if (++count >= 256) block();
+    }
+    if (got < sizeof(buf)) break;
   }
 }
 }  // namespace
@@ -78,7 +91,7 @@ void begin() {
 void loop(bool mic) {
   uint32_t now = millis();
   readHeadphone(now);
-  if (mic && !micRunning) micStart();
+  if (mic && !micRunning && (int32_t)(now - micRetryAt) >= 0) micStart();
   else if (!mic && micRunning) {
     i2s.end();
     micRunning = false;
