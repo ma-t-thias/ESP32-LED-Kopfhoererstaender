@@ -5,14 +5,14 @@ Status: **Entwurf, noch nicht bestellt und nicht getestet.** Die Firmware für S
 Die Platine v2 sitzt im neuen ovalen Sockel des Ständers v2 (siehe [`../gehaeuse/staender-v2/`](../gehaeuse/staender-v2/)). Dort ist deutlich mehr Platz als im alten Sockel, deshalb ist sie ein schlichtes Rechteck mit 4 Befestigungslöchern. Gegenüber der [Platine v1](../platine/) kommt Folgendes dazu:
 
 - **Kopfhörer-Sensor:** Anschluss für eine FSR-Drucksensor-Folie (FSR402 o. ä.) unter der Druckplatte in der Kopfhörer-Auflage. Die Folie liegt zwischen 3,3 V und GPIO0, R5 (22 kΩ) zieht nach GND, C3 (100 nF) glättet. Ohne Kopfhörer liegt GPIO0 bei ca. 0 V, mit Kopfhörer je nach Gewicht bei ca. 2–3 V.
-- **Mikrofon:** Steckplatz für ein I2S-Mikrofonmodul ICS-43434 (6 Pins) für die Musik-Reaktion. SCK = GPIO19, WS = GPIO20, SD = GPIO21, L/R auf GND (linker Kanal).
+- **Mikrofon:** Steckplatz für ein rundes I2S-Mikrofonmodul INMP441 (Ø 14 mm, 2 × 3 Pins) für die Musik-Reaktion. SCK = GPIO19, WS = GPIO20, SD = GPIO21, L/R auf GND (linker Kanal).
 - **Schutz am Eingang:** Polyfuse F1 (3,75 A Haltestrom) und TVS-Diode D2 (5 V) direkt hinter dem USB-C-Eingang.
 - **Ein Anschluss zum ESP:** Alle Leitungen zum ESP laufen über eine 10-polige Stiftleiste J7 (ein Kabel statt mehrerer).
 - **USB-Daten nicht mehr über die Platine:** Für PC-Sync führt das Datenkabel jetzt direkt von der USB-C-Buchsenplatine (Pins 5–6) zum ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D−). Es bleibt der Schalter: gesteckt PC-Sync, abgezogen nur Strom.
 
 ![Bestückungsplan](out/platine_v2_bestueckung.png)
 
-Ansicht von der Bauteilseite. Gelb ist die Massefläche (GND), die farbigen Bahnen sind die übrigen Netze (Kupfer unten). Die hellblau gestrichelte Linie oben ist die einzige Bahn auf der Bauteilseite (3V3 zum Mikrofon).
+Ansicht von der Bauteilseite. Gelb ist die Massefläche (GND), die farbigen Bahnen sind die übrigen Netze (Kupfer unten). Die hellblau gestrichelten Linien liegen auf der Bauteilseite: 3V3 zum Mikrofon und eine kurze Masse-Brücke von L/R zu GND am Mikrofon.
 
 ## Maße und Einbau
 
@@ -20,7 +20,7 @@ Ansicht von der Bauteilseite. Gelb ist die Massefläche (GND), die farbigen Bahn
 - Umriss x −32…32, y −22…30.
 - 4 Befestigungslöcher Ø 2,7 mm für M2,5 bei (−29/−19), (29/−19), (−29/21), (29/21). Die Dome im Sockel-Boden müssen an diese Stellen.
 - Bis zur Sockeldecke sind über der Platine ca. 17 mm frei. Die höchsten Bauteile sind F1 (radial, je nach Hersteller bis ca. 15 mm mit Beinchen) und D2 (stehend, ca. 12 mm). Wird es zu eng, F1 vor dem Einlöten flach umlegen (die Beinchen sind lang genug). C1 liegt.
-- Das Mikrofonmodul liegt flach auf einer kurzen Stiftleiste über dem markierten Feld rechts (x 11…25,9, y 13,5…25,2), mit ca. 1,5 mm Abstand zum Schraubenkopf bei (29/21). Darüber braucht der Sockel eine Schallöffnung.
+- Das Mikrofonmodul liegt flach auf zwei kurzen 1×3-Stiftleisten im markierten Kreis vorne rechts. Die Mitte (= Schallloch) liegt bei x 17,04 / y 22,69. Der Mikrofonchip zeigt nach unten zur Platine, die Beschriftung mit dem Schallloch nach oben. Genau darüber braucht der Sockel eine Schallöffnung. Zum Schraubenkopf bei (29/21) bleiben ca. 2,5 mm.
 - **J7 nicht als gerade Stiftleiste mit Dupont-Stecker** (zu hoch): 90°-Stiftleiste nach vorne oder Litze direkt einlöten, am ESP-Ende Dupont-Buchsen.
 - J4 (ARGB, 90°-Stiftleiste) zeigt an der rechten Kante nach außen.
 
@@ -42,7 +42,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen und zur Massef
 
 | Datei | Lage |
 |---|---|
-| `platine-v2-F_Cu.gtl` | Kupfer oben: Lötaugen und die 3V3-Bahn zum Mikrofon |
+| `platine-v2-F_Cu.gtl` | Kupfer oben: Lötaugen, die 3V3-Bahn zum Mikrofon und die Brücke L/R → GND |
 | `platine-v2-B_Cu.gbl` | Kupfer unten: Leiterbahnen und Massefläche |
 | `platine-v2-F_Mask.gts`, `platine-v2-B_Mask.gbs` | Lötstopplack oben/unten |
 | `platine-v2-F_SilkS.gto` | Bestückungsdruck (Bauteilnamen, Pinbelegung, Polung, Copyright) |
@@ -51,7 +51,7 @@ Das Skript prüft beim Erzeugen die Abstände zwischen den Netzen und zur Massef
 
 ## Selbst ätzen
 
-Die Ätzvorlage zeigt die Unterseite von der Bauteilseite aus gesehen, also **nicht spiegeln**. Prüfmaß 64,0 × 52,0 mm. Die Bahn auf der Bauteilseite (3V3 von J7 Pin 3 zu J6 Pin 6) als isolierten Draht oben einlöten. GND-Brücken sind diesmal nicht nötig.
+Die Ätzvorlage zeigt die Unterseite von der Bauteilseite aus gesehen, also **nicht spiegeln**. Prüfmaß 64,0 × 52,0 mm. Die beiden Bahnen auf der Bauteilseite als isolierte Drähte oben einlöten: 3V3 von J7 Pin 3 zu J6 VDD und L/R zu GND am Mikrofon (sonst hängt L/R in der Luft).
 
 ## Bauteile
 
@@ -72,7 +72,7 @@ Die Ätzvorlage zeigt die Unterseite von der Bauteilseite aus gesehen, also **ni
 | LED | Pads 1×3 | Pigtail mit JST-SM zum Streifen: +, G, D |
 | J4 | Stiftleiste 1×4, 90° | ARGB vom Mainboard (5V nc, D, Lücke, G). Dritten Stift vor dem Einlöten ziehen. |
 | J5 | Stiftleiste 1×2 oder Litze | FSR-Folie (Polung egal) |
-| J6 | Stiftleiste 1×6 (kurz) | Mikrofonmodul ICS-43434, flach liegend |
+| J6 | 2 × Stiftleiste 1×3 (liegen dem Modul bei) | Mikrofonmodul INMP441, flach liegend, Chip nach unten, Schallloch nach oben |
 | J7 | 90°-Stiftleiste 1×10 oder Litze | Kabel zum ESP (siehe unten) |
 
 ## Anschluss ESP (J7)
@@ -92,10 +92,17 @@ Die Ätzvorlage zeigt die Unterseite von der Bauteilseite aus gesehen, also **ni
 
 ## Mikrofon (J6)
 
-Reihenfolge auf der Platine: SD, WS, SCK, L/R, GND, 3V3. **Die Pinreihenfolge der ICS-43434-Module ist je nach Hersteller verschieden.** Vor der Bestellung mit dem tatsächlich gekauften Modul abgleichen und ggf. im Skript (`J6`, `J6N`) anpassen.
+Rundes INMP441-Modul (Ø 14 mm), 2 Reihen zu 3 Pins im 2,54-Raster, Reihenabstand 7,62 mm. Auf der Beschriftungsseite: oben SCK, WS, L/R, unten SD, VDD, GND. Auf der Platine ist das Modul um 180° gedreht eingesetzt, von oben gesehen:
+
+| Reihe | links | Mitte | rechts |
+|---|---|---|---|
+| vorne (y 26,5) | GND (eckig) | VDD = 3V3 | SD → GPIO21 |
+| hinten (y 18,88) | L/R → GND | WS → GPIO20 | SCK → GPIO19 |
+
+Beim Einlöten auf die Beschriftung achten: GND am eckigen Pad, Beschriftung nach oben lesbar.
 
 ## Offen
 
-- Pinreihenfolge des gekauften Mikrofonmoduls bestätigen.
+- Dicke des INMP441-Moduls nachmessen, wenn es da ist (für die Höhe der Schallöffnung).
 - Dome, Schallöffnung über dem Mikrofon und Kabeldurchführungen im Sockel v2 an die neue Platine anpassen.
 - Firmware: Kopfhörer-Erkennung (GPIO0, Schwellwert mit Hysterese) und Musik-Reaktion (I2S).
