@@ -1,5 +1,7 @@
 # Platine für den Sockel (bedrahtet, zum Bestellen oder Selbstätzen)
 
+> Für den neuen Ständer v2 (ovaler Sockel) gibt es die [Platine v2](../platine-v2/) mit Kopfhörer-Sensor, Mikrofon und Eingangsschutz. Diese Platine v1 gehört zum alten Sockel (Base_Box).
+
 Die Platine ersetzt den Breadboard-Aufbau und die WAGO-Klemmen. Sie sitzt im Sockel (Base_Box) in der Mitte zwischen den drei Diffusor-Einlagen im Sockelboden, mit einer Zunge Richtung ESP-Gehäuse. Die Lichtöffnungen bleiben frei.
 
 ![Bestückungsplan](out/platine_bestueckung.png)
