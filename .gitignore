@@ -10,5 +10,4 @@ __pycache__/
 # Blender (STL-Exporte und Szenen bleiben lokal)
 *.blend
 *.blend1
-tools/blender/stl/
 tools/blender/Display_Grundbild.png
