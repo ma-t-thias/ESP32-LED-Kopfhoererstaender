@@ -89,7 +89,15 @@ def _leds():
 
 
 # Umrechnung 0..255 (sRGB) -> linear, damit die Farben wie am Streifen aussehen
-_LIN = [(v / 255) ** 2.2 for v in range(256)]
+def _srgb_zu_linear(v):
+    return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+
+
+def _linear_zu_srgb(v):
+    return v * 12.92 if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055
+
+
+_LIN = [_srgb_zu_linear(v / 255) for v in range(256)]
 
 
 class _Live:
@@ -110,7 +118,7 @@ class _Live:
             threading.Thread(target=self._read_sim, daemon=True).start()
         else:
             threading.Thread(target=self._read_http, daemon=True).start()
-        bpy.app.timers.register(self._apply, first_interval=INTERVAL)
+        bpy.app.timers.register(self._apply, first_interval=INTERVAL, persistent=True)
 
     def _read_http(self):
         url = f"http://{self.quelle}/api/live"
@@ -201,6 +209,7 @@ def start(quelle, args=None):
         old.stop()
     if not quelle:
         print("LED-Live: gestoppt")
+        _neu_zeichnen()
         return
     _ansicht()
     if args is not None:
@@ -214,11 +223,20 @@ def start(quelle, args=None):
     except Exception:
         pass
     print(f"LED-Live: Quelle {quelle}, {len(_leds())} LED-Objekte")
+    _neu_zeichnen()
 
 
 def laeuft():
     live = bpy.app.driver_namespace.get("led_live")
-    return bool(live and live.run)
+    return bool(live and live.run and (live.proc is None or live.proc.poll() is None))
+
+
+def _neu_zeichnen():
+    wm = bpy.context.window_manager
+    for win in (wm.windows if wm else []):
+        for area in win.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
 
 
 # ----------------------------------------------------------------------------- Bedienfeld
@@ -263,7 +281,7 @@ def _senden(befehl):
 
 
 def _hex(c):
-    return "".join(f"{max(0, min(255, round((v ** (1 / 2.2)) * 255))):02x}" for v in c[:3])
+    return "".join(f"{max(0, min(255, round(_linear_zu_srgb(max(0.0, v)) * 255))):02x}" for v in c[:3])
 
 
 def _alle_werte(p):
@@ -306,6 +324,9 @@ class LEDSIM_OT_start(bpy.types.Operator):
                     _namen_holen()
                 start("sim", _alle_werte(p))
             else:
+                if not p.host.strip():
+                    self.report({"ERROR"}, "Adresse des Ständers fehlt")
+                    return {"CANCELLED"}
                 start(p.host.strip())
         except RuntimeError as e:
             self.report({"ERROR"}, str(e))
@@ -352,10 +373,17 @@ class LEDSIM_PT_panel(bpy.types.Panel):
             col.label(text="Weboberfläche oder das Display wählen.")
 
 
+@bpy.app.handlers.persistent
+def _beim_laden(*_):
+    start("")  # andere Datei geöffnet: Simulation beenden statt im Hintergrund weiterlaufen
+
+
 _KLASSEN = (LEDSIM_Props, LEDSIM_OT_start, LEDSIM_OT_stop, LEDSIM_PT_panel)
 
 
 def registrieren():
+    if hasattr(bpy.types.Scene, "ledsim"):  # erst den Verweis lösen, dann die Klassen
+        del bpy.types.Scene.ledsim
     for k in reversed(_KLASSEN):  # bei erneutem "Run Script" erst die alte Fassung entfernen
         alt = getattr(bpy.types, k.__name__, None)
         if alt is not None:
@@ -366,16 +394,43 @@ def registrieren():
     for k in _KLASSEN:
         bpy.utils.register_class(k)
     bpy.types.Scene.ledsim = bpy.props.PointerProperty(type=LEDSIM_Props)
+    for h in list(bpy.app.handlers.load_pre):
+        if getattr(h, "__name__", "") == "_beim_laden":
+            bpy.app.handlers.load_pre.remove(h)
+    bpy.app.handlers.load_pre.append(_beim_laden)
     _namen_holen()
 
 
+def _args_ins_bedienfeld(p, args):
+    """Startwerte wie "effect 5 speed 200" ins Bedienfeld übernehmen, damit Anzeige und Simulation passen."""
+    felder = {"effect": "effekt", "palette": "palette", "speed": "tempo", "intensity": "staerke",
+              "color1": "farbe1", "color2": "farbe2"}
+    for key, val in zip(args[0::2], args[1::2]):
+        feld = felder.get(key)
+        try:
+            if feld in ("effekt", "palette"):
+                setattr(p, feld, val)
+            elif feld in ("tempo", "staerke"):
+                setattr(p, feld, max(0, min(255, int(val))))
+            elif feld:
+                v = int(val, 16)
+                setattr(p, feld, [_LIN[(v >> s) & 255] for s in (16, 8, 0)])
+        except (TypeError, ValueError):
+            print(f"LED-Live: Startwert {key} {val} ignoriert")
+
+
 registrieren()
+_p = bpy.context.scene.ledsim
+if not bpy.app.driver_namespace.get("led_live_init"):
+    bpy.app.driver_namespace["led_live_init"] = True
+    if _EFFEKTE:
+        _p.effekt = "1"  # Regenbogen: bewegt sich, man sieht sofort, dass es läuft
 if QUELLE:
-    # Simulation ohne eigene Startwerte: die Werte aus dem Bedienfeld nehmen, damit beides passt
-    werte = SIM_ARGS or (_alle_werte(bpy.context.scene.ledsim) if QUELLE == "sim" else None)
     if QUELLE == "sim":
-        bpy.context.scene.ledsim.quelle = "SIM"
+        _p.quelle = "SIM"
+        _args_ins_bedienfeld(_p, SIM_ARGS)
+        start("sim", _alle_werte(_p))
     else:
-        bpy.context.scene.ledsim.quelle = "STAENDER"
-        bpy.context.scene.ledsim.host = QUELLE
-    start(QUELLE, werte)
+        _p.quelle = "STAENDER"
+        _p.host = QUELLE
+        start(QUELLE)

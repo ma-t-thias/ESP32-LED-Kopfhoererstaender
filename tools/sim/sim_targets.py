@@ -4,6 +4,7 @@
 #   "Blender-Szene neu bauen"        baut tools/blender/Staender_v8.blend aus tools/blender/stl/
 # Blender wird gesucht: Umgebungsvariable BLENDER, dann PATH, dann
 # "C:\Program Files\Blender Foundation\Blender x.y\blender.exe" (neueste Version).
+# Store-/Steam-/ZIP-Installationen: Umgebungsvariable BLENDER auf blender.exe setzen.
 import glob
 import os
 import re
@@ -57,8 +58,15 @@ def szene_bauen(source, target, env):
         return 1
     display_bild(env.subst("$PROG_PATH"))
     print(f"Baue Szene mit {exe} ...")
-    return subprocess.run([exe, "--background", "--python", os.path.join(BL_DIR, "build_staender_blend.py"),
-                           "--", "--stl-dir", STL, "--out", BLEND, "--display-png", PNG]).returncode
+    vorher = os.path.getmtime(BLEND) if os.path.isfile(BLEND) else 0
+    # --python-exit-code: sonst meldet Blender auch bei einem Fehler im Skript "fertig"
+    rc = subprocess.run([exe, "--background", "--python-exit-code", "1",
+                         "--python", os.path.join(BL_DIR, "build_staender_blend.py"),
+                         "--", "--stl-dir", STL, "--out", BLEND, "--display-png", PNG]).returncode
+    if rc == 0 and (not os.path.isfile(BLEND) or os.path.getmtime(BLEND) <= vorher):
+        print(f"Szene wurde nicht geschrieben: {BLEND}")
+        return 1
+    return rc
 
 
 def blender_starten(source, target, env):
@@ -70,9 +78,17 @@ def blender_starten(source, target, env):
         print(f"Szene fehlt: {BLEND}\nZuerst die Aufgabe \"Blender-Szene neu bauen\" ausführen.")
         return 1
     display_bild(env.subst("$PROG_PATH"))
-    # Blender bleibt offen, die Aufgabe in VS Code ist danach fertig
-    subprocess.Popen([exe, BLEND, "--python", os.path.join(BL_DIR, "live_leds.py"), "--", "sim"],
-                     cwd=PROJ)
+    # Blender eigenständig starten: nicht an das Terminal von VS Code gebunden (sonst schließt es
+    # mit dem Terminal), die Aufgabe ist danach sofort fertig. Meldungen von Blender stehen dann
+    # in Blender unter Fenster -> Systemkonsole umschalten.
+    cmd = [exe, BLEND, "--python", os.path.join(BL_DIR, "live_leds.py"), "--", "sim"]
+    if os.name == "nt":
+        subprocess.Popen(cmd, cwd=PROJ, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, close_fds=True,
+                         creationflags=0x00000008 | 0x00000200)  # DETACHED_PROCESS | NEW_PROCESS_GROUP
+    else:
+        subprocess.Popen(cmd, cwd=PROJ, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, close_fds=True, start_new_session=True)
     print("Blender startet. Bedienfeld: in der 3D-Ansicht Taste N, Reiter \"LED\".")
     return 0
 

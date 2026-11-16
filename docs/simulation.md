@@ -24,7 +24,7 @@ Du musst nur VS Code bedienen und danach Blender. Die Simulation startet und bee
 
 Das ist nur einmal pro PC nötig. Auf Matthias' PC ist alles schon erledigt.
 
-1. **Blender installieren** (kostenlos, [blender.org](https://www.blender.org/download/)), Version 4.2 oder neuer. Die Aufgaben finden Blender unter `C:\Program Files\Blender Foundation\` von selbst.
+1. **Blender installieren** (kostenlos, [blender.org](https://www.blender.org/download/)), Version 4.2 oder neuer, mit dem normalen Installer. Die Aufgaben finden Blender unter `C:\Program Files\Blender Foundation\` von selbst. Bei Store-, Steam- oder ZIP-Version die Umgebungsvariable `BLENDER` auf die `blender.exe` setzen.
 2. **C++-Compiler installieren.** Er übersetzt die Simulation für den PC.
    - [w64devkit](https://github.com/skeeto/w64devkit/releases) herunterladen (die Datei `w64devkit-x64-….7z.exe`) und nach `C:\w64devkit` entpacken.
    - `C:\w64devkit\bin` zum Benutzer-PATH hinzufügen: Windows-Taste, „Umgebungsvariablen für dieses Konto bearbeiten“, `Path` → Bearbeiten → Neu.
@@ -52,13 +52,13 @@ Links auf das **PlatformIO-Symbol** (Ameisenkopf) klicken. Unter **Project Tasks
 
 ![PlatformIO-Aufgaben unter env:sim → Custom](images/simulation/02_vscode_aufgaben.png)
 
-Unten im Terminal läuft jetzt der Bau. Beim ersten Mal dauert das etwa eine Minute, danach nur Sekunden. Am Ende steht `SUCCESS`, und Blender öffnet sich.
+Unten im Terminal läuft jetzt der Bau. Beim ersten Mal dauert das etwa eine Minute, danach nur Sekunden. Dann öffnet sich Blender, und im Terminal steht `SUCCESS`.
 
 > **Was passiert dabei?** PlatformIO übersetzt die Simulation, zeichnet das Display-Startbild als Bild und startet Blender mit dem Ständer. Die Effekte laufen sofort.
 
 ### Schritt 3: Blender, der Ständer leuchtet
 
-Blender zeigt den Ständer aus Kamerasicht. Die LEDs laufen schon mit dem ersten Effekt.
+Blender zeigt den Ständer aus Kamerasicht. Die LEDs laufen schon, zu Beginn mit dem Effekt „Regenbogen“.
 
 ![Blender mit leuchtendem Ständer](images/simulation/03_blender_start.png)
 
@@ -132,10 +132,12 @@ Paletten: 0 Regenbogen, 1 Party, 2 Ozean, 3 Lava, 4 Wald, 5 Wolken, 6 Hitze, 7 E
 | `g++` nicht gefunden, Bau bricht sofort ab | Compiler fehlt oder PATH nicht gesetzt (Einrichten, Schritt 2). VS Code neu starten. |
 | „Blender nicht gefunden“ | Blender installieren oder die Umgebungsvariable `BLENDER` auf `blender.exe` setzen. |
 | „Szene fehlt“ | Zuerst die Aufgabe „Blender-Szene neu bauen“ ausführen. |
+| Blender meldet einen Fehler oder bleibt leer | In Blender *Fenster → Systemkonsole umschalten* öffnen und die Meldung lesen. |
 | „STL-Ordner fehlt“ | STLs nach `tools/blender/stl/` kopieren. |
+| Aufgaben fehlen unter sim → Custom | In der PlatformIO-Seitenleiste oben auf „Refresh Project Tasks“ (Pfeilkreis) klicken. |
 | Seitenleiste ohne Reiter „LED“ | Blender über die Aufgabe in VS Code starten, nicht direkt. |
 | LEDs bleiben dunkel | Im Bedienfeld **Start** klicken. Die Ansicht sollte oben rechts auf „Rendered“ stehen (vierte Kugel). |
-| Echter Ständer: nichts passiert | Adresse prüfen, PC und Ständer im selben WLAN. In Blender unter *Fenster → Systemkonsole* stehen Fehlermeldungen. |
+| Echter Ständer: nichts passiert | Adresse prüfen, PC und Ständer im selben WLAN. Fehlermeldungen stehen in Blender unter *Fenster → Systemkonsole umschalten*. |
 
 ---
 
