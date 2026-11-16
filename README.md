@@ -300,6 +300,10 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 
 Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfhoerer.local/api/state`
 
+## 3D-Vorschau in Blender und Effekt-Simulation
+
+Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LEDs als eigenem Leuchtpunkt. Die Farben kommen live vom echten Ständer (`/api/live`) oder aus einer Simulation auf dem PC, die dieselbe `src/effects.cpp` wie die Firmware rechnet. So sieht man neue Effekte am Modell, ohne zu flashen. Anleitung: [`tools/blender/README.md`](tools/blender/README.md) und [`tools/sim/README.md`](tools/sim/README.md).
+
 ## Aufbau des Codes
 
 | Datei | Inhalt |
@@ -323,6 +327,8 @@ Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfh
 | `src/imu.cpp` | Lagesensor: Displaydrehung „Auto“ nach der Schwerkraft |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash, Seriennummer im Bereich `fctry` |
 | `src/selftest.cpp` | Selbsttest für die Fertigung (LEDs, Touch, Taste, Lagesensor) |
+| `tools/sim/` | PC-Simulation der Effekte (`env:sim`), rechnet mit derselben `src/effects.cpp` |
+| `tools/blender/` | Ständer als 3D-Szene in Blender, LEDs live vom Ständer oder aus der Simulation |
 
 ## Lizenz
 
