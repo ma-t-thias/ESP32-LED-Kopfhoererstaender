@@ -6,3 +6,8 @@ test_ota.ini
 include/fw_version.h
 update/
 __pycache__/
+
+# Blender (STL-Exporte und Szenen bleiben lokal)
+*.blend
+*.blend1
+tools/blender/stl/
