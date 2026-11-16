@@ -296,10 +296,6 @@ def scene_setup():
     sc.render.resolution_x, sc.render.resolution_y = 1600, 1200
     transforms = [i.identifier for i in sc.view_settings.bl_rna.properties["view_transform"].enum_items]
     sc.view_settings.view_transform = "AgX" if "AgX" in transforms else "Filmic"
-    try:
-        sc.eevee.use_bloom = True
-    except AttributeError:
-        pass
     world = sc.world or bpy.data.worlds.new("World"); sc.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes.get("Background")

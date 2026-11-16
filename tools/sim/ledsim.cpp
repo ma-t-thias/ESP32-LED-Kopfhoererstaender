@@ -6,7 +6,6 @@
 //   palette 2     Palette
 //   speed 128     Tempo 0..255
 //   intensity 90  Effekt-Staerke 0..255
-//   bri 200       Helligkeit 0..255
 //   color1 ff7800 / color2 0050ff   Farben fuer Einfarbig, Atmen, Komet ...
 //   list          Effekt- und Palettennamen ausgeben (Zeilen beginnen mit "#")
 //   quit          beenden
@@ -49,7 +48,6 @@ static bool command(const std::string &key, const std::string &val) {
     if (n >= 0 && n < effects::PALETTE_COUNT) state.palette = uint8_t(n);
   } else if (key == "speed") state.speed = b;
   else if (key == "intensity") state.intensity = b;
-  else if (key == "bri") state.brightness = b;
   else if (key == "color1") state.color1 = parseColor(val);
   else if (key == "color2") state.color2 = parseColor(val);
   else if (key == "quit") running = false;
@@ -95,8 +93,8 @@ int main(int argc, char **argv) {
     if (frame++ % 2 == 0) {
       char *p = line;
       for (uint16_t i = 0; i < LED_COUNT; i++) {
-        CRGB c = leds[i];
-        c.nscale8_video(state.brightness);
+        // ohne Helligkeit, wie /api/live am Staender (dort wirkt sie erst am LED-Ausgang)
+        const CRGB &c = leds[i];
         const uint8_t v[3] = {c.r, c.g, c.b};
         for (uint8_t k = 0; k < 3; k++) { *p++ = HEXCH[v[k] >> 4]; *p++ = HEXCH[v[k] & 15]; }
       }

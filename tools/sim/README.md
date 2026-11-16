@@ -26,7 +26,7 @@ Befehle über die Eingabe, einer pro Zeile:
 |---|---|
 | `effect 24` | Effekt-Nummer wie in der Weboberfläche (0 = Einfarbig, 24 = Musik) |
 | `palette 3` | Palette |
-| `speed 128`, `intensity 90`, `bri 200` | Tempo, Effekt-Stärke, Helligkeit (0–255) |
+| `speed 128`, `intensity 90` | Tempo, Effekt-Stärke (0–255) |
 | `color1 ff7800`, `color2 0050ff` | Farben für Einfarbig, Atmen, Komet … |
 | `list` | Namen aller Effekte und Paletten (Zeilen mit `#`) |
 | `quit` | beenden |
@@ -39,4 +39,4 @@ Befehle über die Eingabe, einer pro Zeile:
 | `sensors_sim.cpp` | Ersatz für die Sensoren: kein Kopfhörer-Sensor, das Mikrofon liefert einen künstlichen Takt (120 BPM) für den Effekt „Musik“ |
 | `shim/Arduino.h` | das Nötigste aus Arduino für den PC |
 
-Grenzen: Nur die Effekte selbst. PC-Sync, ARGB-Eingang, Nachtmodus, Stromgrenze und Ein-/Ausblenden aus `main.cpp` laufen nicht mit.
+Grenzen: Nur die Effekte selbst, ohne Helligkeit (wie `/api/live`). PC-Sync, ARGB-Eingang, Nachtmodus, Stromgrenze und Ein-/Ausblenden aus `main.cpp` laufen nicht mit.

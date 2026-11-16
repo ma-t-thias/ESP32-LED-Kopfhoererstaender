@@ -32,24 +32,54 @@ INTERVAL = 0.04          # Sekunden zwischen zwei Aktualisierungen in Blender
 TIMEOUT = 1.0
 SIM_ARGS = []            # Startwerte für die Simulation, z. B. ["effect", "5"]
 
-if "--" in sys.argv:
+SIM_PFAD = ""            # optional: fester Pfad zu program(.exe), sonst wird gesucht
+
+# Argumente nach "--" nur beim ersten Lauf nehmen: sys.argv bleibt die ganze Blender-Sitzung
+# gleich, sonst würde ein späteres "Run Script" mit QUELLE = "" die Simulation wieder starten.
+if "--" in sys.argv and not bpy.app.driver_namespace.get("led_live_argv"):
+    bpy.app.driver_namespace["led_live_argv"] = True
     _args = sys.argv[sys.argv.index("--") + 1:]
     if _args:
         QUELLE, SIM_ARGS = _args[0], _args[1:]
 
-# Projektordner = zwei Ebenen über dieser Datei (tools/blender/live_leds.py). In Blenders
-# Texteditor ist __file__ der Pfad der geöffneten Datei; sonst das aktuelle Verzeichnis.
-try:
-    PROJEKT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-except NameError:
-    PROJEKT = os.getcwd()
+
+def _startordner():
+    """Mögliche Orte im Projekt. Bei "Run Script" im Texteditor ist __file__ nicht der echte
+    Pfad (sondern <.blend>/<Textname>), deshalb auch den Pfad des Textes und der .blend prüfen."""
+    orte = []
+    try:
+        orte.append(os.path.dirname(os.path.abspath(__file__)))
+    except NameError:
+        pass
+    for t in bpy.data.texts:
+        if t.filepath and os.path.basename(bpy.path.abspath(t.filepath)) == "live_leds.py":
+            orte.append(os.path.dirname(bpy.path.abspath(t.filepath)))
+    if bpy.data.filepath:
+        orte.append(os.path.dirname(bpy.data.filepath))
+    orte.append(os.getcwd())
+    return orte
 
 
 def _sim_programm():
-    for name in ("program.exe", "program"):
-        p = os.path.join(PROJEKT, ".pio", "build", "sim", name)
-        if os.path.isfile(p):
-            return p
+    if SIM_PFAD:
+        return SIM_PFAD if os.path.isfile(SIM_PFAD) else None
+    for ort in _startordner():
+        d = ort
+        while True:  # nach oben bis zum Projektordner (dort liegt platformio.ini)
+            if os.path.isfile(os.path.join(d, "platformio.ini")):
+                for name in ("program.exe", "program"):
+                    p = os.path.join(d, ".pio", "build", "sim", name)
+                    if os.path.isfile(p):
+                        return p
+                break
+            oben = os.path.dirname(d)
+            if oben == d:
+                break
+            d = oben
+        for name in ("program.exe", "program"):  # Kopie direkt neben Skript oder .blend
+            p = os.path.join(ort, name)
+            if os.path.isfile(p):
+                return p
     return None
 
 
@@ -73,7 +103,7 @@ class _Live:
             prog = _sim_programm()
             if not prog:
                 raise RuntimeError("Simulation nicht gefunden: erst in PlatformIO env:sim bauen "
-                                   f"(gesucht in {os.path.join(PROJEKT, '.pio', 'build', 'sim')})")
+                                   "oder SIM_PFAD setzen")
             self.proc = subprocess.Popen([prog, *SIM_ARGS], stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE, text=True, bufsize=1)
             threading.Thread(target=self._read_sim, daemon=True).start()
@@ -96,13 +126,17 @@ class _Live:
             wait.wait(0.05)
 
     def _read_sim(self):
+        # bis zum Ende lesen, auch nach stop(): sonst kann die Simulation beim Schreiben hängen
         for line in self.proc.stdout:
             if not self.run:
-                break
+                continue
             if line.startswith("#"):        # Antwort auf "list"
                 print(line.rstrip())
             else:
                 self.data = line.strip()
+        self.proc.stdout.close()
+        if self.run:
+            print(f"LED-Live: Simulation beendet (Code {self.proc.wait()})")
 
     def send(self, cmd):
         if self.proc and self.proc.poll() is None:
@@ -118,10 +152,13 @@ class _Live:
             for i in range(min(len(leds), len(data) // 6)):
                 h = data[i * 6:i * 6 + 6]
                 try:
-                    leds[i].color = (_LIN[int(h[0:2], 16)], _LIN[int(h[2:4], 16)],
-                                     _LIN[int(h[4:6], 16)], 1.0)
+                    rgb = (_LIN[int(h[0:2], 16)], _LIN[int(h[2:4], 16)], _LIN[int(h[4:6], 16)])
                 except ValueError:
                     break
+                leds[i].color = (*rgb, 1.0)
+                for kind in leds[i].children:    # Punktlicht der LED direkt mitfärben
+                    if kind.type == "LIGHT":
+                        kind.data.color = rgb
         return INTERVAL
 
     def stop(self):
@@ -129,7 +166,7 @@ class _Live:
         if self.proc:
             try:
                 self.proc.stdin.close()     # Simulation endet, wenn ihre Eingabe zugeht
-                self.proc.wait(timeout=2)
+                self.proc.wait(timeout=1)   # der Lese-Thread liest weiter, sie hängt also nicht
             except Exception:
                 self.proc.kill()
 
@@ -141,6 +178,20 @@ def led_sim(cmd):
         live.send(cmd)
 
 
+def _ansicht():
+    """3D-Ansicht so einstellen, dass man die LED-Farben sieht: Materialvorschau, ohne die
+    vielen Licht-Symbole. Im Hintergrundbetrieb (ohne Fenster) passiert nichts."""
+    wm = bpy.context.window_manager
+    for win in (wm.windows if wm else []):
+        for area in win.screen.areas:
+            if area.type == "VIEW_3D":
+                for sp in area.spaces:
+                    if sp.type == "VIEW_3D":
+                        if sp.shading.type in ("SOLID", "WIREFRAME"):
+                            sp.shading.type = "MATERIAL"
+                        sp.overlay.show_extras = False   # Lichter, Kamera als Symbole
+
+
 def start(quelle):
     old = bpy.app.driver_namespace.pop("led_live", None)
     if old:
@@ -148,6 +199,7 @@ def start(quelle):
     if not quelle:
         print("LED-Live: gestoppt")
         return
+    _ansicht()
     bpy.app.driver_namespace["led_live"] = _Live(quelle)
     bpy.app.driver_namespace["led_sim"] = led_sim
     try:  # in Blenders Python-Konsole direkt aufrufbar machen
