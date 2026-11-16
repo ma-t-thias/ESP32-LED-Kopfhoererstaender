@@ -45,6 +45,6 @@ blender Staender_v8.blend --python tools/blender/live_leds.py -- sim effect 5
 - **Echter Ständer:** IP oder `led-kopfhoerer.local`. Gelesen wird `/api/live`, ohne Gerätepasswort.
 - **`sim`:** startet die PC-Simulation `.pio/build/sim/program(.exe)` (vorher `env:sim` bauen). Effekt & Co. danach in Blenders Python-Konsole ändern, z. B. `led_sim("effect 24")` oder `led_sim("palette 3")`.
 - Stoppen: das Skript mit `QUELLE = ""` erneut ausführen. Findet das Skript die Simulation nicht, `SIM_PFAD` oben im Skript setzen.
-- Das Skript stellt die 3D-Ansicht auf Materialvorschau und blendet die Licht-Symbole aus.
+- Das Skript stellt die 3D-Ansicht auf den Kamerablick mit Eevee-Vorschau („Rendered“) und blendet die Licht-Symbole aus. Nur in dieser Vorschau leuchten die LEDs auch auf die Inlays.
 
 Aus VS Code geht das am bequemsten mit der Erweiterung **Blender Development** (Befehle „Blender: Start“ und „Blender: Run Script“).

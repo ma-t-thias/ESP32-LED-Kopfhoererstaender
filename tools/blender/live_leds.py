@@ -179,7 +179,7 @@ def led_sim(cmd):
 
 
 def _ansicht():
-    """3D-Ansicht so einstellen, dass man die LED-Farben sieht: Materialvorschau, ohne die
+    """3D-Ansicht so einstellen, dass man die LED-Farben sieht: Kamerablick, Eevee-Vorschau, ohne die
     vielen Licht-Symbole. Im Hintergrundbetrieb (ohne Fenster) passiert nichts."""
     wm = bpy.context.window_manager
     for win in (wm.windows if wm else []):
@@ -187,9 +187,11 @@ def _ansicht():
             if area.type == "VIEW_3D":
                 for sp in area.spaces:
                     if sp.type == "VIEW_3D":
-                        if sp.shading.type in ("SOLID", "WIREFRAME"):
-                            sp.shading.type = "MATERIAL"
+                        # "Rendered" (Eevee): nur dort wirken die Punktlichter der LEDs
+                        sp.shading.type = "RENDERED"
                         sp.overlay.show_extras = False   # Lichter, Kamera als Symbole
+                        if bpy.context.scene.camera:
+                            sp.region_3d.view_perspective = "CAMERA"
 
 
 def start(quelle):
