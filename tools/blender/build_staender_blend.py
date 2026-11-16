@@ -287,6 +287,13 @@ def add_display(png, coll):
     Erwartet ein Hochkant-Bild 170 x 320 (oder ein Vielfaches); fehlt es, entfaellt die Flaeche."""
     from mathutils import Vector
     if not png or not os.path.exists(png):
+        print(f"[staender] kein Display-Bild ({png}); erzeugen mit: "
+              ".pio/build/sim/program logo Display_Grundbild.png 0")
+        return False
+    img = bpy.data.images.load(png, check_existing=True)
+    if img.size[0] >= img.size[1]:
+        print(f"[staender] Display-Bild {png} ist quer ({img.size[0]} x {img.size[1]}), "
+              "erwartet hochkant (Drehung 0) - Display bleibt leer")
         return False
     c = Vector(LCD_CENTER) + Vector(LCD_NORMAL) * 0.15
     up = Vector(LCD_UP) * (LCD_H / 2)
@@ -306,7 +313,7 @@ def add_display(png, coll):
     em = nt.nodes.new("ShaderNodeEmission"); em.location = (200, 0)
     em.inputs["Strength"].default_value = 1.5
     tex = nt.nodes.new("ShaderNodeTexImage"); tex.location = (-150, 0)
-    tex.image = bpy.data.images.load(png, check_existing=True)
+    tex.image = img
     tex.interpolation = "Closest"           # scharfe Pixel wie am echten Display
     nt.links.new(tex.outputs["Color"], em.inputs["Color"])
     nt.links.new(em.outputs["Emission"], out.inputs["Surface"])

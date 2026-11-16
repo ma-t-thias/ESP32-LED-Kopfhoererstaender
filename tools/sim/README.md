@@ -7,7 +7,7 @@ Das Programm gibt etwa 30-mal pro Sekunde eine Zeile aus: je LED sechs Hex-Zeich
 Außerdem zeichnet es das Startbild des Displays als PNG, mit demselben Code wie die Firmware (`src/logo.cpp` und der Zeichenteil von Arduino_GFX):
 
 ```
-.pio/build/sim/program logo Display_Grundbild.png [Drehung 0..3] ["Untertitel"]
+.pio/build/sim/program logo Display_Grundbild.png [Drehung 0 = hochkant, 1 = quer] ["Untertitel"]
 ```
 
 ## Bauen

@@ -12,7 +12,7 @@
 // Startwerte gehen auch als Argumente:  ledsim effect 5 speed 200
 //
 // Startbild des Displays als PNG speichern und beenden (z. B. fuer die Blender-Szene):
-//   ledsim logo bild.png [Drehung 0..3] [Untertitel]
+//   ledsim logo bild.png [Drehung 0 = hochkant, 1 = quer] [Untertitel]
 #include <atomic>
 #include <chrono>
 #include <cstdio>

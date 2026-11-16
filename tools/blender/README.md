@@ -16,7 +16,7 @@ Das Display zeigt das Startbild (Kopfhörer mit Regenbogen-Bügel). Das Bild erz
 .pio/build/sim/program logo Display_Grundbild.png 0 "V1.0.0"
 ```
 
-`0` ist die Drehung (hochkant), der Text die kleine Zeile unter dem Namen. Das Skript nimmt `Display_Grundbild.png` neben sich oder die Datei aus `--display-png`.
+`0` ist die Drehung (hochkant, so sitzt das Display im Ständer), der Text die kleine Zeile unter dem Namen. Das Skript nimmt `Display_Grundbild.png` neben sich oder die Datei aus `--display-png`.
 
 Das Skript baut die Szene jedes Mal komplett neu. Bei einem neuen CAD-Stand also nur die STLs neu exportieren und das Skript erneut laufen lassen. Die Namen der Teile und LEDs bleiben gleich.
 
