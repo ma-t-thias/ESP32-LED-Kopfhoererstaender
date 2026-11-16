@@ -302,7 +302,7 @@ Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfh
 
 ## 3D-Vorschau in Blender und Effekt-Simulation
 
-Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LEDs als eigenem Leuchtpunkt. Die Farben kommen live vom echten Ständer (`/api/live`) oder aus einer Simulation auf dem PC, die dieselbe `src/effects.cpp` wie die Firmware rechnet. So sieht man neue Effekte am Modell, ohne zu flashen. Anleitung: [`tools/blender/README.md`](tools/blender/README.md) und [`tools/sim/README.md`](tools/sim/README.md).
+Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LEDs als eigenem Leuchtpunkt und dem Startbild auf dem Display. Die Farben kommen live vom echten Ständer (`/api/live`) oder aus einer Simulation auf dem PC, die dieselbe `src/effects.cpp` wie die Firmware rechnet. So sieht man neue Effekte am Modell, ohne zu flashen. Anleitung: [`tools/blender/README.md`](tools/blender/README.md) und [`tools/sim/README.md`](tools/sim/README.md).
 
 ## Aufbau des Codes
 
@@ -323,6 +323,7 @@ Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LE
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |
 | `src/webui.h` | Einrichtungsseite |
 | `src/display.cpp` | Anzeige auf dem LCD, passt sich an Hoch- und Querformat an |
+| `src/logo.cpp` | Startbild (Kopfhörer mit Regenbogen-Bügel), auch für die PC-Simulation |
 | `src/touch.cpp` | Touch: Tippen (oben/unten) und Wischen erkennen |
 | `src/imu.cpp` | Lagesensor: Displaydrehung „Auto“ nach der Schwerkraft |
 | `src/settings.cpp` | Speichern der Einstellungen und WLAN-Daten im Flash, Seriennummer im Bereich `fctry` |

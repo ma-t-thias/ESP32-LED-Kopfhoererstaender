@@ -10,6 +10,9 @@
 //   list          Effekt- und Palettennamen ausgeben (Zeilen beginnen mit "#")
 //   quit          beenden
 // Startwerte gehen auch als Argumente:  ledsim effect 5 speed 200
+//
+// Startbild des Displays als PNG speichern und beenden (z. B. fuer die Blender-Szene):
+//   ledsim logo bild.png [Drehung 0..3] [Untertitel]
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -67,7 +70,15 @@ static void readInput() {
   running = false;  // Eingabe geschlossen (z. B. Blender beendet) -> Programm endet
 }
 
+bool writeLogoPng(const char *file, uint8_t rot, const char *sub);  // screen.cpp
+
 int main(int argc, char **argv) {
+  if (argc >= 3 && std::string(argv[1]) == "logo") {
+    uint8_t rot = argc >= 4 ? uint8_t(atoi(argv[3]) & 3) : uint8_t(LCD_ROTATION);
+    bool ok = writeLogoPng(argv[2], rot, argc >= 5 ? argv[4] : "");
+    if (!ok) fprintf(stderr, "konnte %s nicht schreiben\n", argv[2]);
+    return ok ? 0 : 1;
+  }
   for (int i = 1; i + 1 < argc; i += 2) command(argv[i], argv[i + 1]);
   std::thread(readInput).detach();
 

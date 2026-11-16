@@ -3,11 +3,15 @@ build_staender_blend.py - baut die Blender-Szene des LED-Kopfhoererstaenders (St
 
 Aufruf (Blender 4.2+ / 5.x):
     blender --background --python build_staender_blend.py -- [--stl-dir DIR] [--out FILE.blend] [--render FILE.png] [--demo]
+            [--display-png FILE.png]
 
     --stl-dir  Ordner mit den STL-Dateien (Standard: Unterordner "stl" neben diesem Skript)
     --out      Ziel-.blend (Standard: Staender_v8.blend neben diesem Skript)
     --render   optional: Eevee-Render als PNG
     --demo     Regenbogen auf die LEDs legen (sonst alle LEDs aus/dunkel)
+    --display-png  Bild fuer das Display (Standard: Display_Grundbild.png neben diesem Skript).
+               Erzeugen mit der PC-Simulation (gleicher Code wie die Firmware):
+               .pio/build/sim/program logo Display_Grundbild.png 0 "V1.0.0"
 
 Die STL-Dateien (Export aus SolidCraft in Montageposition) und die .blend sind nicht im Repo.
 
@@ -90,9 +94,11 @@ def args():
     a = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     here = os.path.dirname(os.path.abspath(__file__))
     opt = {"stl_dir": os.path.join(here, "stl"), "out": os.path.join(here, "Staender_v8.blend"),
-           "render": None, "demo": False}
+           "render": None, "demo": False,
+           "display_png": os.path.join(here, "Display_Grundbild.png")}  # aus: program logo Display_Grundbild.png
     i = 0
     while i < len(a):
+        if a[i] == "--display-png": opt["display_png"] = a[i + 1]; i += 2; continue
         if a[i] == "--stl-dir": opt["stl_dir"] = a[i + 1]; i += 2
         elif a[i] == "--out": opt["out"] = a[i + 1]; i += 2
         elif a[i] == "--render": opt["render"] = a[i + 1]; i += 2
@@ -269,6 +275,45 @@ def add_glow(led, coll, offset=2.5):
         v.targets[0].data_path = f"color[{k}]"
 
 
+# Aktive Flaeche des 1,9"-LCD (170 x 320) aus Display_LCD.stl: Mitte, Normale, Bildoberkante (Schraege)
+LCD_CENTER = (0.0, 73.74, 36.91)
+LCD_NORMAL = (0.0, 0.94, 0.34)        # zeigt nach vorne/oben (zum Betrachter)
+LCD_UP = (0.0, -0.34, 0.94)           # Richtung Bildoberkante
+LCD_W, LCD_H = 23.1, 43.1             # mm
+
+
+def add_display(png, coll):
+    """Flaeche knapp vor dem LCD mit dem Display-Bild als leuchtende Textur (Objekt "Display_Bild").
+    Erwartet ein Hochkant-Bild 170 x 320 (oder ein Vielfaches); fehlt es, entfaellt die Flaeche."""
+    from mathutils import Vector
+    if not png or not os.path.exists(png):
+        return False
+    c = Vector(LCD_CENTER) + Vector(LCD_NORMAL) * 0.15
+    up = Vector(LCD_UP) * (LCD_H / 2)
+    right = Vector(LCD_UP).cross(Vector(LCD_NORMAL)).normalized() * (LCD_W / 2)   # rechts aus Sicht des Betrachters
+    v = [c - right - up, c + right - up, c + right + up, c - right + up]
+    me = bpy.data.meshes.new("Display_Bild")
+    me.from_pydata([tuple(p) for p in v], [], [(0, 1, 2, 3)])
+    uv = me.uv_layers.new(name="UV")
+    for li, (uu, vv) in enumerate([(0, 0), (1, 0), (1, 1), (0, 1)]):
+        uv.data[li].uv = (uu, vv)
+    ob = bpy.data.objects.new("Display_Bild", me)
+    coll.objects.link(ob)
+    m = bpy.data.materials.new("Display_Bild")
+    m.use_nodes = True
+    nt = m.node_tree; nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial"); out.location = (400, 0)
+    em = nt.nodes.new("ShaderNodeEmission"); em.location = (200, 0)
+    em.inputs["Strength"].default_value = 1.5
+    tex = nt.nodes.new("ShaderNodeTexImage"); tex.location = (-150, 0)
+    tex.image = bpy.data.images.load(png, check_existing=True)
+    tex.interpolation = "Closest"           # scharfe Pixel wie am echten Display
+    nt.links.new(tex.outputs["Color"], em.inputs["Color"])
+    nt.links.new(em.outputs["Emission"], out.inputs["Surface"])
+    me.materials.append(m)
+    return True
+
+
 def set_leds(colors):
     """colors: Liste von (r, g, b) 0..1 oder 0..255, Index = LED-Datenindex."""
     for i, c in enumerate(colors[:LED_COUNT]):
@@ -337,6 +382,7 @@ def build(opt):
                 c.scale = (-1.0 if mx else 1.0, -1.0 if my else 1.0, 1.0)
                 c.location = (0.0, 2 * RING_CY if my else 0.0, 0.0)   # Spiegelung an x = 0 bzw. y = 12
                 cols[cname].objects.link(c)
+    add_display(opt["display_png"], cols["Elektronik"])
     reserve = make_leds(cols["LEDs"])
     set_leds(rainbow() if opt["demo"] else [(0.02, 0.02, 0.02)] * LED_COUNT)
     bpy.ops.wm.save_as_mainfile(filepath=opt["out"])

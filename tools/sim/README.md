@@ -4,13 +4,19 @@ Rechnet die Effekte auf dem PC, ohne ESP und ohne LEDs. Dafür wird dieselbe `sr
 
 Das Programm gibt etwa 30-mal pro Sekunde eine Zeile aus: je LED sechs Hex-Zeichen `RRGGBB`, im selben Format wie `/api/live` am Ständer. Angezeigt wird das mit der Blender-Szene (siehe [`../blender/README.md`](../blender/README.md)).
 
+Außerdem zeichnet es das Startbild des Displays als PNG, mit demselben Code wie die Firmware (`src/logo.cpp` und der Zeichenteil von Arduino_GFX):
+
+```
+.pio/build/sim/program logo Display_Grundbild.png [Drehung 0..3] ["Untertitel"]
+```
+
 ## Bauen
 
 1. Einmalig einen C++-Compiler installieren, falls keiner da ist. Unter Windows zum Beispiel [w64devkit](https://github.com/skeeto/w64devkit) (entpacken, den Ordner `bin` in den PATH aufnehmen) oder MSYS2 mit `mingw-w64-ucrt-x86_64-gcc`. Prüfen im Terminal: `g++ --version`.
 2. In VS Code unten in der Statusleiste die Umgebung **env:sim** wählen und **Build** drücken (oder im Terminal `pio run -e sim`).
 3. Das Programm liegt danach unter `.pio/build/sim/program.exe` (Linux/macOS: `program`).
 
-Die Firmware-Umgebungen sind davon nicht betroffen, `env:sim` baut nur `effects.cpp` und die Dateien in diesem Ordner.
+Die Firmware-Umgebungen sind davon nicht betroffen, `env:sim` baut nur `effects.cpp`, `logo.cpp` und die Dateien in diesem Ordner. Von der GFX-Bibliothek baut `gfx_filter.py` nur den Zeichenteil, die Display-Treiber brauchen ESP-Hardware.
 
 ## Benutzen
 
@@ -36,7 +42,9 @@ Befehle über die Eingabe, einer pro Zeile:
 | Datei | Inhalt |
 |---|---|
 | `ledsim.cpp` | Hauptprogramm: Bildtakt 60/s wie in der Firmware, Befehle, Ausgabe |
+| `screen.cpp` | Startbild in einen Bildspeicher zeichnen und als PNG speichern |
+| `gfx_filter.py` | baut von Arduino_GFX nur den Zeichenteil |
 | `sensors_sim.cpp` | Ersatz für die Sensoren: kein Kopfhörer-Sensor, das Mikrofon liefert einen künstlichen Takt (120 BPM) für den Effekt „Musik“ |
-| `shim/Arduino.h` | das Nötigste aus Arduino für den PC |
+| `shim/Arduino.h`, `shim/Print.h` | das Nötigste aus Arduino für den PC |
 
 Grenzen: Nur die Effekte selbst, ohne Helligkeit (wie `/api/live`). PC-Sync, ARGB-Eingang, Nachtmodus, Stromgrenze und Ein-/Ausblenden aus `main.cpp` laufen nicht mit.

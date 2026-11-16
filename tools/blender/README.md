@@ -10,13 +10,21 @@ Die Teile werden in SolidCraft in Montageposition als STL exportiert, mit festen
 blender --background --python tools/blender/build_staender_blend.py -- --stl-dir <Ordner mit STLs> --out Staender_v8.blend [--render Vorschau.png] [--demo]
 ```
 
+Das Display zeigt das Startbild (Kopfhörer mit Regenbogen-Bügel). Das Bild erzeugt die PC-Simulation mit demselben Zeichencode wie die Firmware (`src/logo.cpp`):
+
+```
+.pio/build/sim/program logo Display_Grundbild.png 0 "V1.0.0"
+```
+
+`0` ist die Drehung (hochkant), der Text die kleine Zeile unter dem Namen. Das Skript nimmt `Display_Grundbild.png` neben sich oder die Datei aus `--display-png`.
+
 Das Skript baut die Szene jedes Mal komplett neu. Bei einem neuen CAD-Stand also nur die STLs neu exportieren und das Skript erneut laufen lassen. Die Namen der Teile und LEDs bleiben gleich.
 
 | Collection | Inhalt |
 |---|---|
 | Tragteile | Sockel, Boden, Säule, Auflage, Druckplatte, Display-Gehäuse, TPU-Füße |
 | Inlays | Leuchtring, Augen, Säulen-Inlays (Fluor-PLA, halbtransparent) |
-| Elektronik | Platine v2, ESP32-Modul, LCD, USB-C |
+| Elektronik | Platine v2, ESP32-Modul, LCD mit Startbild, USB-C |
 | LEDs | `LED_000` … `LED_143` in der Reihenfolge am Datenausgang |
 
 Maßstab: 1 Blender-Einheit = 1 mm, Koordinaten wie im CAD (Ursprung Sockelmitte, +Y zum Display).
