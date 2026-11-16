@@ -48,9 +48,9 @@ Unten in der blauen Statusleiste von VS Code steht die aktive Umgebung, normaler
 
 ### Schritt 2: Aufgabe „Simulation in Blender starten“
 
-Links auf das **PlatformIO-Symbol** (Ameisenkopf) klicken. Unter **Project Tasks → sim → Custom** auf **„Simulation in Blender starten“** klicken.
+Links auf das **PlatformIO-Symbol** (Ameisenkopf) klicken. Unter **Project Tasks** stehen die Aufgaben der Umgebung, die unten in der Statusleiste gewählt ist (hier `env:sim`). Die Gruppe **Custom** aufklappen und auf **„Simulation in Blender starten“** klicken.
 
-![PlatformIO-Aufgaben unter env:sim → Custom](images/simulation/02_vscode_aufgaben.png)
+![PlatformIO-Aufgaben unter Project Tasks → Custom](images/simulation/02_vscode_aufgaben.png)
 
 Unten im Terminal läuft jetzt der Bau. Beim ersten Mal dauert das etwa eine Minute, danach nur Sekunden. Dann öffnet sich Blender, und im Terminal steht `SUCCESS`.
 
@@ -134,7 +134,7 @@ Paletten: 0 Regenbogen, 1 Party, 2 Ozean, 3 Lava, 4 Wald, 5 Wolken, 6 Hitze, 7 E
 | „Szene fehlt“ | Zuerst die Aufgabe „Blender-Szene neu bauen“ ausführen. |
 | Blender meldet einen Fehler oder bleibt leer | In Blender *Fenster → Systemkonsole umschalten* öffnen und die Meldung lesen. |
 | „STL-Ordner fehlt“ | STLs nach `tools/blender/stl/` kopieren. |
-| Aufgaben fehlen unter sim → Custom | In der PlatformIO-Seitenleiste oben auf „Refresh Project Tasks“ (Pfeilkreis) klicken. |
+| Aufgaben fehlen unter Project Tasks → Custom | Zuerst prüfen, ob unten in der Statusleiste `env:sim` gewählt ist. Sonst in der PlatformIO-Seitenleiste oben auf „Refresh Project Tasks“ (Pfeilkreis) klicken. |
 | Seitenleiste ohne Reiter „LED“ | Blender über die Aufgabe in VS Code starten, nicht direkt. |
 | LEDs bleiben dunkel | Im Bedienfeld **Start** klicken. Die Ansicht sollte oben rechts auf „Rendered“ stehen (vierte Kugel). |
 | Echter Ständer: nichts passiert | Adresse prüfen, PC und Ständer im selben WLAN. Fehlermeldungen stehen in Blender unter *Fenster → Systemkonsole umschalten*. |

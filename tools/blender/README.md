@@ -1,6 +1,6 @@
 # Ständer in Blender (3D-Vorschau mit LEDs)
 
-**Einsteiger:** Anleitung mit Bildern in [`docs/simulation.md`](../../docs/simulation.md). Am einfachsten startet alles aus VS Code: PlatformIO → `env:sim` → Custom → „Simulation in Blender starten“ bzw. „Blender-Szene neu bauen“ (`tools/sim/sim_targets.py`).
+**Einsteiger:** Anleitung mit Bildern in [`docs/simulation.md`](../../docs/simulation.md). Am einfachsten startet alles aus VS Code: unten in der Statusleiste `env:sim` wählen, dann PlatformIO → Project Tasks → Custom → „Simulation in Blender starten“ bzw. „Blender-Szene neu bauen“ (`tools/sim/sim_targets.py`).
 
 Der Ständer als 3D-Szene in Blender. Jede der 144 LEDs ist ein eigenes Leuchtobjekt an ihrer echten Stelle. Die Farben kommen live vom Ständer oder aus der PC-Simulation ([`../sim/`](../sim/README.md)). Getestet mit Blender 5.3.
 

@@ -13,7 +13,7 @@ Außerdem zeichnet es das Startbild des Displays als PNG, mit demselben Code wie
 ## Bauen
 
 1. Einmalig einen C++-Compiler installieren, falls keiner da ist. Unter Windows zum Beispiel [w64devkit](https://github.com/skeeto/w64devkit) (entpacken, den Ordner `bin` in den PATH aufnehmen) oder MSYS2 mit `mingw-w64-ucrt-x86_64-gcc`. Prüfen im Terminal: `g++ --version`.
-2. In VS Code unten in der Statusleiste die Umgebung **env:sim** wählen und **Build** drücken (oder im Terminal `pio run -e sim`). Bequemer: PlatformIO → env:sim → Custom → „Simulation in Blender starten“ baut und startet alles ([Anleitung](../../docs/simulation.md)).
+2. In VS Code unten in der Statusleiste die Umgebung **env:sim** wählen und **Build** drücken (oder im Terminal `pio run -e sim`). Bequemer: mit gewählter Umgebung env:sim unter PlatformIO → Project Tasks → Custom → „Simulation in Blender starten“ baut und startet alles ([Anleitung](../../docs/simulation.md)).
 3. Das Programm liegt danach unter `.pio/build/sim/program.exe` (Linux/macOS: `program`).
 
 Die Firmware-Umgebungen sind davon nicht betroffen, `env:sim` baut nur `effects.cpp`, `logo.cpp` und die Dateien in diesem Ordner. Von der GFX-Bibliothek baut `gfx_filter.py` nur den Zeichenteil, die Display-Treiber brauchen ESP-Hardware.

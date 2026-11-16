@@ -302,7 +302,7 @@ Beispiel: `curl -X POST -H "X-Key: K7QM3RXA" -d "fx=11&bri=200" http://led-kopfh
 
 ## 3D-Vorschau in Blender und Effekt-Simulation
 
-Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LEDs als eigenem Leuchtpunkt und dem Startbild auf dem Display. Die Farben kommen live vom echten Ständer (`/api/live`) oder aus einer Simulation auf dem PC, die dieselbe `src/effects.cpp` wie die Firmware rechnet. So sieht man neue Effekte am Modell, ohne zu flashen. Start per Klick in VS Code (PlatformIO → `env:sim` → Custom → „Simulation in Blender starten“). Schritt-für-Schritt-Anleitung mit Bildern: [`docs/simulation.md`](docs/simulation.md). Technik: [`tools/blender/README.md`](tools/blender/README.md) und [`tools/sim/README.md`](tools/sim/README.md).
+Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LEDs als eigenem Leuchtpunkt und dem Startbild auf dem Display. Die Farben kommen live vom echten Ständer (`/api/live`) oder aus einer Simulation auf dem PC, die dieselbe `src/effects.cpp` wie die Firmware rechnet. So sieht man neue Effekte am Modell, ohne zu flashen. Start per Klick in VS Code (unten `env:sim` wählen, dann PlatformIO → Project Tasks → Custom → „Simulation in Blender starten“). Schritt-für-Schritt-Anleitung mit Bildern: [`docs/simulation.md`](docs/simulation.md). Technik: [`tools/blender/README.md`](tools/blender/README.md) und [`tools/sim/README.md`](tools/sim/README.md).
 
 ## Aufbau des Codes
 
