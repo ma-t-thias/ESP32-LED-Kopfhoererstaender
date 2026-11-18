@@ -32,13 +32,19 @@ BLU = "var(--minus)"
 YEL = "var(--data1)"
 GRN = "var(--data2)"
 PUR = "var(--data3)"
+V33 = "var(--v33)"
+FSRC = "var(--fsr)"
+I2S = "var(--i2s)"
 
 out = []
 A = out.append
 
-def wire(pts, color, w=3.2, dash=None):
+def wire(pts, color, w=3.2, dash=None, halo=False):
     d = "M" + " L".join(f"{px},{py}" for px, py in pts)
     da = f' stroke-dasharray="{dash}"' if dash else ""
+    if halo:  # heller Rand, damit Kreuzungen als "drueber gelegt" lesbar sind
+        A(f'<path d="{d}" fill="none" stroke="var(--board)" stroke-width="{w+4}" '
+          f'stroke-linecap="round" stroke-linejoin="round"/>')
     A(f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{w}" '
       f'stroke-linecap="round" stroke-linejoin="round"{da}/>')
     for px, py in (pts[0], pts[-1]):
@@ -55,9 +61,10 @@ def text(tx, ty, s, size=11, anchor="middle", weight=400, fill="currentColor", e
     A(f'<text x="{tx}" y="{ty}" font-size="{size}" text-anchor="{anchor}" '
       f'font-weight="{weight}" fill="{fill}" {extra}>{s}</text>')
 
-W, H = 960, 830 + OY
+W, H = 960, 950 + OY
 A(f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Breadboard-Belegung auf zwei Boards: ESP32-C6-Touch-LCD-1.9 ueber beiden Boards in Reihe 1 bis 20, '
   f'74AHCT125 auf Board 1 in Reihe 23 bis 29, 330-Ohm-Widerstand zur Datenleitung, USB-C-Buchse auf Board 2 in Reihe 23 bis 30, Spalte a, '
+  f'Spannungsteiler fuer den Kopfhoerer-Sensor auf Board 2 in Reihe 3 und 4, Mikrofon INMP441 und FSR-Folie per Kabel unter Board 2, '
   f'LED-Streifen rechts außerhalb des Breadboards" class="bb" font-family="var(--mono)">')
 
 # Breadboard-Koerper
@@ -91,10 +98,10 @@ A(f'<rect x="{bx1}" y="{COLS2["j"]-24}" width="{bx2-bx1}" height="{BOT2_P-COLS2[
   f'fill="var(--board)" stroke="var(--line)"/>')
 A(f'<rect x="{bx1+6}" y="{COLS2["f"]+14}" width="{bx2-bx1-12}" height="{COLS2["e"]-COLS2["f"]-28}" '
   f'rx="3" fill="var(--channel)"/>')
-for yy, col in ((BOT2_M + 10, BLU), (BOT2_P - 10, RED)):
+for yy, col in ((BOT2_M + 10, BLU), (BOT2_P - 10, V33)):
     A(f'<line x1="{x(1)-6}" y1="{yy}" x2="{x(30)+6}" y2="{yy}" stroke="{col}" stroke-width="1.4" opacity=".7"/>')
-for yy, col, sign in ((BOT2_M, BLU, "−"), (BOT2_P, RED, "+")):
-    text(bx1 + 9, yy + 4, sign, 13, weight=700, fill=col)
+text(bx1 + 9, BOT2_M + 4, "−", 13, weight=700, fill=BLU)
+text(bx2 - 4, BOT2_P + 4, "3V3", 9, anchor="end", weight=700, fill=V33)
 for r in range(1, 31):
     for c, yy in COLS2.items():
         A(f'<rect x="{x(r)-3}" y="{yy-3}" width="6" height="6" rx="1" fill="var(--hole)"/>')
@@ -124,7 +131,7 @@ j4 = ["VBUS", "SYS", "GND", "EN", "3V3", "VREF", "22", "GND", "23", "EX0",
       "RUN", "EX1", "GND", "EX2", "EX3", "EX4", "EX5", "GND", "EX6", "EX7"]
 j3 = ["16", "17", "GND", "0", "1", "2", "3", "GND", "8", "9",
       "12", "13", "GND", "14", "15", "18", "19", "GND", "20", "21"]
-used_j4, used_j3 = (1, 3, 9), (7,)
+used_j4, used_j3 = (1, 3, 5, 9), (3, 4, 7, 17, 19, 20)
 for r in range(1, 21):
     for hfun, col, labels, used, dy in ((hole, "a", j4, used_j4, -11), (hole2, "j", j3, used_j3, 18)):
         xx, yy = hfun(r, col)
@@ -133,7 +140,8 @@ for r in range(1, 21):
         text(xx, yy + dy, labels[r - 1], 8 if not hl else 9, weight=700 if hl else 400,
              fill="#ffffff" if hl else "#9aa6b5")
 # freie Zugangsloecher der benutzten Pins markieren
-for xx, yy in (hole(1, "e"), hole(3, "e"), hole(9, "e"), hole2(7, "f")):
+for xx, yy in (hole(1, "e"), hole(3, "e"), hole(5, "e"), hole(9, "e"),
+               hole2(3, "f"), hole2(4, "f"), hole2(7, "f"), hole2(17, "f"), hole2(19, "f"), hole2(20, "f")):
     A(f'<circle cx="{xx}" cy="{yy}" r="7" fill="none" stroke="#f4c542" stroke-width="2"/>')
 
 # --- 74AHCT125 (Reihen 23 bis 29, Kerbe Richtung Reihe 29) ---
@@ -275,9 +283,62 @@ wire([hole2(28, "e"), (x(28), COLS2["f"] + 42), (x(12), COLS2["f"] + 42), hole2(
 for xx, yy in (hole2(11, "f"), hole2(12, "f")):
     A(f'<circle cx="{xx}" cy="{yy}" r="7" fill="none" stroke="{DAT}" stroke-width="2"/>')
 text(x(29) + 14, COLS2["f"] + 50, "optional PC-Sync: D−/D+", 9, anchor="start", fill=DAT, weight=700)
+
+# --- Kopfhoerer-Sensor (FSR) und Mikrofon INMP441 (Platine v2, hier auf Board 2) ---
+# Untere Schienen von Board 2: aussen 3V3 (vom ESP, J4 Pin 5), innen GND. Kein 5 V auf diese Schienen!
+# 3V3: Board 1 e5 (J4/5) -> durch den Mittelkanal von Board 1 -> links aussen um beide Boards -> 3V3-Schiene
+wire([hole(5, "e"), (x(5), COLS["f"] + 40), (34, COLS["f"] + 40), (34, BOT2_P + 12), (x(2), BOT2_P + 12),
+      (x(2), BOT2_P)], V33, 2.6, halo=True)
+# GND: Board 2 f3 (J3/3) -> e3, a3 -> GND-Schiene
+wire([hole2(3, "f"), hole2(3, "e")], BLU, 2.6)
+wire([hole2(3, "a"), (x(3), BOT2_M)], BLU, 2.6)
+# GPIO0: Board 2 f4 (J3/4) -> e4. Reihe 4 (a-e) ist der Messknoten.
+wire([hole2(4, "f"), hole2(4, "e")], FSRC, 2.6)
+# R5 22 k stehend c4 -> c3 (GND), C3 100 nF b4 -> b3 (GND)
+vres(*hole2(4, "c"), *hole2(3, "c"), ("#d22f2f", "#d22f2f", "#f58220"))
+c3a, c3b = hole2(4, "b"), hole2(3, "b")
+A(f'<path d="M{c3a[0]},{c3a[1]} L{(c3a[0]+c3b[0])/2},{c3a[1]+12} L{c3b[0]},{c3b[1]}" stroke="#9aa3ad" stroke-width="2" fill="none"/>')
+A(f'<ellipse cx="{(c3a[0]+c3b[0])/2}" cy="{c3a[1]+14}" rx="8" ry="6" fill="#d98b2b" stroke="#8f5714"/>')
+for px, py in (c3a, c3b):
+    A(f'<circle cx="{px}" cy="{py}" r="3" fill="#9aa3ad"/>')
+for ly, lab, lw in ((COLS2["c"] + 4, "R5 22 kΩ", 52), (COLS2["b"] + 4, "C3 100 nF", 60)):
+    A(f'<rect x="{x(5)-4}" y="{ly-11}" width="{lw+6}" height="14" rx="3" fill="var(--paper)" opacity="0.9"/>')
+    text(x(5) - 1, ly, lab, 9, anchor="start", weight=700)
+# FSR402-LT unter Board 2: ein Anschluss in a4 (Messknoten), der andere an 3V3 (Reihe 6). Polung egal.
+fy = BOT2_P + 70
+A(f'<rect x="{x(4)-8}" y="{fy}" width="{x(6)-x(4)+16}" height="46" rx="3" fill="#d9d2b8" stroke="#8c836a"/>')
+A(f'<circle cx="{x(5)}" cy="{fy+76}" r="30" fill="#d9d2b8" stroke="#8c836a"/>')
+A(f'<circle cx="{x(5)}" cy="{fy+76}" r="20" fill="none" stroke="#8c836a" stroke-dasharray="3 3"/>')
+wire([(x(4), fy), hole2(4, "a")], FSRC, 2.6, halo=True)
+wire([(x(6), fy), (x(6), BOT2_P)], V33, 2.6, halo=True)
+text(x(5) + 40, fy + 70, "FSR402-LT", 10, anchor="start", weight=700, fill=FSRC)
+text(x(5) + 40, fy + 84, "Kopfhörer-Sensor", 9, anchor="start", fill="var(--muted)")
+text(x(5) + 40, fy + 97, "Polung egal", 9, anchor="start", fill="var(--muted)")
+# INMP441 unter Board 2, sechs Kabel Buchse-Stecker. VDD -> 3V3 (Reihe 9), GND und L/R -> GND (Reihe 10/11),
+# SCK/WS/SD direkt in die freien Loecher der ESP-Pins Board 2 f17 / f19 / f20.
+my = BOT2_P + 100
+mic = ((9, "VDD", V33, BOT2_P), (10, "GND", BLU, BOT2_M), (11, "L/R", BLU, BOT2_M),
+       (17, "SCK", I2S, COLS2["f"]), (19, "WS", I2S, COLS2["f"]), (20, "SD", I2S, COLS2["f"]))
+for r, lab, col, ty in mic:
+    wire([(x(r), my), (x(r), ty)], col, 2.4, halo=True)
+A(f'<rect x="{x(9)-12}" y="{my}" width="{x(20)-x(9)+24}" height="26" rx="5" fill="#2b2f36" stroke="#111"/>')
+for r, lab, col, ty in mic:
+    A(f'<rect x="{x(r)-5}" y="{my+4}" width="10" height="8" rx="1" fill="#c9a227"/>')
+    text(x(r), my + 22, lab, 7.5, weight=700, fill="#e8ecf2")
+A(f'<circle cx="{x(23)+6}" cy="{my+30}" r="28" fill="#1d3f8f" stroke="#0d2766"/>')
+A(f'<rect x="{x(23)-4}" y="{my+22}" width="20" height="16" rx="2" fill="#b9c0c9"/>')
+A(f'<circle cx="{x(23)+6}" cy="{my+30}" r="2.5" fill="#333"/>')
+A(f'<path d="M{x(20)+12},{my+13} L{x(23)-22},{my+24}" stroke="#555b63" stroke-width="3"/>')
+text(x(23) + 40, my + 24, "INMP441", 10, anchor="start", weight=700, fill=I2S)
+text(x(23) + 40, my + 38, "Mikrofon, 6 Kabel", 9, anchor="start", fill="var(--muted)")
+text(x(23) + 40, my + 51, "Buchse–Stecker", 9, anchor="start", fill="var(--muted)")
 # dicke Litze direkt von den Stiften zu den WAGO-Klemmen
 wire([(x(24), ua), (x(24), COLS2["b"] - 9), (nx - 14, COLS2["b"] - 9), (nx - 14, 60), (nx, 60)], RED, 4.5)
 wire([(x(23), ua), (x(23), COLS2["c"] - 9), (nx + 70, COLS2["c"] - 9), (nx + 70, 150), (nx + 58, 150)], BLU, 4.5)
+# F1 Polyfuse in der +5-V-Litze (optional auf dem Breadboard, auf Platine v2 fest)
+A(f'<rect x="{nx-24}" y="400" width="20" height="40" rx="4" fill="#e7b416" stroke="#8a6b00"/>')
+text(nx - 2, 416, "F1", 10, anchor="start", weight=700)
+text(nx - 2, 429, "3,75 A", 9, anchor="start", fill="var(--muted)")
 A(f'<rect x="{x(13)-4}" y="{COLS2["c"]-17}" width="{x(22)-x(13)+6}" height="14" rx="3" fill="var(--paper)" opacity="0.9"/>')
 text(x(22), COLS2["c"] - 6, "Litze 1 mm², oben an die Stifte gelötet", 9, anchor="end", weight=700)
 # duenne Leitungen zum Breadboard
@@ -326,6 +387,17 @@ A('<rect x="30" y="150" width="110" height="130" rx="6" fill="var(--psu)" stroke
 t(85, 192, "USB-C-Netzteil", 12, weight=700); t(85, 210, "5 V / 3 A", 12); t(85, 226, "(15 W)", 11)
 t(85, 244, "Buchse mit", 10, fill="var(--muted)"); t(85, 257, "CC 5,1 kΩ", 10, fill="var(--muted)"); t(85, 270, "ABL 2400 mA", 10, fill="var(--muted)")
 L([(85, 150), (85, Y5), (900, Y5)], RED, 2.6)
+# F1 Polyfuse in der +5-V-Leitung, D2 TVS danach gegen Masse (Platine v2)
+A('<rect x="76" y="76" width="18" height="36" rx="3" fill="var(--psu)" stroke="currentColor" stroke-width="1.6"/>')
+L([(78, 106), (92, 82)], w=1.4)
+t(70, 92, "F1", 11, anchor="end", weight=700); t(70, 106, "3,75 A", 10, anchor="end", fill="var(--muted)")
+J(85, 130, RED)
+L([(85, 130), (165, 130), (165, 138)], RED, 2)
+A('<path d="M155,156 L175,156 L165,140 Z" fill="currentColor"/>')
+L([(153, 136), (155, 139), (175, 139), (177, 142)], w=2.2)
+L([(165, 156), (165, 166)])
+L([(155, 166), (175, 166)], w=2); L([(159, 171), (171, 171)], w=2); L([(162, 176), (168, 176)], w=2)
+t(180, 150, "D2", 11, anchor="start", weight=700); t(180, 163, "TVS", 10, anchor="start", fill="var(--muted)")
 L([(85, 280), (85, YG), (900, YG)], BLU, 2.6)
 t(100, Y5 - 10, "+5 V (Litze ≥ 1,0 mm²)", 11, anchor="start", fill=RED, weight=700)
 t(100, YG + 22, "GND (gemeinsame Masse)", 11, anchor="start", fill=BLU, weight=700)
@@ -430,7 +502,70 @@ t(660, 385, "OE̅ → +5 V, A → GND", 9.5, anchor="start", fill="var(--muted)"
 A('</svg>')
 SCH_SVG = "\n".join(out)
 
+# ======================= Sensoren: Kopfhoerer-Sensor und Mikrofon =======================
+out = []
+A = out.append
+SEW, SEH = 960, 330
+A(f'<svg viewBox="0 0 {SEW} {SEH}" role="img" aria-label="Schaltplan Sensoren: FSR-Folie zwischen 3,3 V und GPIO0, '
+  f'22 kOhm und 100 nF von GPIO0 nach GND; Mikrofon INMP441 an 3,3 V, SCK an GPIO19, WS an GPIO20, SD an GPIO21, '
+  f'L/R an GND" class="sch" font-family="var(--mono)">')
+
+def gnd(gx, gy):
+    L([(gx, gy), (gx, gy + 8)])
+    L([(gx - 12, gy + 8), (gx + 12, gy + 8)], w=2); L([(gx - 7, gy + 13), (gx + 7, gy + 13)], w=2)
+    L([(gx - 3, gy + 18), (gx + 3, gy + 18)], w=2)
+
+def v33(vx, vy):
+    L([(vx - 12, vy), (vx + 12, vy)], V33, 2.4)
+    t(vx, vy - 7, "3V3", 10, weight=700, fill=V33)
+
+# ESP-Block mit den benutzten Pins
+A('<rect x="40" y="40" width="190" height="250" rx="6" fill="var(--pcb2)" stroke="currentColor" stroke-width="1.4"/>')
+t(135, 64, "ESP32-C6-Touch-", 11, weight=700); t(135, 78, "LCD-1.9", 11, weight=700)
+pins = ((110, "GPIO19", "J3/17"), (140, "GPIO20", "J3/19"), (170, "GPIO21", "J3/20"), (240, "GPIO0", "J3/4"))
+for py, name, hdr in pins:
+    t(222, py + 4, name, 11, anchor="end", weight=700)
+    t(52, py + 4, hdr, 9.5, anchor="start", fill="var(--muted)")
+t(52, 284, "3V3 = J4/5 · GND = J3/18", 9.5, anchor="start", fill="var(--muted)")
+
+# Mikrofon
+for py, col in ((110, I2S), (140, I2S), (170, I2S)):
+    L([(230, py), (430, py)], col, 2.2)
+A('<rect x="430" y="88" width="170" height="104" rx="6" fill="var(--ic2)" stroke="currentColor" stroke-width="1.4"/>')
+t(515, 108, "INMP441", 12, weight=700); t(515, 122, "I2S-Mikrofon", 9.5, fill="var(--muted)")
+for py, lab in ((110, "SCK"), (140, "WS"), (170, "SD")):
+    t(438, py + 4, lab, 10, anchor="start")
+L([(480, 88), (480, 60)]); v33(480, 60); t(488, 84, "VDD", 9.5, anchor="start")
+L([(520, 192), (520, 214)]); gnd(520, 214); t(526, 186, "GND", 9.5, anchor="start")
+L([(570, 192), (570, 214)]); gnd(570, 214); t(576, 186, "L/R", 9.5, anchor="start")
+t(338, 102, "SCK", 9.5, fill="var(--muted)"); t(338, 132, "WS", 9.5, fill="var(--muted)"); t(338, 162, "SD", 9.5, fill="var(--muted)")
+t(515, 256, "L/R an GND = linker Kanal", 9.5, fill="var(--muted)")
+
+# Kopfhoerer-Sensor
+L([(230, 240), (720, 240)], FSRC, 2.2); J(720, 240, FSRC)
+t(470, 232, "Messknoten", 9.5, fill="var(--muted)")
+# FSR (veraenderlicher Widerstand) von 3V3 nach unten zum Knoten
+L([(720, 60), (720, 150)]); v33(720, 60)
+A('<rect x="711" y="150" width="18" height="48" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>')
+L([(700, 210), (742, 140)], w=1.6)
+A('<path d="M742,140 l-9,2 l5,6 Z" fill="currentColor"/>')
+L([(720, 198), (720, 240)])
+t(750, 170, "FSR402-LT", 11, anchor="start", weight=700, fill=FSRC)
+t(750, 184, "Kopfhörer-Sensor", 9.5, anchor="start", fill="var(--muted)")
+t(750, 197, "ca. 10 kΩ … > 1 MΩ", 9.5, anchor="start", fill="var(--muted)")
+# R5 und C3 nach GND
+L([(720, 240), (720, 250)])
+A('<rect x="711" y="250" width="18" height="40" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>')
+L([(720, 290), (720, 298)]); gnd(720, 298)
+t(704, 274, "R5 22 k", 10, anchor="end", weight=700)
+L([(720, 240), (820, 240), (820, 262)]); J(720, 240, FSRC)
+L([(804, 262), (836, 262)], w=2.4); L([(804, 270), (836, 270)], w=2.4)
+L([(820, 270), (820, 298)]); gnd(820, 298)
+t(844, 270, "C3 100 nF", 10, anchor="start", weight=700)
+A('</svg>')
+SEN_SVG = "\n".join(out)
+
 HTML = open(__import__("os").path.join(__import__("os").path.dirname(__file__), "schaltung_template.html"), encoding="utf-8").read()
-HTML = HTML.replace("{{SCH_SVG}}", SCH_SVG).replace("{{BB_SVG}}", BB_SVG)
+HTML = HTML.replace("{{SCH_SVG}}", SCH_SVG).replace("{{BB_SVG}}", BB_SVG).replace("{{SEN_SVG}}", SEN_SVG)
 open(__import__("os").path.join(__import__("os").path.dirname(__file__), "schaltung.html"), "w", encoding="utf-8").write(HTML)
 print("ok", len(HTML))
