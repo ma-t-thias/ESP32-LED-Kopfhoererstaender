@@ -116,7 +116,7 @@ footer { font-size: 13px; color: var(--muted); }
     <div class="key"><b>Schottky-Diode vor dem VBUS-Pin</b><span>Der VBUS-Pin des Boards (J4 Pin 1) hängt direkt an USB-VBUS. D1 verhindert, dass das USB-C-Netzteil in den PC zurückspeist.</span></div>
     <div class="key"><b>Kopfhörer-Sensor an GPIO0</b><span>FSR-Folie zwischen 3,3 V und GPIO0, R5 22 kΩ nach GND. Liegt der Kopfhörer auf, steigt die Spannung, die Firmware erkennt das mit Hysterese.</span></div>
     <div class="key"><b>Mikrofon an GPIO19/20/21</b><span>INMP441 über I2S (SCK, WS, SD), versorgt aus 3,3 V des ESP. Diese Pins sind sonst für die SD-Karte, deshalb keine Karte einstecken.</span></div>
-    <div class="key"><b>Schutz am Eingang</b><span>Polyfuse F1 (3,75 A) und TVS-Diode D2 (5 V) hinter der USB-C-Buchse. Auf der Platine v2 fest, auf dem Breadboard empfohlen.</span></div>
+    <div class="key"><b>Schutz am Eingang</b><span>Polyfuse F1 (4 A) und TVS-Diode D2 (5 V) hinter der USB-C-Buchse. Auf der Platine v2 fest, auf dem Breadboard empfohlen.</span></div>
   </div>
 </section>
 
@@ -214,7 +214,7 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td>14</td><td>Steckbrücken</td><td>Jumper Stecker–Stecker, Drahtbrückenset</td><td class="num">ca. 22</td><td>Dazu 8 × Buchse–Stecker für Mikrofon und FSR und 10 × Buchse–Stecker als Reserve für die Variante „Board neben dem Breadboard“.</td></tr>
       <tr><td>15</td><td>ARGB-Kabel</td><td>3-polige ARGB-Verlängerung (5V, D, G) mit Buchse für den Mainboard-Header</td><td class="num">1</td><td>Ende abschneiden, nur D und G nutzen. So steuert ASUS Aura den Ständer.</td></tr>
       <tr><td>16</td><td>Widerstände R3, R4</td><td>1 kΩ und 2 kΩ</td><td class="num">je 1</td><td>Spannungsteiler: 5 V × 2 / 3 = 3,3 V am GPIO23. Ersatzweise 3 × 1 kΩ, zwei davon in Reihe als 2 kΩ.</td></tr>
-      <tr><td>17</td><td>Polyfuse F1</td><td>RXEF375 (3,75 A halten, 7,5 A auslösen), radial</td><td class="num">1</td><td>In die +5-V-Leitung nach der USB-C-Buchse. Setzt sich nach dem Abkühlen selbst zurück. Wie auf der Platine v2.</td></tr>
+      <tr><td>17</td><td>Polyfuse F1</td><td>Littelfuse RGEF400 (4 A halten, 6,8 A auslösen, 16 V), radial, Raster 5,1 mm, ca. 9 × 13 mm</td><td class="num">1</td><td>In die +5-V-Leitung nach der USB-C-Buchse. Setzt sich nach dem Abkühlen selbst zurück. Wie auf der Platine v2.</td></tr>
       <tr><td>18</td><td>TVS-Diode D2 <span class="tag opt">optional</span></td><td>SA5.0A (DO-15)</td><td class="num">1</td><td>Ring an +5 V, anderes Bein an GND. Auf der Platine v2 fest bestückt.</td></tr>
       <tr><td>19</td><td>Kopfhörer-Sensor <span class="tag have">vorhanden</span></td><td>FSR402-LT (QUARKZMAN, langer Anschluss), Kopf Ø 18,3 mm</td><td class="num">1</td><td>Anschluss-Streifen ca. 45 mm mit zwei Crimp-Stiften im Raster 2,54 mm. Nicht löten, sondern zwei Dupont-Kabel (Buchse–Stecker) aufstecken.</td></tr>
       <tr><td>20</td><td>Widerstand R5, Kondensator C3</td><td>22 kΩ, 100 nF</td><td class="num">je 1</td><td>Spannungsteiler und Glättung für den Sensor.</td></tr>

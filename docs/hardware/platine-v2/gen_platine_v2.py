@@ -39,7 +39,7 @@ def pad(name, x, y, net, d=1.9, drill=0.9, shape="round"):
 # --- Eingang hinten links: USB-C-Buchsenplatine -> F1 (Polyfuse) -> +5V, D2 (TVS) gegen GND
 pad("J1.GND", -22.0, -18.0, "GND", d=2.0, drill=1.1, shape="square")
 pad("J1.VIN", -22.0 + P, -18.0, "VIN", d=2.0, drill=1.1)
-# F1 Polyfuse RXEF375 (3,75 A halten bei 20 Grad, ca. 3,2 A bei 40 Grad im Sockel), radial, Raster 5,1 mm
+# F1 Polyfuse RGEF400 (4 A halten bei 20 Grad, 3,5 A bei 40 Grad im Sockel, 16 V), radial, Raster 5,1 mm, ca. 9 x 13 mm
 pad("F1.1", -15.0, -18.0, "VIN", d=2.0, drill=1.0)
 pad("F1.2", -15.0, -18.0 + 2 * P, "+5V", d=2.0, drill=1.0)
 # D2 TVS SA5.0A (DO-15) stehend: Koerper ueber der Anode (GND), Kathode (Ring) an +5V
