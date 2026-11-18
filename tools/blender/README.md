@@ -1,5 +1,7 @@
 # Ständer in Blender (3D-Vorschau mit LEDs)
 
+**Einsteiger:** Anleitung mit Bildern in [`docs/simulation.md`](../../docs/simulation.md). Am einfachsten startet alles aus VS Code: PlatformIO → `env:sim` → Custom → „Simulation in Blender starten“ bzw. „Blender-Szene neu bauen“ (`tools/sim/sim_targets.py`).
+
 Der Ständer als 3D-Szene in Blender. Jede der 144 LEDs ist ein eigenes Leuchtobjekt an ihrer echten Stelle. Die Farben kommen live vom Ständer oder aus der PC-Simulation ([`../sim/`](../sim/README.md)). Getestet mit Blender 5.3.
 
 ## Szene bauen
@@ -43,16 +45,16 @@ Bis der Streifen wirklich verlegt ist, gilt diese Annahme (`RING_COUNT`, `COLUMN
 
 Jede LED bekommt ihre Farbe über die Objektfarbe (`obj.color`). Das gemeinsame Material `LED_Emission` gibt sie als Licht aus.
 
-`live_leds.py` setzt diese Farben etwa 25-mal pro Sekunde:
+`live_leds.py` setzt diese Farben etwa 25-mal pro Sekunde und legt ein **Bedienfeld** an: in der 3D-Ansicht Taste **N**, Reiter **„LED“**. Dort Quelle (Simulation oder echter Ständer), Start/Stopp und bei der Simulation Effekt, Palette, Tempo, Effekt-Stärke und Farben. Die Namen holt das Skript von der Simulation, sie passen also immer zur Firmware.
+
+Ohne Bedienfeld, im Terminal im Projektordner:
 
 ```
-blender Staender_v8.blend --python tools/blender/live_leds.py -- 192.168.1.159
-blender Staender_v8.blend --python tools/blender/live_leds.py -- sim effect 5
+blender tools/blender/Staender_v8.blend --python tools/blender/live_leds.py -- sim effect 5
+blender tools/blender/Staender_v8.blend --python tools/blender/live_leds.py -- 192.168.1.159
 ```
 
 - **Echter Ständer:** IP oder `led-kopfhoerer.local`. Gelesen wird `/api/live`, ohne Gerätepasswort.
-- **`sim`:** startet die PC-Simulation `.pio/build/sim/program(.exe)` (vorher `env:sim` bauen). Effekt & Co. danach in Blenders Python-Konsole ändern, z. B. `led_sim("effect 24")` oder `led_sim("palette 3")`.
-- Stoppen: das Skript mit `QUELLE = ""` erneut ausführen. Findet das Skript die Simulation nicht, `SIM_PFAD` oben im Skript setzen.
+- **`sim`:** startet die PC-Simulation `.pio/build/sim/program(.exe)` (vorher `env:sim` bauen). In Blenders Python-Konsole geht auch `led_sim("effect 24")`.
+- Findet das Skript die Simulation nicht, `SIM_PFAD` oben im Skript setzen.
 - Das Skript stellt die 3D-Ansicht auf den Kamerablick mit Eevee-Vorschau („Rendered“) und blendet die Licht-Symbole aus. Nur in dieser Vorschau leuchten die LEDs auch auf die Inlays.
-
-Aus VS Code geht das am bequemsten mit der Erweiterung **Blender Development** (Befehle „Blender: Start“ und „Blender: Run Script“).

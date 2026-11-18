@@ -11,3 +11,4 @@ __pycache__/
 *.blend
 *.blend1
 tools/blender/stl/
+tools/blender/Display_Grundbild.png
