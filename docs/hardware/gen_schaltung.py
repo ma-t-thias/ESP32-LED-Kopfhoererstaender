@@ -101,7 +101,7 @@ A(f'<rect x="{bx1+6}" y="{COLS2["f"]+14}" width="{bx2-bx1-12}" height="{COLS2["e
 for yy, col in ((BOT2_M + 10, BLU), (BOT2_P - 10, V33)):
     A(f'<line x1="{x(1)-6}" y1="{yy}" x2="{x(30)+6}" y2="{yy}" stroke="{col}" stroke-width="1.4" opacity=".7"/>')
 text(bx1 + 9, BOT2_M + 4, "−", 13, weight=700, fill=BLU)
-text(bx2 - 4, BOT2_P + 4, "3V3", 9, anchor="end", weight=700, fill=V33)
+text(bx1 + 9, BOT2_P + 4, "3V3", 8, weight=700, fill=V33)
 for r in range(1, 31):
     for c, yy in COLS2.items():
         A(f'<rect x="{x(r)-3}" y="{yy-3}" width="6" height="6" rx="1" fill="var(--hole)"/>')
@@ -388,16 +388,16 @@ t(85, 192, "USB-C-Netzteil", 12, weight=700); t(85, 210, "5 V / 3 A", 12); t(85,
 t(85, 244, "Buchse mit", 10, fill="var(--muted)"); t(85, 257, "CC 5,1 kΩ", 10, fill="var(--muted)"); t(85, 270, "ABL 2400 mA", 10, fill="var(--muted)")
 L([(85, 150), (85, Y5), (900, Y5)], RED, 2.6)
 # F1 Polyfuse in der +5-V-Leitung, D2 TVS danach gegen Masse (Platine v2)
-A('<rect x="76" y="76" width="18" height="36" rx="3" fill="var(--psu)" stroke="currentColor" stroke-width="1.6"/>')
-L([(78, 106), (92, 82)], w=1.4)
-t(70, 92, "F1", 11, anchor="end", weight=700); t(70, 106, "3,75 A", 10, anchor="end", fill="var(--muted)")
-J(85, 130, RED)
-L([(85, 130), (165, 130), (165, 138)], RED, 2)
-A('<path d="M155,156 L175,156 L165,140 Z" fill="currentColor"/>')
-L([(153, 136), (155, 139), (175, 139), (177, 142)], w=2.2)
-L([(165, 156), (165, 166)])
-L([(155, 166), (175, 166)], w=2); L([(159, 171), (171, 171)], w=2); L([(162, 176), (168, 176)], w=2)
-t(180, 150, "D2", 11, anchor="start", weight=700); t(180, 163, "TVS", 10, anchor="start", fill="var(--muted)")
+A('<rect x="76" y="106" width="18" height="36" rx="3" fill="var(--psu)" stroke="currentColor" stroke-width="1.6"/>')
+L([(78, 136), (92, 112)], w=1.4)
+t(70, 122, "F1", 11, anchor="end", weight=700); t(70, 136, "3,75 A", 10, anchor="end", fill="var(--muted)")
+J(85, 84, RED)
+L([(85, 84), (165, 84), (165, 92)], RED, 2)
+A('<path d="M155,110 L175,110 L165,94 Z" fill="currentColor"/>')
+L([(153, 90), (155, 93), (175, 93), (177, 96)], w=2.2)
+L([(165, 110), (165, 120)])
+L([(155, 120), (175, 120)], w=2); L([(159, 125), (171, 125)], w=2); L([(162, 130), (168, 130)], w=2)
+t(180, 104, "D2", 11, anchor="start", weight=700); t(180, 117, "TVS", 10, anchor="start", fill="var(--muted)")
 L([(85, 280), (85, YG), (900, YG)], BLU, 2.6)
 t(100, Y5 - 10, "+5 V (Litze ≥ 1,0 mm²)", 11, anchor="start", fill=RED, weight=700)
 t(100, YG + 22, "GND (gemeinsame Masse)", 11, anchor="start", fill=BLU, weight=700)
@@ -526,7 +526,7 @@ pins = ((110, "GPIO19", "J3/17"), (140, "GPIO20", "J3/19"), (170, "GPIO21", "J3/
 for py, name, hdr in pins:
     t(222, py + 4, name, 11, anchor="end", weight=700)
     t(52, py + 4, hdr, 9.5, anchor="start", fill="var(--muted)")
-t(52, 284, "3V3 = J4/5 · GND = J3/18", 9.5, anchor="start", fill="var(--muted)")
+t(52, 284, "3V3 = J4/5 · GND = J3/3", 9.5, anchor="start", fill="var(--muted)")
 
 # Mikrofon
 for py, col in ((110, I2S), (140, I2S), (170, I2S)):
