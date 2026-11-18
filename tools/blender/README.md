@@ -1,12 +1,12 @@
 # Ständer in Blender (3D-Vorschau mit LEDs)
 
-**Einsteiger:** Anleitung mit Bildern in [`docs/simulation.md`](../../docs/simulation.md). Am einfachsten startet alles aus VS Code: PlatformIO → `env:sim` → Custom → „Simulation in Blender starten“ bzw. „Blender-Szene neu bauen“ (`tools/sim/sim_targets.py`).
+**Einsteiger:** Anleitung mit Bildern in [`docs/simulation.md`](../../docs/simulation.md). Am einfachsten startet alles aus VS Code: unten in der Statusleiste `env:sim` wählen, dann PlatformIO → Project Tasks → Custom → „Simulation in Blender starten“ bzw. „Blender-Szene neu bauen“ (`tools/sim/sim_targets.py`).
 
 Der Ständer als 3D-Szene in Blender. Jede der 144 LEDs ist ein eigenes Leuchtobjekt an ihrer echten Stelle. Die Farben kommen live vom Ständer oder aus der PC-Simulation ([`../sim/`](../sim/README.md)). Getestet mit Blender 5.3.
 
 ## Szene bauen
 
-Die Teile werden in SolidCraft in Montageposition als STL exportiert, mit festen Dateinamen (siehe `PARTS` in `build_staender_blend.py`), in einen Ordner `stl/`. Die STL-Dateien und die `.blend` sind nicht im Repo, nur das Skript.
+Die Teile werden in SolidCraft in Montageposition als STL exportiert, mit festen Dateinamen (siehe `PARTS` in `build_staender_blend.py`), in einen Ordner `stl/`. Die STL-Dateien (Stand Sockel v8, 23 Teile, ca. 20 MB) liegen im Repo unter `tools/blender/stl/`, damit die Szene auf jedem PC ohne SolidCraft gebaut werden kann. Die `.blend` wird lokal erzeugt und nicht eingecheckt.
 
 ```
 blender --background --python tools/blender/build_staender_blend.py -- --stl-dir <Ordner mit STLs> --out Staender_v8.blend [--render Vorschau.png] [--demo]
