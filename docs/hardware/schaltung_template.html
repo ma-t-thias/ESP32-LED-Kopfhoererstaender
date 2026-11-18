@@ -20,6 +20,9 @@
   --data1: #d99a00;
   --data2: #13945e;
   --data3: #8a4fd6;
+  --v33: #d9670f;
+  --fsr: #c2185b;
+  --i2s: #0e8f9b;
   --board: #ecebe6;
   --channel: #d6d4cc;
   --hole: #4a4d52;
@@ -40,6 +43,7 @@
   :root:not([data-theme="light"]) {
     --bg: #111416; --paper: #181c1f; --fg: #e3e7ea; --muted: #98a2ab; --line: #2e353a;
     --accent: #3cc497; --plus: #ff6b6b; --minus: #6ea2ff; --data1: #f2b632; --data2: #39c784; --data3: #b48cff;
+    --v33: #ff9a4a; --fsr: #ff6fa5; --i2s: #3fd0dc;
     --board: #2a2d30; --channel: #1d2023; --hole: #0d0f10; --pcb2: #1d2633; --ic2: #1f2422;
     --wago: #2a2f34; --psu: #242a30; --warn-bg: #2d2410; --warn-fg: #f2c46b;
     color-scheme: dark;
@@ -48,6 +52,7 @@
 :root[data-theme="dark"] {
   --bg: #111416; --paper: #181c1f; --fg: #e3e7ea; --muted: #98a2ab; --line: #2e353a;
   --accent: #3cc497; --plus: #ff6b6b; --minus: #6ea2ff; --data1: #f2b632; --data2: #39c784; --data3: #b48cff;
+  --v33: #ff9a4a; --fsr: #ff6fa5; --i2s: #3fd0dc;
   --board: #2a2d30; --channel: #1d2023; --hole: #0d0f10; --pcb2: #1d2633; --ic2: #1f2422;
   --wago: #2a2f34; --psu: #242a30; --warn-bg: #2d2410; --warn-fg: #f2c46b;
   color-scheme: dark;
@@ -98,17 +103,20 @@ footer { font-size: 13px; color: var(--muted); }
 <header>
   <div class="eyebrow">Projekt Arduino Kopfhörer · Schritt 1 Hardware</div>
   <h1>WLED-Steuerung für den Kopfhörerständer: Schaltung und Bauteile</h1>
-  <p class="lead">Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs/m, später auf 60 bis 70 cm gekürzt) per WLAN. Versorgung über ein USB-C-Netzteil 5 V / 3 A. Aufbau auf zwei 400-Punkte-Breadboards BB-801, übereinander gesteckt. Pinbelegung geprüft gegen den Waveshare-Schaltplan des ESP32-C6-Touch-LCD-1.9 (Stiftleisten J3 und J4).</p>
+  <p class="lead">Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs/m, später auf 60 bis 70 cm gekürzt) per WLAN. Versorgung über ein USB-C-Netzteil 5 V / 3 A. Dazu kommen der Kopfhörer-Sensor (FSR-Folie an GPIO0) und das I2S-Mikrofon INMP441 für den Effekt „Musik“, wie auf der <a href="platine-v2/">Platine v2</a>. Aufbau auf zwei 400-Punkte-Breadboards BB-801, übereinander gesteckt. Pinbelegung geprüft gegen den Waveshare-Schaltplan des ESP32-C6-Touch-LCD-1.9 (Stiftleisten J3 und J4).</p>
 </header>
 
 <section>
-  <h2>Die fünf Entscheidungen</h2>
+  <h2>Die wichtigsten Entscheidungen</h2>
   <div class="keys">
     <div class="key"><b>Datenpin GPIO3</b><span>J3 Pin 7. Kein Strapping-Pin, nicht von LCD, SD, Touch, IMU oder USB belegt. GPIO1 und GPIO2 sind auf diesem Board die Interrupts des Lagesensors.</span></div>
     <div class="key"><b>LED-Strom nie übers Breadboard</b><span>Bis zu 3 A fließen direkt USB-C-Buchse → WAGO → Streifen. Das Breadboard bekommt nur Signal und Logikversorgung.</span></div>
     <div class="key"><b>Pegelwandler 74AHCT125</b><span>Hebt das 3,3-V-Signal auf 5 V. WS2812B erwartet ab 0,7 × VDD = 3,5 V ein sicheres High.</span></div>
     <div class="key"><b>Aura über Kabel an GPIO23</b><span>Der ESP liest das ARGB-Signal des Mainboard-Headers mit. Ohne Signal laufen die eigenen Effekte.</span></div>
     <div class="key"><b>Schottky-Diode vor dem VBUS-Pin</b><span>Der VBUS-Pin des Boards (J4 Pin 1) hängt direkt an USB-VBUS. D1 verhindert, dass das USB-C-Netzteil in den PC zurückspeist.</span></div>
+    <div class="key"><b>Kopfhörer-Sensor an GPIO0</b><span>FSR-Folie zwischen 3,3 V und GPIO0, R5 22 kΩ nach GND. Liegt der Kopfhörer auf, steigt die Spannung, die Firmware erkennt das mit Hysterese.</span></div>
+    <div class="key"><b>Mikrofon an GPIO19/20/21</b><span>INMP441 über I2S (SCK, WS, SD), versorgt aus 3,3 V des ESP. Diese Pins sind sonst für die SD-Karte, deshalb keine Karte einstecken.</span></div>
+    <div class="key"><b>Schutz am Eingang</b><span>Polyfuse F1 (4 A) und TVS-Diode D2 (5 V) hinter der USB-C-Buchse. Auf der Platine v2 fest, auf dem Breadboard empfohlen.</span></div>
   </div>
 </section>
 
@@ -116,7 +124,12 @@ footer { font-size: 13px; color: var(--muted); }
   <h2>Schaltplan</h2>
   <figure>
     <div class="svgwrap">{{SCH_SVG}}</div>
-    <figcaption>Das USB-C-Netzteil versorgt den Streifen direkt. Der ESP32 bekommt seine 5 V über D1, das Datensignal läuft von GPIO3 durch einen Puffer des 74AHCT125 und R1 zum DIN des Streifens. Alle Massen sind verbunden.</figcaption>
+    <figcaption>Das USB-C-Netzteil versorgt den Streifen direkt. Der ESP32 bekommt seine 5 V über D1, das Datensignal läuft von GPIO3 durch einen Puffer des 74AHCT125 und R1 zum DIN des Streifens. Alle Massen sind verbunden. F1 schützt bei Kurzschluss, D2 fängt Spannungsspitzen ab.</figcaption>
+  </figure>
+  <h3>Kopfhörer-Sensor und Mikrofon</h3>
+  <figure>
+    <div class="svgwrap">{{SEN_SVG}}</div>
+    <figcaption>Beide hängen an den 3,3 V des ESP, nicht an den 5 V. Die FSR-Folie hat ohne Druck mehr als 1 MΩ, dann zieht R5 GPIO0 auf ca. 0 V. Mit aufliegendem Kopfhörer sinkt ihr Widerstand, GPIO0 steigt je nach Gewicht auf ca. 1 bis 3 V. Die Schwellen stehen in <code>include/config.h</code> (<code>HP_ON_MV</code> 900 mV, <code>HP_OFF_MV</code> 450 mV). Das Mikrofon liefert sein Signal digital, L/R an GND wählt den linken Kanal.</figcaption>
   </figure>
 </section>
 
@@ -128,13 +141,16 @@ footer { font-size: 13px; color: var(--muted); }
     <span><i style="background:var(--data1)"></i>GPIO3 (3,3 V)</span>
     <span><i style="background:var(--data2)"></i>Daten 5 V zum Streifen</span>
     <span><i style="background:var(--data3)"></i>ARGB-Daten vom Mainboard</span>
+    <span><i style="background:var(--v33)"></i>3,3 V vom ESP</span>
+    <span><i style="background:var(--fsr)"></i>Kopfhörer-Sensor (GPIO0)</span>
+    <span><i style="background:var(--i2s)"></i>Mikrofon I2S</span>
     <span>Dicke Linien rechts = Litze ≥ 1,0 mm²</span>
   </div>
   <figure>
     <div class="svgwrap">{{BB_SVG}}</div>
-    <figcaption>Zwei Breadboards übereinander, Board 1 oben, Board 2 darunter. Reihen 1–30 von links nach rechts, Spalten j (oben) bis a (unten). Jede Reihe ist pro Hälfte (a–e und f–j) leitend verbunden. Der ESP überspannt beide Boards in den Reihen 1 bis 20: Display nach oben, USB-C-Anschluss Richtung Reihe 1, Stiftleiste J4 in Board 1 Spalte a, J3 in Board 2 Spalte j. Unter dem Display bleiben pro Reihe nur die freien Löcher Board 1 e (für J4) und Board 2 f (für J3) erreichbar, gelb markiert. Die Steuerung sitzt auf Board 1. Die USB-C-Buchse steckt auf Board 2 in Spalte a, Reihe 23 (GND) bis 30 (CC2), die Platine ragt über die untere Schiene. Der 74AHCT125 sitzt in den Reihen 23 bis 29 und überbrückt den Mittelkanal mit der Kerbe Richtung Reihe 29. Reihe 21 und 22 tragen den Spannungsteiler für das ARGB-Signal.</figcaption>
+    <figcaption>Zwei Breadboards übereinander, Board 1 oben, Board 2 darunter. Reihen 1–30 von links nach rechts, Spalten j (oben) bis a (unten). Jede Reihe ist pro Hälfte (a–e und f–j) leitend verbunden. Der ESP überspannt beide Boards in den Reihen 1 bis 20: Display nach oben, USB-C-Anschluss Richtung Reihe 1, Stiftleiste J4 in Board 1 Spalte a, J3 in Board 2 Spalte j. Unter dem Display bleiben pro Reihe nur die freien Löcher Board 1 e (für J4) und Board 2 f (für J3) erreichbar, gelb markiert. Die Steuerung sitzt auf Board 1. Die USB-C-Buchse steckt auf Board 2 in Spalte a, Reihe 23 (GND) bis 30 (CC2), die Platine ragt über die untere Schiene. Der 74AHCT125 sitzt in den Reihen 23 bis 29 und überbrückt den Mittelkanal mit der Kerbe Richtung Reihe 29. Reihe 21 und 22 tragen den Spannungsteiler für das ARGB-Signal. Auf Board 2 sind die unteren Schienen <b>3,3 V</b> (außen) und GND (innen), dort hängen Kopfhörer-Sensor und Mikrofon. Der Messknoten für den Sensor ist Board 2 Reihe 4 (a–e), R5 und C3 stecken stehend zwischen Reihe 4 und Reihe 3 (GND). Das Mikrofon hängt mit sechs Kabeln (Buchse–Stecker) unter Board 2, die drei Datenleitungen stecken direkt in den freien Löchern der ESP-Pins.</figcaption>
   </figure>
-  <div class="warn"><b>Vor dem Einstecken prüfen:</b> Die beiden Stiftleisten liegen 17,78 mm (7 Rastermaße) auseinander, das passt genau auf Board 1 Spalte a und Board 2 Spalte j, wenn die Boards direkt aneinander stecken. Die M2-Abstandsbolzen (4 mm) auf der Rückseite begrenzen die Einstecktiefe, die Stifte greifen trotzdem sicher. Wenn es nicht sauber sitzt: Board neben das Breadboard legen und nur VBUS, GND, IO3 und IO23 mit vier Dupont-Kabeln (Buchse–Stecker) in Board 1 e1, e3, e9 und Board 2 f7 führen. Elektrisch ist das identisch. Kontrolliere außerdem die Aufschrift: In Board 1, Reihe 1, Spalte a muss der Pin „VBUS“ stecken (J4 Pin 1, direkt neben der USB-C-Buchse). Die USB-C-Buchse steckt nur zur Halterung im Breadboard. Die Litze für VBUS und GND lötest du oben an die Stifte der Buchse, so fließt der LED-Strom nicht über die Breadboard-Kontakte. Board 2, Reihe 23 und 24 (Spalte b bis e) liegen dadurch auf GND und 5 V, dort nichts anderes einstecken.</div>
+  <div class="warn"><b>Vor dem Einstecken prüfen:</b> Die beiden Stiftleisten liegen 17,78 mm (7 Rastermaße) auseinander, das passt genau auf Board 1 Spalte a und Board 2 Spalte j, wenn die Boards direkt aneinander stecken. Die M2-Abstandsbolzen (4 mm) auf der Rückseite begrenzen die Einstecktiefe, die Stifte greifen trotzdem sicher. Wenn es nicht sauber sitzt: Board neben das Breadboard legen und die benutzten Pins mit Dupont-Kabeln (Buchse–Stecker) in die markierten Löcher führen: VBUS, GND, 3V3, IO23 nach Board 1 e1, e3, e5, e9 und GND, IO0, IO3, IO19, IO20, IO21 nach Board 2 f3, f4, f7, f17, f19, f20 (zehn Kabel). Elektrisch ist das identisch. Kontrolliere außerdem die Aufschrift: In Board 1, Reihe 1, Spalte a muss der Pin „VBUS“ stecken (J4 Pin 1, direkt neben der USB-C-Buchse). Die USB-C-Buchse steckt nur zur Halterung im Breadboard. Die Litze für VBUS und GND lötest du oben an die Stifte der Buchse, so fließt der LED-Strom nicht über die Breadboard-Kontakte. Board 2, Reihe 23 und 24 (Spalte b bis e) liegen dadurch auf GND und 5 V, dort nichts anderes einstecken. <b>Die unteren Schienen von Board 2 führen 3,3 V, nicht 5 V.</b> Nie mit den 5-V-Schienen verbinden, sonst bekommen GPIO0 und das Mikrofon 5 V.</div>
 
   <div class="tablewrap">
   <table>
@@ -160,6 +176,16 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td class="mono">WAGO +5V / GND</td><td class="mono">obere + Schiene (Reihe 28) / obere − Schiene (Reihe 27)</td><td>dünn</td><td>Logikversorgung, unter 0,4 A</td></tr>
       <tr><td class="mono">USB-C VBUS / GND (Board 2 a24 / a23)</td><td class="mono">oben an die Stifte gelötet → WAGO +5V / GND</td><td>Litze ≥ 1,0 mm²</td><td>Einspeisung, bis 3 A</td></tr>
       <tr><td class="mono">USB-C D− / D+ (Board 2 a27 / a28) <span class="tag opt">optional</span></td><td class="mono">e27 → f11 (ESP IO12, J3/11), e28 → f12 (ESP IO13, J3/12)</td><td>hellblau, gestrichelt</td><td>Nur für PC-Sync über USB (Adalight, siehe README). Dann den ESP nicht gleichzeitig über seine eigene USB-Buchse am PC haben.</td></tr>
+      <tr><td class="mono">ESP 3V3 (J4/5, Board 1 a5)</td><td class="mono">e5 → durch den Mittelkanal → links außen um beide Boards → Board 2 untere äußere Schiene</td><td>orange</td><td>3,3 V für Sensor und Mikrofon</td></tr>
+      <tr><td class="mono">ESP GND (J3/3, Board 2 j3)</td><td class="mono">Board 2 f3 → e3, a3 → Board 2 untere innere Schiene</td><td>blau</td><td>Masse für Sensor und Mikrofon</td></tr>
+      <tr><td class="mono">ESP IO0 (J3/4, Board 2 j4)</td><td class="mono">Board 2 f4 → e4 (Messknoten Reihe 4)</td><td>pink</td><td>Kopfhörer-Sensor, Analogeingang</td></tr>
+      <tr><td class="mono">R5 22 kΩ</td><td class="mono">Board 2 c4 ↔ c3, stehend</td><td>Widerstand</td><td>Zieht GPIO0 ohne Kopfhörer auf 0 V</td></tr>
+      <tr><td class="mono">C3 100 nF</td><td class="mono">Board 2 b4 ↔ b3</td><td>Kondensator</td><td>Glättet das Sensorsignal</td></tr>
+      <tr><td class="mono">FSR402-LT</td><td class="mono">mit zwei Kabeln Buchse–Stecker: ein Stift nach Board 2 a4, der andere in die 3,3-V-Schiene (Reihe 6)</td><td>pink / orange</td><td>Polung egal</td></tr>
+      <tr><td class="mono">INMP441 VDD / GND / L/R</td><td class="mono">3,3-V-Schiene (Reihe 9) / GND-Schiene (Reihe 10 und 11)</td><td>orange / blau</td><td>Versorgung, L/R an GND = linker Kanal</td></tr>
+      <tr><td class="mono">INMP441 SCK / WS / SD</td><td class="mono">Board 2 f17 (IO19, J3/17) / f19 (IO20, J3/19) / f20 (IO21, J3/20)</td><td>türkis</td><td>I2S-Takt, Wortauswahl, Daten</td></tr>
+      <tr><td class="mono">F1 Polyfuse</td><td class="mono">in die +5-V-Litze zwischen USB-C-Buchse und WAGO</td><td>Litze</td><td>Kurzschlussschutz, auf dem Breadboard empfohlen</td></tr>
+      <tr><td class="mono">D2 TVS SA5.0A <span class="tag opt">optional</span></td><td class="mono">WAGO +5V (Ring) ↔ WAGO GND</td><td>Diode</td><td>Fängt Spannungsspitzen ab</td></tr>
       <tr><td class="mono">WAGO +5V / GND</td><td class="mono">Streifen +5V / GND</td><td>Litze ≥ 1,0 mm²</td><td>LED-Strom bis 3 A</td></tr>
     </tbody>
   </table>
@@ -185,10 +211,14 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td>11</td><td>Verbindungsklemmen</td><td>WAGO 221-413 (3-fach)</td><td class="num">2</td><td>Je eine für +5 V und GND: USB-C-Buchse, Streifen, Breadboard.</td></tr>
       <tr><td>12</td><td>Litze</td><td>1,0 mm² (AWG 18), rot und schwarz</td><td class="num">je 0,5 m</td><td>Für den Strompfad USB-C-Buchse → Streifen. 0,75 mm² reicht bei 3 A auch.</td></tr>
       <tr><td>13</td><td>Steckverbinder Streifen</td><td>JST-SM 3-polig, Gegenstück zum Eingang</td><td class="num">1</td><td>Optional, wenn du die offenen Litzen am Streifen nicht direkt in die WAGO-Klemme führen willst.</td></tr>
-      <tr><td>14</td><td>Steckbrücken</td><td>Jumper Stecker–Stecker, Drahtbrückenset</td><td class="num">ca. 18</td><td>Plus 4 × Buchse–Stecker als Reserve für die Variante „Board neben dem Breadboard“.</td></tr>
+      <tr><td>14</td><td>Steckbrücken</td><td>Jumper Stecker–Stecker, Drahtbrückenset</td><td class="num">ca. 22</td><td>Dazu 8 × Buchse–Stecker für Mikrofon und FSR und 10 × Buchse–Stecker als Reserve für die Variante „Board neben dem Breadboard“.</td></tr>
       <tr><td>15</td><td>ARGB-Kabel</td><td>3-polige ARGB-Verlängerung (5V, D, G) mit Buchse für den Mainboard-Header</td><td class="num">1</td><td>Ende abschneiden, nur D und G nutzen. So steuert ASUS Aura den Ständer.</td></tr>
       <tr><td>16</td><td>Widerstände R3, R4</td><td>1 kΩ und 2 kΩ</td><td class="num">je 1</td><td>Spannungsteiler: 5 V × 2 / 3 = 3,3 V am GPIO23. Ersatzweise 3 × 1 kΩ, zwei davon in Reihe als 2 kΩ.</td></tr>
-      <tr><td>17</td><td>Sicherung <span class="tag opt">optional</span></td><td>Feinsicherung oder KFZ-Flachsicherung 4 A mit Halter</td><td class="num">1</td><td>In die +5-V-Leitung nach der USB-C-Buchse. USB-C-Netzteile schalten bei Überlast meist selbst ab.</td></tr>
+      <tr><td>17</td><td>Polyfuse F1</td><td>Littelfuse RGEF400 (4 A halten, 6,8 A auslösen, 16 V), radial, Raster 5,1 mm, ca. 9 × 13 mm</td><td class="num">1</td><td>In die +5-V-Leitung nach der USB-C-Buchse. Setzt sich nach dem Abkühlen selbst zurück. Wie auf der Platine v2.</td></tr>
+      <tr><td>18</td><td>TVS-Diode D2 <span class="tag opt">optional</span></td><td>SA5.0A (DO-15)</td><td class="num">1</td><td>Ring an +5 V, anderes Bein an GND. Auf der Platine v2 fest bestückt.</td></tr>
+      <tr><td>19</td><td>Kopfhörer-Sensor <span class="tag have">vorhanden</span></td><td>FSR402-LT (QUARKZMAN, langer Anschluss), Kopf Ø 18,3 mm</td><td class="num">1</td><td>Anschluss-Streifen ca. 45 mm mit zwei Crimp-Stiften im Raster 2,54 mm. Nicht löten, sondern zwei Dupont-Kabel (Buchse–Stecker) aufstecken.</td></tr>
+      <tr><td>20</td><td>Widerstand R5, Kondensator C3</td><td>22 kΩ, 100 nF</td><td class="num">je 1</td><td>Spannungsteiler und Glättung für den Sensor.</td></tr>
+      <tr><td>21</td><td>Mikrofon <span class="tag have">vorhanden</span></td><td>INMP441, rundes Modul Ø 14 mm, 2 × 3 Stifte</td><td class="num">1</td><td>Versorgung nur 3,3 V. Auf dem Breadboard mit 6 Kabeln Buchse–Stecker.</td></tr>
     </tbody>
   </table>
   </div>
@@ -214,6 +244,8 @@ footer { font-size: 13px; color: var(--muted); }
     <li>C1-Polung kontrollieren: Minus-Streifen auf der blauen Schiene.</li>
     <li>Streifen am Eingang anschließen: Die Pfeile auf dem Streifen zeigen vom DIN-Ende weg.</li>
     <li>Reihenfolge beim Anschließen: zuerst GND und +5 V, dann die Datenleitung. Das Datensignal nie an einen unversorgten Streifen legen.</li>
+    <li>Vor dem Mikrofon: an der äußeren unteren Schiene von Board 2 gegen GND messen. Erwartet sind 3,3 V. Liegen dort 5 V, ist die Brücke falsch gesteckt.</li>
+    <li>Kopfhörer-Sensor: an Board 2 a4 gegen GND messen. Ohne Druck ca. 0 V, mit dem Kopfhörer auf der Folie ca. 1 bis 3 V. Den Messwert zeigt auch die Weboberfläche unter Einstellungen bei „Kopfhörer“ (Sensor … mV).</li>
     <li>Zum Flashen darfst du die USB-Buchse des ESP und das USB-C-Netzteil gleichzeitig verbinden. D1 sperrt dann, der ESP läuft über USB, die Massen sind über die gemeinsame GND-Schiene verbunden.</li>
   </ol>
 </section>
@@ -224,15 +256,15 @@ footer { font-size: 13px; color: var(--muted); }
   <table>
     <thead><tr><th>Leiste</th><th>Pins</th><th>Verwendung hier</th></tr></thead>
     <tbody>
-      <tr><td>J4 (Board 1 Spalte a)</td><td class="mono">1 VBUS · 2 VSYS · 3 GND · 4 3V3_EN · 5 3V3 · 6 ADC_VREF · 7 IO22 · 8 GND · 9 IO23 · 10 EXIO0 · 11 RUN · 12 EXIO1 · 13 GND · 14–17 EXIO2–5 · 18 GND · 19–20 EXIO6–7</td><td>Pin 1 VBUS über D1, Pin 3 GND, Pin 9 IO23 = ARGB-Eingang vom Mainboard. EXIO sind Ausgänge des I²C-Expanders TCA9554, für WS2812B nicht geeignet.</td></tr>
-      <tr><td>J3 (Board 2 Spalte j)</td><td class="mono">1 IO16 · 2 IO17 · 3 GND · 4 IO0 · 5 IO1 · 6 IO2 · 7 IO3 · 8 GND · 9 IO8 · 10 IO9 · 11 IO12 · 12 IO13 · 13 GND · 14 IO14 · 15 IO15 · 16 IO18 · 17 IO19 · 18 GND · 19 IO20 · 20 IO21</td><td>Pin 7 IO3 = LED-Daten. 16/17 UART0, 12/13 USB, 0 Akku-ADC, 1/2 IMU-Interrupt, 8/18 Touch-I²C, 9/15 Strapping, 14/15 LCD, 19/20 SD-Karte. Nicht benutzen.</td></tr>
+      <tr><td>J4 (Board 1 Spalte a)</td><td class="mono">1 VBUS · 2 VSYS · 3 GND · 4 3V3_EN · 5 3V3 · 6 ADC_VREF · 7 IO22 · 8 GND · 9 IO23 · 10 EXIO0 · 11 RUN · 12 EXIO1 · 13 GND · 14–17 EXIO2–5 · 18 GND · 19–20 EXIO6–7</td><td>Pin 1 VBUS über D1, Pin 3 GND, Pin 5 3V3 für Sensor und Mikrofon, Pin 9 IO23 = ARGB-Eingang vom Mainboard. EXIO sind Ausgänge des I²C-Expanders TCA9554, für WS2812B nicht geeignet.</td></tr>
+      <tr><td>J3 (Board 2 Spalte j)</td><td class="mono">1 IO16 · 2 IO17 · 3 GND · 4 IO0 · 5 IO1 · 6 IO2 · 7 IO3 · 8 GND · 9 IO8 · 10 IO9 · 11 IO12 · 12 IO13 · 13 GND · 14 IO14 · 15 IO15 · 16 IO18 · 17 IO19 · 18 GND · 19 IO20 · 20 IO21</td><td>Pin 7 IO3 = LED-Daten. Pin 4 IO0 = Kopfhörer-Sensor (IO0 ist auf manchen Waveshare-Boards auch als Akku-Messeingang vorgesehen. Beim ersten Test ohne aufgelegten Kopfhörer messen: GPIO0 muss nahe 0 V liegen, sonst die Schwellen in <code>config.h</code> anpassen), Pin 17/19/20 IO19/20/21 = Mikrofon (I2S). Dafür keine SD-Karte einstecken, IO19/20 sind sonst die SD-Karte. Nicht benutzen: 16/17 UART0, 12/13 USB (nur für PC-Sync), 1/2 IMU-Interrupt, 8/18 Touch-I²C, 9/15 Strapping, 14/15 LCD.</td></tr>
       <tr><td>Intern belegt</td><td class="mono">LCD 4/5/6/7/14/15 · Touch + IMU I²C 8/18 · IMU-INT 1/2 · SD 19/20 · BOOT 9</td><td>Pin 1 beider Leisten liegt an der USB-C-Seite.</td></tr>
     </tbody>
   </table>
   </div>
 </section>
 
-<footer>Stand 7. November 2026. Board: ESP32-C6-Touch-LCD-1.9, LED-Daten an GPIO3, ARGB-Eingang an GPIO23.</footer>
+<footer>Stand 18. November 2026. Board: ESP32-C6-Touch-LCD-1.9, LED-Daten an GPIO3, ARGB-Eingang an GPIO23, Kopfhörer-Sensor an GPIO0, Mikrofon an GPIO19/20/21.</footer>
 </main>
 </body>
 </html>

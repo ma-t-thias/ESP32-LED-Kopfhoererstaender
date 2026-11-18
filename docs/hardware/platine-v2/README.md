@@ -6,7 +6,7 @@ Die Platine v2 sitzt im neuen ovalen Sockel des Ständers v2 (siehe [`../gehaeus
 
 - **Kopfhörer-Sensor:** Anschluss für eine FSR-Drucksensor-Folie (FSR402 o. ä.) unter der Druckplatte in der Kopfhörer-Auflage. Die Folie liegt zwischen 3,3 V und GPIO0, R5 (22 kΩ) zieht nach GND, C3 (100 nF) glättet. Ohne Kopfhörer liegt GPIO0 bei ca. 0 V, mit Kopfhörer je nach Gewicht bei ca. 1–3 V.
 - **Mikrofon:** Steckplatz für ein rundes I2S-Mikrofonmodul INMP441 (Ø 14 mm, 2 × 3 Pins) für die Musik-Reaktion. SCK = GPIO19, WS = GPIO20, SD = GPIO21, L/R auf GND (linker Kanal).
-- **Schutz am Eingang:** Polyfuse F1 (3,75 A Haltestrom) und TVS-Diode D2 (5 V) direkt hinter dem USB-C-Eingang.
+- **Schutz am Eingang:** Polyfuse F1 (4 A Haltestrom) und TVS-Diode D2 (5 V) direkt hinter dem USB-C-Eingang.
 - **Ein Anschluss zum ESP:** Alle Leitungen zum ESP laufen über eine 10-polige Stiftleiste J7 (ein Kabel statt mehrerer).
 - **USB-Daten nicht mehr über die Platine:** Für PC-Sync führt das Datenkabel jetzt direkt von der USB-C-Buchsenplatine (Pins 5–6) zum ESP (J3 Pin 12 = GPIO13 = D+, J3 Pin 11 = GPIO12 = D−). Es bleibt der Schalter: gesteckt PC-Sync, abgezogen nur Strom.
 
@@ -19,7 +19,7 @@ Ansicht von der Bauteilseite. Gelb ist die Massefläche (GND), die farbigen Bahn
 - Größe **64 × 52 mm**, Ecken mit 2 mm gerundet. Koordinaten wie im SolidCraft-Modell: Ursprung = Mitte des Sockels, +y zeigt zum Display.
 - Umriss x −32…32, y −22…30.
 - 4 Befestigungslöcher Ø 2,7 mm für M2,5 bei (−29/−19), (29/−19), (−29/21), (29/21). Die Dome im Sockel-Boden müssen an diese Stellen.
-- Bis zur Sockeldecke sind über der Platine ca. 17 mm frei. Die höchsten Bauteile sind F1 (radial, je nach Hersteller bis ca. 15 mm mit Beinchen) und D2 (stehend, ca. 12 mm). Wird es zu eng, F1 vor dem Einlöten flach umlegen (die Beinchen sind lang genug). C1 liegt.
+- Bis zur Sockeldecke sind über der Platine ca. 17 mm frei. Die höchsten Bauteile sind F1 (RGEF400, Körper ca. 13 mm, mit Beinchen-Knick ca. 15 mm) und D2 (stehend, ca. 12 mm). Wird es zu eng, F1 vor dem Einlöten flach umlegen (die Beinchen sind lang genug). C1 liegt.
 - Das Mikrofonmodul liegt flach auf zwei kurzen 1×3-Stiftleisten im markierten Kreis vorne rechts. Die Mitte (= Schallloch) liegt bei x 17,04 / y 22,69. Der Mikrofonchip zeigt nach unten zur Platine, die Beschriftung mit dem Schallloch nach oben. Genau darüber braucht der Sockel eine Schallöffnung. Zum Schraubenkopf bei (29/21) bleiben ca. 2,5 mm.
 - **J7 nicht als gerade Stiftleiste mit Dupont-Stecker** (zu hoch): 90°-Stiftleiste nach vorne oder Litze direkt einlöten, am ESP-Ende Dupont-Buchsen.
 - J4 (ARGB, 90°-Stiftleiste) zeigt an der rechten Kante nach außen.
@@ -67,7 +67,7 @@ Die Ätzvorlage zeigt die Unterseite von der Bauteilseite aus gesehen, also **ni
 | R5 | 22 kΩ | stehend, Spannungsteiler für den FSR-Sensor |
 | D1 | 1N5819 | stehend, Körper über dem runden Pad (Anode), Ring ins eckige Pad (Kathode) |
 | D2 | SA5.0A (TVS, DO-15) | stehend, Körper über dem runden Pad (Anode, GND), Ring ins eckige Pad (Kathode, +5 V) |
-| F1 | Polyfuse RXEF375 (3,75 A halten, 7,5 A auslösen), radial, Raster 5,1 | beliebig herum. Der Haltestrom sinkt mit der Temperatur (bei ca. 40 °C im Sockel etwa 3,2 A), das reicht für 2,4 A LEDs + ESP. Die RXEF300 wäre warm zu knapp. |
+| F1 | Polyfuse Littelfuse RGEF400 (4 A halten, 6,8 A auslösen, 16 V), radial, Raster 5,1, ca. 9 × 13 mm | beliebig herum. Der Haltestrom sinkt mit der Temperatur (bei 40 °C im Sockel 3,5 A laut Datenblatt), das reicht für 2,4 A LEDs + ESP. **Nicht die RXEF375:** gleicher Strom, aber für 72 V gebaut und mit ca. 27 × 32 mm und 10,9 mm Raster viel zu groß. Die RGEF300 wäre warm zu knapp. |
 | J1 | Litze ≥ AWG 22 direkt einlöten | USB-Eingang: − = GND, + = VBUS der USB-C-Buchsenplatine (Pins 1–2 der 8er-Leiste). Kein dünnes Jumperkabel, es fließen bis ca. 2,7 A. |
 | LED | Pads 1×3 | Pigtail mit JST-SM zum Streifen: +, G, D |
 | J4 | Stiftleiste 1×4, 90° | ARGB vom Mainboard (5V nc, D, Lücke, G). Dritten Stift vor dem Einlöten ziehen. |
