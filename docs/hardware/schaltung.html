@@ -1648,7 +1648,7 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td class="mono">ESP IO0 (J3/4, Board 2 j4)</td><td class="mono">Board 2 f4 → e4 (Messknoten Reihe 4)</td><td>pink</td><td>Kopfhörer-Sensor, Analogeingang</td></tr>
       <tr><td class="mono">R5 22 kΩ</td><td class="mono">Board 2 c4 ↔ c3, stehend</td><td>Widerstand</td><td>Zieht GPIO0 ohne Kopfhörer auf 0 V</td></tr>
       <tr><td class="mono">C3 100 nF</td><td class="mono">Board 2 b4 ↔ b3</td><td>Kondensator</td><td>Glättet das Sensorsignal</td></tr>
-      <tr><td class="mono">FSR402-LT</td><td class="mono">ein Anschluss in Board 2 a4, der andere in die 3,3-V-Schiene (Reihe 6)</td><td>pink / orange</td><td>Polung egal</td></tr>
+      <tr><td class="mono">FSR402-LT</td><td class="mono">mit zwei Kabeln Buchse–Stecker: ein Stift nach Board 2 a4, der andere in die 3,3-V-Schiene (Reihe 6)</td><td>pink / orange</td><td>Polung egal</td></tr>
       <tr><td class="mono">INMP441 VDD / GND / L/R</td><td class="mono">3,3-V-Schiene (Reihe 9) / GND-Schiene (Reihe 10 und 11)</td><td>orange / blau</td><td>Versorgung, L/R an GND = linker Kanal</td></tr>
       <tr><td class="mono">INMP441 SCK / WS / SD</td><td class="mono">Board 2 f17 (IO19, J3/17) / f19 (IO20, J3/19) / f20 (IO21, J3/20)</td><td>türkis</td><td>I2S-Takt, Wortauswahl, Daten</td></tr>
       <tr><td class="mono">F1 Polyfuse</td><td class="mono">in die +5-V-Litze zwischen USB-C-Buchse und WAGO</td><td>Litze</td><td>Kurzschlussschutz, auf dem Breadboard empfohlen</td></tr>
@@ -1678,12 +1678,12 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td>11</td><td>Verbindungsklemmen</td><td>WAGO 221-413 (3-fach)</td><td class="num">2</td><td>Je eine für +5 V und GND: USB-C-Buchse, Streifen, Breadboard.</td></tr>
       <tr><td>12</td><td>Litze</td><td>1,0 mm² (AWG 18), rot und schwarz</td><td class="num">je 0,5 m</td><td>Für den Strompfad USB-C-Buchse → Streifen. 0,75 mm² reicht bei 3 A auch.</td></tr>
       <tr><td>13</td><td>Steckverbinder Streifen</td><td>JST-SM 3-polig, Gegenstück zum Eingang</td><td class="num">1</td><td>Optional, wenn du die offenen Litzen am Streifen nicht direkt in die WAGO-Klemme führen willst.</td></tr>
-      <tr><td>14</td><td>Steckbrücken</td><td>Jumper Stecker–Stecker, Drahtbrückenset</td><td class="num">ca. 22</td><td>Dazu 6 × Buchse–Stecker für das Mikrofon und 10 × Buchse–Stecker als Reserve für die Variante „Board neben dem Breadboard“.</td></tr>
+      <tr><td>14</td><td>Steckbrücken</td><td>Jumper Stecker–Stecker, Drahtbrückenset</td><td class="num">ca. 22</td><td>Dazu 8 × Buchse–Stecker für Mikrofon und FSR und 10 × Buchse–Stecker als Reserve für die Variante „Board neben dem Breadboard“.</td></tr>
       <tr><td>15</td><td>ARGB-Kabel</td><td>3-polige ARGB-Verlängerung (5V, D, G) mit Buchse für den Mainboard-Header</td><td class="num">1</td><td>Ende abschneiden, nur D und G nutzen. So steuert ASUS Aura den Ständer.</td></tr>
       <tr><td>16</td><td>Widerstände R3, R4</td><td>1 kΩ und 2 kΩ</td><td class="num">je 1</td><td>Spannungsteiler: 5 V × 2 / 3 = 3,3 V am GPIO23. Ersatzweise 3 × 1 kΩ, zwei davon in Reihe als 2 kΩ.</td></tr>
       <tr><td>17</td><td>Polyfuse F1</td><td>RXEF375 (3,75 A halten, 7,5 A auslösen), radial</td><td class="num">1</td><td>In die +5-V-Leitung nach der USB-C-Buchse. Setzt sich nach dem Abkühlen selbst zurück. Wie auf der Platine v2.</td></tr>
       <tr><td>18</td><td>TVS-Diode D2 <span class="tag opt">optional</span></td><td>SA5.0A (DO-15)</td><td class="num">1</td><td>Ring an +5 V, anderes Bein an GND. Auf der Platine v2 fest bestückt.</td></tr>
-      <tr><td>19</td><td>Kopfhörer-Sensor <span class="tag have">vorhanden</span></td><td>FSR402-LT (QUARKZMAN, langer Anschluss), Kopf Ø 18,3 mm</td><td class="num">1</td><td>Nicht an die Folie löten. Anschluss per Crimp oder Klemme.</td></tr>
+      <tr><td>19</td><td>Kopfhörer-Sensor <span class="tag have">vorhanden</span></td><td>FSR402-LT (QUARKZMAN, langer Anschluss), Kopf Ø 18,3 mm</td><td class="num">1</td><td>Anschluss-Streifen ca. 45 mm mit zwei Crimp-Stiften im Raster 2,54 mm. Nicht löten, sondern zwei Dupont-Kabel (Buchse–Stecker) aufstecken.</td></tr>
       <tr><td>20</td><td>Widerstand R5, Kondensator C3</td><td>22 kΩ, 100 nF</td><td class="num">je 1</td><td>Spannungsteiler und Glättung für den Sensor.</td></tr>
       <tr><td>21</td><td>Mikrofon <span class="tag have">vorhanden</span></td><td>INMP441, rundes Modul Ø 14 mm, 2 × 3 Stifte</td><td class="num">1</td><td>Versorgung nur 3,3 V. Auf dem Breadboard mit 6 Kabeln Buchse–Stecker.</td></tr>
     </tbody>
