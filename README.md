@@ -330,6 +330,7 @@ Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LE
 | `src/selftest.cpp` | Selbsttest für die Fertigung (LEDs, Touch, Taste, Lagesensor) |
 | `tools/sim/` | PC-Simulation der Effekte (`env:sim`), rechnet mit derselben `src/effects.cpp` |
 | `tools/blender/` | Ständer als 3D-Szene in Blender, LEDs live vom Ständer oder aus der Simulation |
+| `CLAUDE.md` | Regeln und Kurzüberblick für KI-Sitzungen (Claude Code): Zusammenarbeit, harte Regeln, Aufbau, Bauen |
 
 ## Lizenz
 
