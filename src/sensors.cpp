@@ -10,6 +10,7 @@ namespace sensors {
 namespace {
 // ---- Kopfhoerer (FSR) ----
 uint16_t mv = 0;          // geglaetteter Messwert
+uint16_t zero = 0;        // Nullpunkt (Grundlast der Abdeckung), wird abgezogen
 bool pressed = true;      // Schwelle mit Hysterese; beim Start "liegt auf", damit nichts dunkel startet
 bool present = true;      // nach Verzoegerung
 uint32_t releasedAt = 0;  // seit wann unter der Schwelle
@@ -32,8 +33,9 @@ void readHeadphone(uint32_t now) {
   lastRead = now;
   uint16_t v = analogReadMilliVolts(HP_SENSE_PIN);
   mv = (mv * 3 + v) / 4;  // leicht glaetten
-  if (!pressed && mv > HP_ON_MV) pressed = true;
-  else if (pressed && mv < HP_OFF_MV) { pressed = false; releasedAt = now; }
+  uint16_t load = mv > zero ? mv - zero : 0;
+  if (!pressed && load > HP_ON_MV) pressed = true;
+  else if (pressed && load < HP_OFF_MV) { pressed = false; releasedAt = now; }
   if (pressed) present = true;
   else if (now - releasedAt >= HP_DELAY_MS) present = false;
 }
@@ -102,7 +104,9 @@ void loop(bool mic) {
 
 bool hpAvailable() { return true; }
 bool headphonePresent() { return present; }
-uint16_t hpMilliVolts() { return mv; }
+uint16_t hpMilliVolts() { return mv > zero ? mv - zero : 0; }
+uint16_t hpRawMilliVolts() { return mv; }
+uint16_t setHpZero(uint16_t z) { return zero = z > HP_ZERO_MAX_MV ? HP_ZERO_MAX_MV : z; }
 uint8_t micLevel() { return level; }
 bool micOk() { return micRunning && millis() - lastData < 1000; }
 }  // namespace sensors
@@ -115,6 +119,8 @@ void loop(bool) {}
 bool hpAvailable() { return false; }
 bool headphonePresent() { return true; }
 uint16_t hpMilliVolts() { return 0; }
+uint16_t hpRawMilliVolts() { return 0; }
+uint16_t setHpZero(uint16_t) { return 0; }
 uint8_t micLevel() { return 0; }
 bool micOk() { return false; }
 }  // namespace sensors

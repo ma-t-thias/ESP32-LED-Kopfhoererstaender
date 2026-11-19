@@ -67,6 +67,7 @@
 #define HP_ON_MV 900     // darueber: Kopfhoerer liegt auf
 #define HP_OFF_MV 450    // darunter: Kopfhoerer abgenommen
 #define HP_DELAY_MS 2000 // erst so lange abgenommen, dann wird gedimmt
+#define HP_ZERO_MAX_MV 1500  // Nullpunkt (Grundlast der Abdeckung, Weboberflaeche) hoechstens so hoch
 // I2S-Mikrofon INMP441 (L/R auf GND = linker Kanal) fuer den Effekt "Musik"
 #define MIC_SCK 19
 #define MIC_WS 20

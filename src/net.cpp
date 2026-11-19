@@ -198,7 +198,7 @@ String stateJson() {
   j += ",\"time\":\"" + clockText() + "\"";
   j += ",\"hpAvail\":" + String(sensors::hpAvailable() ? "true" : "false");
   j += ",\"hp\":" + String(s.hpEnabled ? "true" : "false") + ",\"hpBri\":" + String(s.hpBri);
-  j += ",\"hpOn\":" + String(sensors::headphonePresent() ? "true" : "false") + ",\"hpMv\":" + String(sensors::hpMilliVolts());
+  j += ",\"hpOn\":" + String(sensors::headphonePresent() ? "true" : "false") + ",\"hpMv\":" + String(sensors::hpMilliVolts()) + ",\"hpZero\":" + String(s.hpZero);
   j += ",\"micOk\":" + String(sensors::micOk() ? "true" : "false");
   j += ",\"matterAvail\":" + String(matterdev::available() ? "true" : "false");
   j += ",\"matter\":" + String(s.matterEnabled ? "true" : "false");
@@ -430,6 +430,8 @@ void handleSetState() {
   v = argInt("nBri", 0, 255, p);       if (p) s.nightBri = v;
   v = argInt("hp", 0, 1, p);           if (p) s.hpEnabled = v;
   v = argInt("hpBri", 0, 255, p);      if (p) s.hpBri = v;
+  v = argInt("hpTare", 0, 1, p);  // 1 = jetzigen Messwert (ohne Kopfhoerer) als Nullpunkt, 0 = Nullpunkt loeschen
+  if (p) s.hpZero = sensors::setHpZero(v ? sensors::hpRawMilliVolts() : 0);
   v = argInt("matter", 0, 1, p);
   if (p && matterdev::available() && bool(v) != s.matterEnabled) {  // Matter laesst sich nur beim Start ein- oder ausschalten
     s.matterEnabled = v;
