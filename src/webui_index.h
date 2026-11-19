@@ -283,7 +283,7 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     <section class="glass list">
      <div class="li"><span>Ohne Kopfhörer dimmen</span><button class="switch" id="hp" type="button" role="switch" aria-checked="false" aria-label="Ohne Kopfhörer dimmen"></button><small id="hpHint"></small></div>
      <div class="li stack"><span id="hpBriL">Helligkeit ohne Kopfhörer</span><div class="seg" id="hpBri" role="group" aria-labelledby="hpBriL"></div></div>
-     <div class="li"><span>Nullpunkt</span><span class="val" id="hpZeroV">0 mV</span></div>
+     <div class="li"><span>Nullpunkt</span><span class="val" id="hpZeroV" aria-live="polite">0 mV</span></div>
      <button class="li btn tint" id="hpTare" type="button">Ohne Kopfhörer nullen</button>
      <button class="li btn" id="hpTareDel" type="button" hidden>Nullpunkt löschen</button>
     </section>
