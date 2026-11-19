@@ -1,5 +1,5 @@
 """
-build_staender_blend.py - baut die Blender-Szene des LED-Kopfhoererstaenders (Staender v8)
+build_staender_blend.py - baut die Blender-Szene des LED-Kopfhoererstaenders (Stand Sockel v9 / Auflage v3)
 
 Aufruf (Blender 4.2+ / 5.x):
     blender --background --python build_staender_blend.py -- [--stl-dir DIR] [--out FILE.blend] [--render FILE.png] [--demo]
