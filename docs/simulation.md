@@ -29,7 +29,7 @@ Das ist nur einmal pro PC nötig. Auf Matthias' PC ist alles schon erledigt.
    - [w64devkit](https://github.com/skeeto/w64devkit/releases) herunterladen (die Datei `w64devkit-x64-….7z.exe`) und nach `C:\w64devkit` entpacken.
    - `C:\w64devkit\bin` zum Benutzer-PATH hinzufügen: Windows-Taste, „Umgebungsvariablen für dieses Konto bearbeiten“, `Path` → Bearbeiten → Neu.
    - VS Code danach einmal neu starten.
-3. **3D-Teile:** Die STL-Dateien der Teile (Export aus SolidCraft in Montageposition, Stand Sockel v8) liegen schon im Repo unter `tools/blender/stl/`. Nach einem neuen CAD-Stand dort mit denselben Dateinamen ersetzen (Liste in `tools/blender/build_staender_blend.py` unter `PARTS`).
+3. **3D-Teile:** Die STL-Dateien der Teile (Export aus SolidCraft in Montageposition, Stand Sockel v9 / Auflage v3) liegen schon im Repo unter `tools/blender/stl/`. Nach einem neuen CAD-Stand dort mit denselben Dateinamen ersetzen (Liste in `tools/blender/build_staender_blend.py` unter `PARTS`).
 4. **Szene bauen:** in VS Code die Aufgabe **„Blender-Szene neu bauen“** ausführen (wie in Schritt 2 unten, nur die andere Aufgabe). Danach gibt es die Datei `tools/blender/Staender_v8.blend`.
 
 > **Gut zu wissen:** Schritt 4 wiederholst du immer dann, wenn sich die Konstruktion geändert hat und neue STLs im Ordner liegen. Die LEDs und das Bedienfeld bleiben dabei gleich.
