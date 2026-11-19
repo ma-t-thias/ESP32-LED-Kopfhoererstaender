@@ -30,6 +30,7 @@ struct LedState {
   // weil ein Staender ohne Sensor sonst immer gedimmt waere.
   bool hpEnabled = false;
   uint8_t hpBri = 26;  // ca. 10 %
+  uint16_t hpZero = 0;  // Nullpunkt in mV: Grundlast der Abdeckung ohne Kopfhoerer, wird abgezogen
 };
 
 namespace settings {

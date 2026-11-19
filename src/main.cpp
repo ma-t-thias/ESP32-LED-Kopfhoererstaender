@@ -150,6 +150,7 @@ void setup() {
   touch::begin();
   imu::begin();  // nach touch::begin, das den I2C-Bus startet
   sensors::begin();
+  state.hpZero = sensors::setHpZero(state.hpZero);
 
   net::setLeds(leds, LED_COUNT);
   net::begin(state, onWebChange);

@@ -10,6 +10,8 @@ void loop(bool) {}
 bool hpAvailable() { return false; }
 bool headphonePresent() { return true; }
 uint16_t hpMilliVolts() { return 0; }
+uint16_t hpRawMilliVolts() { return 0; }
+uint16_t setHpZero(uint16_t) { return 0; }
 bool micOk() { return true; }
 
 uint8_t micLevel() {
