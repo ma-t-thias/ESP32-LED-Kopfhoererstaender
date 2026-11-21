@@ -12,6 +12,7 @@
 #include "imu.h"
 #include "touch.h"
 #include "logo.h"
+#include "sensors.h"
 
 extern "C" {
 #include <qrcode.h>
@@ -56,6 +57,8 @@ constexpr uint16_t WARN = 0xFD20;
 // zuletzt gezeichneter Zustand, damit nur Aenderungen neu gezeichnet werden
 String lastHeader, lastNet1, lastNet2, lastFx, lastInfo;
 uint32_t lastPreviewMs = 0;
+int8_t lastSpectrum = -1;  // unten zuletzt: 0 = LED-Vorschau, 1 = Spektrum (-1 = neu zeichnen)
+uint8_t lastBarH[sensors::MIC_BANDS];
 
 constexpr int PREVIEW_SEGMENTS = 48;
 
@@ -121,14 +124,9 @@ void drawStatic(bool home) {
   gfx->fillScreen(BG);
   gfx->drawFastHLine(8, 34, W - 16, ACCENT);
   if (HAS_TOUCH) drawGear();
-  if (previewLabel) {
-    gfx->setTextSize(1);
-    gfx->setTextColor(MUTED);
-    gfx->setCursor(8, previewY - 12);
-    gfx->print("LED-Vorschau");
-  }
   lastHeader = lastNet1 = lastNet2 = lastFx = lastInfo = "";
   lastPreviewMs = 0;
+  lastSpectrum = -1;
 }
 // Startbild: Kopfhoerer mit Buegel im Regenbogen, darunter eine LED-Reihe und
 // der Name (src/logo.cpp, auch fuer die PC-Simulation).
@@ -458,6 +456,22 @@ bool begin() {
   return true;
 }
 
+// Spektrum des Mikrofons als 8 Balken (Bass links, Hoehen rechts) im Feld der LED-Vorschau.
+// Nur die Aenderung jedes Balkens wird gezeichnet, damit nichts flackert.
+void drawSpectrum() {
+  const uint8_t *b = sensors::micBands();  // haelt die Berechnung in der Firmware am Laufen
+  constexpr int N = sensors::MIC_BANDS;
+  const int gap = 4, bw = (W - 16 - gap * (N - 1)) / N;
+  for (int i = 0; i < N; i++) {
+    uint8_t h = (uint32_t)b[i] * previewH / 255;
+    if (h == 0) h = 2;  // Grundlinie bleibt sichtbar
+    int x = 8 + i * (bw + gap), base = previewY + previewH;
+    if (h > lastBarH[i]) gfx->fillRect(x, base - h, bw, h - lastBarH[i], logo::hue565(i * 32));
+    else if (h < lastBarH[i]) gfx->fillRect(x, base - lastBarH[i], bw, lastBarH[i] - h, BG);
+    lastBarH[i] = h;
+  }
+}
+
 void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (!ok || updating || testing) return;
 
@@ -527,6 +541,22 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   uint32_t now = millis();
   if (now - lastPreviewMs < 100) return;
   lastPreviewMs = now;
+  // Effekt "Musik" mit Mikrofon: unten das Spektrum statt der LED-Vorschau
+  bool spectrum = s.on && s.effect == effects::MUSIC && sensors::hpAvailable() &&
+                  !(s.argbEnabled && argb::active()) && !(s.syncEnabled && realtime::active());
+  if (spectrum != lastSpectrum) {
+    lastSpectrum = spectrum;
+    gfx->fillRect(0, previewY, W, previewH, BG);
+    memset(lastBarH, 0, sizeof(lastBarH));
+    if (previewLabel) {
+      gfx->fillRect(0, previewY - 12, W, 10, BG);
+      gfx->setTextSize(1);
+      gfx->setTextColor(MUTED);
+      gfx->setCursor(8, previewY - 12);
+      gfx->print(spectrum ? "Mikrofon: tief ... hoch" : "LED-Vorschau");
+    }
+  }
+  if (spectrum) return drawSpectrum();
   const int segW = (W - 16) / PREVIEW_SEGMENTS;
   for (int k = 0; k < PREVIEW_SEGMENTS; k++) {
     uint16_t idx = (uint32_t)k * n / PREVIEW_SEGMENTS;

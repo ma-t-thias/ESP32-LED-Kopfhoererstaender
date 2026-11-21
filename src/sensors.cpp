@@ -31,14 +31,14 @@ uint32_t lastData = 0;  // letzter Block mit Signal
 
 // Spektrum: je Band ein Goertzel-Filter ueber die 256 Werte eines Blocks, also ein schmaler
 // Frequenzpunkt (+-31 Hz) bei f Hz, keine Oktavbaender. Fuer eine Kontrollanzeige reicht das.
-// Gerechnet wird nur, solange die Weboberflaeche es abfragt (kostet ohne FPU ca. 10 % CPU).
+// Gerechnet wird nur, solange Display oder Weboberflaeche es abfragen (kostet ohne FPU ca. 10 % CPU).
 const float BAND_HZ[MIC_BANDS] = {63, 125, 250, 500, 1000, 2000, 4000, 6300};
 float coef[MIC_BANDS];
 float g1[MIC_BANDS], g2[MIC_BANDS];
 float ps[MIC_BANDS];         // geglaettete Leistung je Band
 float bandFloor[MIC_BANDS];  // Grundrauschen je Band in dB
 uint8_t bands[MIC_BANDS];
-uint32_t bandsWantedAt = 0;  // letzte Abfrage der Weboberflaeche
+uint32_t bandsWantedAt = 0;  // letzte Abfrage (Display oder Weboberflaeche)
 
 bool bandsWanted() { return bandsWantedAt && millis() - bandsWantedAt < 2000; }
 
