@@ -580,6 +580,15 @@ void begin(LedState &state, ChangeHandler onChange) {
   server.on("/api/state", HTTP_POST, prot(handleSetState));
   server.on("/api/info", HTTP_GET, []() { server.send(200, "application/json", infoJson()); });
   server.on("/api/live", HTTP_GET, handleLive);
+  server.on("/api/mic", HTTP_GET, []() {  // Spektrum fuer die Weboberflaeche (nur lesen)
+    const uint8_t *b = sensors::micBands();
+    String j = "{\"ok\":" + String(sensors::micOk() ? "true" : "false") + ",\"lvl\":" + String(sensors::micLevel()) + ",\"b\":[";
+    for (uint8_t i = 0; i < sensors::MIC_BANDS; i++) {
+      if (i) j += ",";
+      j += String(b[i]);
+    }
+    server.send(200, "application/json", j + "]}");
+  });
   server.on("/api/presets", HTTP_GET, []() { server.send(200, "application/json", settings::loadPresets()); });
   server.on("/api/presets", HTTP_POST, prot(handleSavePresets));
   // WLAN-Suche und -Daten: ueber das Einrichtungs-WLAN selbst ohne Passwort (nur wer dort verbunden ist)

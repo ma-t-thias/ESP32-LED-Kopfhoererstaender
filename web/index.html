@@ -158,6 +158,9 @@ input[type=range]:disabled{opacity:.35;cursor:default}
 .switch[aria-checked="true"]{background:var(--green)}
 .switch[aria-checked="true"]::after{transform:translateX(20px)}
 .li.btn:active{background:var(--fill)}
+.spec{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;align-items:end;height:110px}
+.spec i{display:block;height:3%;border-radius:5px;background:linear-gradient(to top,var(--tint),var(--green));transition:height .1s linear}
+.specL{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;color:var(--muted);font-size:0.6875rem;text-align:center;font-variant-numeric:tabular-nums}
 /* Beim Drücken streckt sich der Knopf wie in iOS; Trefferfläche mind. 44 px */
 .switch::after{transition:transform .25s cubic-bezier(.3,.7,.3,1.2),width .2s ease-out}
 .switch:active::after{width:33px}.switch[aria-checked="true"]:active::after{transform:translateX(14px)}
@@ -229,6 +232,12 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
   </section>
   <div class="group a-fx"><h2>Effekt</h2>
    <div class="fx" id="fx"></div>
+  </div>
+  <div class="group" id="micGroup" hidden><h2>Mikrofon</h2>
+   <section class="glass list">
+    <div class="li stack"><div class="spec" id="spec" role="img" aria-label="Spektrum des Mikrofons"></div><div class="specL" aria-hidden="true"><span>63</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>6k</span></div><small id="micHint"></small></div>
+   </section>
+   <p class="foot">Das Spektrum zeigt, was das Mikrofon hört: links tiefe Töne (Bass), rechts hohe, in Hertz. So siehst du, ob die Musik ankommt. Der Effekt „Musik“ folgt der Gesamtlautstärke, mit „Intensität“ stellst du die Empfindlichkeit ein.</p>
   </div>
  </div>
 
@@ -523,7 +532,8 @@ const api = DEMO ? {
  set: async o => { if('hpTare' in o){ demoState.hpZero=+o.hpTare?120:0; delete o.hpTare; } for (const k in o) demoState[k] = typeof demoState[k]==='number' ? +o[k] : typeof demoState[k]==='boolean' ? !!+o[k] : o[k]; return {...demoState}; },
  wifiReset: async () => 'In der Vorschau passiert hier nichts.',
  matterUnpair: async () => 'In der Vorschau passiert hier nichts.',
- presets: async () => null, savePresets: async () => {}, live: null
+ presets: async () => null, savePresets: async () => {}, live: null,
+ mic: async () => { const t=performance.now()/1000, beat=Math.max(0,1-(t%0.5)*3); return {ok:true,lvl:Math.round(120+beat*110),b:[0,1,2,3,4,5,6,7].map(i=>Math.round(Math.max(0,Math.min(255,(i<2?beat*230:0)+90+60*Math.sin(t*3+i)-i*12))))}; }
 } : {
  info: () => fetch('/api/info',{signal:to()}).then(r=>r.json()),
  state: () => fetch('/api/state',{signal:to()}).then(r=>r.json()),
@@ -532,6 +542,7 @@ const api = DEMO ? {
  matterUnpair: () => fetch('/api/matter/unpair',{method:'POST'}).then(r=>r.text()),
  presets: () => fetch('/api/presets').then(r=>r.text()).then(t=>t?JSON.parse(t):null),
  savePresets: list => fetch('/api/presets',{method:'POST',body:new URLSearchParams({data:JSON.stringify(list)})}),
+ mic: () => fetch('/api/mic',{signal:to()}).then(r=>r.json()),
  live: () => fetch('/api/live').then(r=>r.text()).then(t=>{ const a=[]; for(let i=0;i+5<t.length;i+=6) a.push(hex2rgb('#'+t.substr(i,6))); return a; })
 };
 
@@ -610,6 +621,7 @@ function render(){
  const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
  if(document.activeElement!==$('nFrom')) $('nFrom').value=hm(st.nFrom??1320);
  if(document.activeElement!==$('nTo')) $('nTo').value=hm(st.nTo??420);
+ $('micGroup').hidden=!(st.hpAvail && info.effects[st.fx]==='Musik');
  $('hpGroup').hidden=!st.hpAvail; $('hp').setAttribute('aria-checked',!!st.hp);
  [...$('hpBri').children].forEach((b,i)=>b.setAttribute('aria-pressed',[0,26,77,128][i]===st.hpBri));
  $('hpZeroV').textContent=(st.hpZero??0)+' mV'; $('hpTareDel').hidden=!st.hpZero;
@@ -769,6 +781,13 @@ $('factory').onclick=()=>{ if(DEMO) return alert('In der Vorschau passiert hier 
 
 // ---------- Animation ----------
 let mainSim, last=performance.now(), acc=0, liveCols=null, liveAt=0;
+// Spektrum nur abfragen, wenn es zu sehen ist (Seite Licht, Effekt Musik)
+function pollMic(){ const vis=ready && view==='licht' && !$('micGroup').hidden && !document.hidden;
+ if(!vis) return setTimeout(pollMic,500);
+ api.mic().then(m=>{ [...$('spec').children].forEach((el,i)=>el.style.height=Math.max(3,(m.b[i]||0)/2.55)+'%');
+  $('micHint').textContent=m.ok?`Pegel ${Math.round((m.lvl||0)/2.55)} %`:(st.on?'Mikrofon liefert keine Daten':'LEDs sind aus, Mikrofon ruht'); })
+ .catch(()=>{}).finally(()=>setTimeout(pollMic,120)); }
+for(let i=0;i<8;i++) $('spec').appendChild(document.createElement('i'));
 function pollLive(){ if(!api.live || document.hidden || fwBusy) return setTimeout(pollLive,1000);
  api.live().then(c=>{ if(c.length){ liveCols=c; liveAt=performance.now(); } }).catch(()=>{}).finally(()=>setTimeout(pollLive,180)); }
 function loop(now){
@@ -804,7 +823,7 @@ addEventListener('hashchange',()=>show(location.hash.slice(1),true));
 $('demo').hidden=!DEMO;
 // Start: ohne Antwort vom Ständer nicht ewig „verbinde …“ zeigen, sondern melden und neu versuchen
 function start(){
- Promise.all([api.info(),api.state(),api.presets().catch(()=>null)]).then(([i,s,p])=>{ info=i; st=s; if(Array.isArray(p)&&p.length) presets=p; mainSim=makeSim(info.leds); build(); drawWheel(); ready=true; render(); requestAnimationFrame(loop); if(api.live) pollLive(); },
+ Promise.all([api.info(),api.state(),api.presets().catch(()=>null)]).then(([i,s,p])=>{ info=i; st=s; if(Array.isArray(p)&&p.length) presets=p; mainSim=makeSim(info.leds); build(); drawWheel(); ready=true; render(); requestAnimationFrame(loop); if(api.live) pollLive(); pollMic(); },
   ()=>{ $('sub').textContent='Keine Verbindung · neuer Versuch …'; setTimeout(start,3000); });
 }
 start();
