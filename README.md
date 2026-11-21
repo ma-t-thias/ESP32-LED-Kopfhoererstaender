@@ -151,7 +151,7 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
 
-**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft. Dann zeigt die Weboberfläche auf der Seite **Licht** unter „Mikrofon“ ein Spektrum mit 8 Bändern (63 Hz bis 6 kHz) und den Pegel, damit man sieht, ob die Musik ankommt. Die Bänder rechnet die Firmware mit je einem Goertzel-Filter pro Band.
+**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft. Dann zeigt die Weboberfläche auf der Seite **Licht** unter „Mikrofon“ ein Spektrum mit 8 Frequenzpunkten (63 Hz bis 6 kHz) und den Pegel, damit man sieht, ob die Musik ankommt. Die Firmware rechnet dafür je Frequenz einen Goertzel-Filter, aber nur, solange die Seite das Spektrum abfragt. Die Punkte sind schmal, hohe Töne erscheinen deshalb oft nur kurz.
 
 ## ASUS Aura über das Mainboard-Kabel
 

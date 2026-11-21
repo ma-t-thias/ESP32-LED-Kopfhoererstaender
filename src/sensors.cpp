@@ -29,13 +29,18 @@ float floorDb = -1;     // Grundrauschen, passt sich an (-1 = noch unbekannt)
 uint8_t level = 0;
 uint32_t lastData = 0;  // letzter Block mit Signal
 
-// Spektrum: je Band ein Goertzel-Filter ueber die 256 Werte eines Blocks (Mitte bei f Hz).
-// Einfacher und schneller als eine FFT; fuer eine Anzeige reicht das.
+// Spektrum: je Band ein Goertzel-Filter ueber die 256 Werte eines Blocks, also ein schmaler
+// Frequenzpunkt (+-31 Hz) bei f Hz, keine Oktavbaender. Fuer eine Kontrollanzeige reicht das.
+// Gerechnet wird nur, solange die Weboberflaeche es abfragt (kostet ohne FPU ca. 10 % CPU).
 const float BAND_HZ[MIC_BANDS] = {63, 125, 250, 500, 1000, 2000, 4000, 6300};
 float coef[MIC_BANDS];
 float g1[MIC_BANDS], g2[MIC_BANDS];
-float bandFloor[MIC_BANDS];
+float ps[MIC_BANDS];         // geglaettete Leistung je Band
+float bandFloor[MIC_BANDS];  // Grundrauschen je Band in dB
 uint8_t bands[MIC_BANDS];
+uint32_t bandsWantedAt = 0;  // letzte Abfrage der Weboberflaeche
+
+bool bandsWanted() { return bandsWantedAt && millis() - bandsWantedAt < 2000; }
 
 void readHeadphone(uint32_t now) {
   if (now - lastRead < 50) return;
@@ -60,7 +65,7 @@ void micStart() {
   floorDb = -1;
   for (uint8_t b = 0; b < MIC_BANDS; b++) {
     coef[b] = 2.0f * cosf(2.0f * float(M_PI) * roundf(BAND_HZ[b] * 256 / 16000) / 256);
-    g1[b] = g2[b] = 0;
+    g1[b] = g2[b] = ps[b] = 0;
     bandFloor[b] = -1;
     bands[b] = 0;
   }
@@ -68,14 +73,17 @@ void micStart() {
   acc = 0;
 }
 
-// 256 Werte (16 ms) zu einem Pegel zusammenfassen: dB ueber dem Grundrauschen, 0..255 fuer ca. 36 dB
-// Spektrum eines Blocks: Leistung je Band in dB, wie der Pegel ueber dem eigenen Grundrauschen (0..255 fuer 40 dB)
+// Spektrum eines Blocks: Leistung je Band (ueber Bloecke geglaettet) in dB ueber dem eigenen
+// Grundrauschen, 0..255 fuer 40 dB. Das Grundrauschen folgt nach unten nur sanft, weil einzelne
+// Goertzel-Werte bei Rauschen stark schwanken.
 void spectrum() {
   for (uint8_t b = 0; b < MIC_BANDS; b++) {
     float p = g1[b] * g1[b] + g2[b] * g2[b] - coef[b] * g1[b] * g2[b];
     g1[b] = g2[b] = 0;
-    float db = 10.0f * log10f(p + 1.0f);
-    if (bandFloor[b] < 0 || db < bandFloor[b]) bandFloor[b] = db;
+    ps[b] += (p - ps[b]) * 0.3f;
+    float db = 10.0f * log10f(ps[b] + 1.0f);
+    if (bandFloor[b] < 0) bandFloor[b] = db;
+    else if (db < bandFloor[b]) bandFloor[b] += (db - bandFloor[b]) * 0.05f;
     else bandFloor[b] += 0.005f;
     float x = (db - bandFloor[b] - 6.0f) * (255.0f / 40.0f);
     uint8_t l = x <= 0 ? 0 : x >= 255 ? 255 : uint8_t(x);
@@ -83,6 +91,7 @@ void spectrum() {
   }
 }
 
+// 256 Werte (16 ms) zu einem Pegel zusammenfassen: dB ueber dem Grundrauschen, 0..255 fuer ca. 36 dB
 void block() {
   float env = acc / count;
   acc = 0;
@@ -92,7 +101,8 @@ void block() {
     for (uint8_t b = 0; b < MIC_BANDS; b++) g1[b] = g2[b] = 0;
     return;
   }
-  spectrum();
+  if (bandsWanted()) spectrum();
+  else memset(bands, 0, sizeof(bands));
   lastData = millis();
   if (floorDb < 0 || db < floorDb) floorDb = db;  // leiser geworden: Grundrauschen sofort nachziehen
   else floorDb += 0.005f;                         // sonst langsam hochlaufen (ca. 0,3 dB/s)
@@ -107,12 +117,13 @@ void readMic() {
     size_t got = 0;
     i2s_channel_read(i2s.rxChan(), buf, sizeof(buf), &got, 0);
     size_t n = got / sizeof(int32_t);
+    bool spec = bandsWanted();
     for (size_t i = 0; i < n; i++) {
       float x = float(buf[i] >> 8);  // 24 Bit Nutzdaten oben im 32-Bit-Wort
       dc += (x - dc) * 0.001f;       // Gleichanteil entfernen
       float y = x - dc;
       acc += fabsf(y);
-      for (uint8_t b = 0; b < MIC_BANDS; b++) {  // Goertzel-Schritt je Band
+      for (uint8_t b = 0; spec && b < MIC_BANDS; b++) {  // Goertzel-Schritt je Band
         float g0 = y + coef[b] * g1[b] - g2[b];
         g2[b] = g1[b];
         g1[b] = g0;
@@ -149,7 +160,10 @@ uint16_t hpRawMilliVolts() { return mv; }
 uint16_t setHpZero(uint16_t z) { return zero = z > HP_ZERO_MAX_MV ? HP_ZERO_MAX_MV : z; }
 uint8_t micLevel() { return level; }
 bool micOk() { return micRunning && millis() - lastData < 1000; }
-const uint8_t *micBands() { return bands; }
+const uint8_t *micBands() {
+  bandsWantedAt = millis() | 1;  // Abfrage haelt die Berechnung 2 s am Laufen
+  return bands;
+}
 }  // namespace sensors
 
 #else  // altes Board ohne Sensoren
