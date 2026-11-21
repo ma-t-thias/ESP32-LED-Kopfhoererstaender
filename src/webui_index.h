@@ -331,7 +331,7 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
      <button class="li btn" id="wifiReset" type="button">WLAN neu einrichten</button>
      <button class="li btn" id="factory" type="button">Werkseinstellungen</button>
     </section>
-    <p class="foot" id="stFoot">Selbsttest: Die LEDs leuchten nacheinander rot, grün, blau und weiß, danach läuft ein Lichtpunkt über den Streifen (bitte hinschauen). Dann das Display antippen (altes 1,3-Zoll-Board: entfällt) und die BOOT-Taste drücken; der Lagesensor wird selbst geprüft. Das Ergebnis steht am Display, hier und unter Info. Werkseinstellungen löschen alles außer der Seriennummer, auch WLAN und Passwort; am Gerät geht das mit 10&nbsp;s BOOT-Taste.</p>
+    <p class="foot" id="stFoot">Selbsttest: Die LEDs leuchten nacheinander rot, grün, blau und weiß, danach läuft ein Lichtpunkt über den Streifen (bitte hinschauen). Dann das Display antippen (altes 1,3-Zoll-Board: entfällt) und die BOOT-Taste drücken. Danach 10&nbsp;s lang den Drucksensor drücken und sprechen oder klatschen, das Display zeigt die Werte als Zahl und Kurve (nur 1,9-Zoll-Board). Der Lagesensor wird selbst geprüft. Das Ergebnis steht am Display, hier und unter Info. Werkseinstellungen löschen alles außer der Seriennummer, auch WLAN und Passwort; am Gerät geht das mit 10&nbsp;s BOOT-Taste.</p>
    </div>
   </div>
  </div>
@@ -754,17 +754,17 @@ function renderMeta(){
 // ---------- Selbsttest (Fertigung) ----------
 function stLast(i){ if(!(i.stLast>=0)) return 'noch keiner';
  return (i.stLast?'bestanden':'nicht bestanden')+(i.stTime?' · '+new Date(i.stTime*1000).toLocaleDateString('de-DE'):''); }
-const ST_STEP={leds:'LEDs ansehen …',touch:'Bitte Display antippen …',button:'Bitte BOOT-Taste drücken …',sensor:'Lagesensor …'};
+const ST_STEP={leds:'LEDs ansehen …',touch:'Bitte Display antippen …',button:'Bitte BOOT-Taste drücken …',hpmic:'Drucksensor drücken und sprechen oder klatschen (10 s) …',sensor:'Lagesensor …'};
 const ST_WORD={ok:'OK',fehlt:'keine Reaktion',fehler:'Fehler','-':'–'};
 function stShow(r){
  $('stRow').hidden=false;
  if(r.running&&r.step!=='result'){ $('stRes').textContent=ST_STEP[r.step]||'läuft …'; return; }
- const parts=[['Touch',r.touch],['Taste',r.button],['Lage',r.sensor]].filter(p=>p[1]!=='-').map(([k,v])=>k+' '+(ST_WORD[v]||v));
+ const parts=[['Touch',r.touch],['Taste',r.button],['Druck',r.hp],['Mikro',r.mic],['Lage',r.sensor]].filter(p=>p[1]!=='-').map(([k,v])=>k+' '+(ST_WORD[v]||v));
  $('stRes').textContent=(r.passed?'Bestanden':'Nicht bestanden')+' · '+parts.join(' · ');
  $('stRes').style.color=r.passed?'var(--green)':'var(--red)';
 }
 function stPoll(){ fetch('/api/selftest').then(r=>r.json()).then(r=>{ stShow(r); if(r.running&&r.step!=='result') setTimeout(stPoll,1000); else { $('stStart').disabled=false; api.info().then(i=>{ info=i; renderMeta(); }).catch(()=>{}); } },()=>setTimeout(stPoll,2000)); }
-$('stStart').onclick=()=>{ if(DEMO) return stShow({running:false,passed:true,touch:'ok',button:'ok',sensor:'ok'});
+$('stStart').onclick=()=>{ if(DEMO) return stShow({running:false,passed:true,touch:'ok',button:'ok',hp:'ok',mic:'ok',sensor:'ok'});
  $('stStart').disabled=true; $('stRes').style.color=''; $('stRow').hidden=false; $('stRes').textContent='startet …';
  fetch('/api/selftest',{method:'POST'}).then(r=>{ if(r.ok||r.status===409) stPoll(); else $('stStart').disabled=false; },()=>{ $('stStart').disabled=false; }); };
 // ---------- Zugang: Anmelden, Passwort ändern, Abmelden, Werkseinstellungen ----------

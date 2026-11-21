@@ -201,6 +201,7 @@ constexpr const char *OFF_HINT = "Aus - Taste druecken";
 uint32_t logoUntil = 0;  // bis dahin bleibt das Startbild stehen
 bool updating = false;  // Update oder Meldung vor Neustart: normale Anzeige ruht
 bool testing = false;   // Selbsttest zeigt eigene Seiten
+int scopeX = -1, scopeHp = 0, scopeMic = 0;  // letzter Punkt der Oszi-Kurven im Selbsttest (-1 = neu)
 
 // QR-Code zeichnen: Die Bibliothek ruft uns mit dem fertigen Code auf.
 constexpr int QR_BOX = 156;
@@ -640,6 +641,7 @@ int handleTouch(uint8_t gesture, const touch::Point &p, LedState &s) {
 void testScreen(const char *title, const String &body, uint8_t status, const String &foot) {
   if (!ok || updating) return;
   testing = true;
+  scopeX = -1;
   shown = SCR_TEST;  // danach zeichnet loop() alles neu
   settingsOpen = false;
   logoUntil = 0;
@@ -665,11 +667,48 @@ void testScreen(const char *title, const String &body, uint8_t status, const Str
       y += step;
     }
   };
-  lines(body, 4, 24, 12);
+  lines(body, 5, 24, 12);
   gfx->setTextSize(1);
   gfx->setTextColor(MUTED);
   y += 4;
   lines(foot, 4, 12, 6);
+}
+
+void testScope(uint16_t hpMv, uint8_t micLvl, uint8_t percent) {
+  if (!ok || updating || !testing) return;
+  int w = gfx->width(), h = gfx->height();
+  constexpr uint16_t HP_C = WARN, MIC_C = ACCENT;
+  const int top = 130, bottom = h - 6, ph = bottom - top;
+  auto yHp = [&](uint16_t mv) { return bottom - (int)min<uint32_t>(mv, 3300) * ph / 3300; };
+  auto yMic = [&](uint8_t l) { return bottom - (int)l * ph / 255; };
+  if (scopeX < 0) {  // erster Aufruf: Rahmen und Schaltschwelle
+    gfx->fillRect(0, top - 1, w, ph + 2, BG);
+    gfx->drawRect(7, top - 1, w - 14, ph + 2, MUTED);
+#ifdef HP_ON_MV
+    for (int x = 8; x < w - 8; x += 6) gfx->drawFastHLine(x, yHp(HP_ON_MV), 3, MUTED);  // ab hier "liegt auf"
+#endif
+  }
+  // Zahlen wie beim Multimeter (Textgroesse 2, je max. 12 Zeichen, feste Breite ueberschreibt ohne Flackern)
+  char t[16];
+  gfx->setTextSize(2);
+  gfx->setTextColor(HP_C, BG);
+  gfx->setCursor(8, 82);
+  snprintf(t, sizeof(t), "Druck%4umV", hpMv > 9999 ? 9999 : hpMv);
+  gfx->print(t);
+  gfx->setTextColor(MIC_C, BG);
+  gfx->setCursor(8, 106);
+  snprintf(t, sizeof(t), "Mikro%4u", micLvl);
+  gfx->print(t);
+  // Kurven laufen einmal von links nach rechts (wie ein Oszilloskop mit 10 s Zeitbasis)
+  int x = 8 + (int)min<uint8_t>(percent, 100) * (w - 17) / 100;
+  int yh = yHp(hpMv), ym = yMic(micLvl);
+  if (scopeX >= 0 && x >= scopeX) {
+    gfx->drawLine(scopeX, scopeHp, x, yh, HP_C);
+    gfx->drawLine(scopeX, scopeMic, x, ym, MIC_C);
+  }
+  scopeX = x;
+  scopeHp = yh;
+  scopeMic = ym;
 }
 
 void testEnd() {

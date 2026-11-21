@@ -163,6 +163,7 @@ void setup() {
 void loopSelftest() {
   net::loop();
   realtime::loop(false);  // liest weiter USB-Befehle, verwirft Lichtdaten
+  sensors::loop(selftest::micWanted());
   bool btn = digitalRead(BUTTON_PIN) == LOW;
   bool touched = touch::read(display::currentRotation()) != touch::NONE;
   uint32_t now = millis();
