@@ -201,6 +201,7 @@ constexpr const char *OFF_HINT = "Aus - Taste druecken";
 uint32_t logoUntil = 0;  // bis dahin bleibt das Startbild stehen
 bool updating = false;  // Update oder Meldung vor Neustart: normale Anzeige ruht
 bool testing = false;   // Selbsttest zeigt eigene Seiten
+int scopeX = -1, scopeHp = 0, scopeMic = 0;  // letzter Punkt der Oszi-Kurven im Selbsttest (-1 = neu)
 
 // QR-Code zeichnen: Die Bibliothek ruft uns mit dem fertigen Code auf.
 constexpr int QR_BOX = 156;
@@ -640,6 +641,7 @@ int handleTouch(uint8_t gesture, const touch::Point &p, LedState &s) {
 void testScreen(const char *title, const String &body, uint8_t status, const String &foot) {
   if (!ok || updating) return;
   testing = true;
+  scopeX = -1;
   shown = SCR_TEST;  // danach zeichnet loop() alles neu
   settingsOpen = false;
   logoUntil = 0;
@@ -653,23 +655,64 @@ void testScreen(const char *title, const String &body, uint8_t status, const Str
   gfx->drawFastHLine(8, 38, w - 16, MUTED);
   gfx->setTextColor(FG);
   int y = 50;
-  // Zeilen ohne Umbruch, zu lange werden abgeschnitten (Textgroesse 2 = 12 px je Zeichen, 1 = 6 px)
-  auto lines = [&](const String &text, int maxLines, int step, int charW) {
-    int from = 0;
+  // Zeilen ohne Umbruch, zu lange werden abgeschnitten (Textgroesse 2 = 12 px je Zeichen, 1 = 6 px).
+  // perCol: so viele Zeilen je Spalte, danach geht es in einer zweiten Spalte rechts weiter.
+  auto lines = [&](const String &text, int maxLines, int step, int charW, int perCol) {
+    int from = 0, y0 = y, colW = perCol < maxLines ? w / 2 : w;
     for (int i = 0; i < maxLines && from < (int)text.length(); i++) {
       int nl = text.indexOf('\n', from);
       if (nl < 0) nl = text.length();
-      gfx->setCursor(8, y);
-      gfx->print(text.substring(from, min(nl, from + (w - 16) / charW)));
+      int yy = y0 + (i % perCol) * step;
+      gfx->setCursor(8 + (i / perCol) * colW, yy);
+      gfx->print(text.substring(from, min(nl, from + (colW - 16) / charW)));
       from = nl + 1;
-      y += step;
+      y = max(y, yy + step);
     }
   };
-  lines(body, 4, 24, 12);
+  // Querformat (170 px hoch): ab der 4. grossen Zeile rechts daneben, damit der Fusstext Platz hat
+  lines(body, 5, 24, 12, gfx->height() < 200 ? 3 : 5);
   gfx->setTextSize(1);
   gfx->setTextColor(MUTED);
   y += 4;
-  lines(foot, 4, 12, 6);
+  lines(foot, 4, 12, 6, 4);
+}
+
+void testScope(uint16_t hpMv, uint8_t micLvl, uint8_t percent) {
+  if (!ok || updating || !testing) return;
+  int w = gfx->width(), h = gfx->height();
+  constexpr uint16_t HP_C = WARN, MIC_C = ACCENT;
+  bool wide = w > h;  // Querformat: Zahlen nebeneinander, damit die Kurve hoeher wird
+  const int top = wide ? 106 : 130, bottom = h - 6, ph = bottom - top;
+  auto yHp = [&](uint16_t mv) { return bottom - (int)min<uint32_t>(mv, 3300) * ph / 3300; };
+  auto yMic = [&](uint8_t l) { return bottom - (int)l * ph / 255; };
+  if (scopeX < 0) {  // erster Aufruf: Rahmen und Schaltschwelle
+    gfx->fillRect(0, top - 1, w, ph + 2, BG);
+    gfx->drawRect(7, top - 1, w - 14, ph + 2, MUTED);
+#ifdef HP_ON_MV
+    for (int x = 8; x < w - 8; x += 6) gfx->drawFastHLine(x, yHp(HP_ON_MV), 3, MUTED);  // ab hier "liegt auf"
+#endif
+  }
+  // Zahlen wie beim Multimeter (Textgroesse 2, je max. 12 Zeichen, feste Breite ueberschreibt ohne Flackern)
+  char t[16];
+  gfx->setTextSize(2);
+  gfx->setTextColor(HP_C, BG);
+  gfx->setCursor(8, 82);
+  snprintf(t, sizeof(t), "Druck%4umV", hpMv > 9999 ? 9999 : hpMv);
+  gfx->print(t);
+  gfx->setTextColor(MIC_C, BG);
+  gfx->setCursor(wide ? w / 2 + 8 : 8, wide ? 82 : 106);
+  snprintf(t, sizeof(t), "Mikro%4u", micLvl);
+  gfx->print(t);
+  // Kurven laufen einmal von links nach rechts (wie ein Oszilloskop mit 10 s Zeitbasis)
+  int x = 8 + (int)min<uint8_t>(percent, 100) * (w - 17) / 100;
+  int yh = yHp(hpMv), ym = yMic(micLvl);
+  if (scopeX >= 0 && x >= scopeX) {
+    gfx->drawLine(scopeX, scopeHp, x, yh, HP_C);
+    gfx->drawLine(scopeX, scopeMic, x, ym, MIC_C);
+  }
+  scopeX = x;
+  scopeHp = yh;
+  scopeMic = ym;
 }
 
 void testEnd() {

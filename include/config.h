@@ -72,6 +72,7 @@
 #define MIC_SCK 19
 #define MIC_WS 20
 #define MIC_SD 21
+#define MIC_TEST_LEVEL 60  // Selbsttest: so laut (Lautstaerke 0..255) muss Sprechen oder Klatschen mindestens sein
 #endif
 
 // ---------------- Display ----------------
