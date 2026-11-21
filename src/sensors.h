@@ -17,4 +17,8 @@ uint16_t setHpZero(uint16_t mv);  // Nullpunkt setzen (Grundlast der Abdeckung o
 // Lautstaerke 0..255 (logarithmisch, passt sich dem Grundrauschen an); 0 ohne Mikrofon
 uint8_t micLevel();
 bool micOk();              // Mikrofon liefert Daten
+
+// Spektrum fuer die Weboberflaeche: MIC_BANDS Baender von tief nach hoch, je 0..255
+constexpr uint8_t MIC_BANDS = 8;
+const uint8_t *micBands();
 }  // namespace sensors

@@ -13,6 +13,10 @@ uint16_t hpMilliVolts() { return 0; }
 uint16_t hpRawMilliVolts() { return 0; }
 uint16_t setHpZero(uint16_t) { return 0; }
 bool micOk() { return true; }
+const uint8_t *micBands() {
+  static uint8_t b[MIC_BANDS] = {};
+  return b;
+}
 
 uint8_t micLevel() {
   using namespace std::chrono;

@@ -151,7 +151,7 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
 
-**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft.
+**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft. Dann zeigt die Weboberfläche auf der Seite **Licht** unter „Mikrofon“ ein Spektrum mit 8 Bändern (63 Hz bis 6 kHz) und den Pegel, damit man sieht, ob die Musik ankommt. Die Bänder rechnet die Firmware mit je einem Goertzel-Filter pro Band.
 
 ## ASUS Aura über das Mainboard-Kabel
 
@@ -294,6 +294,7 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 | GET | `/api/update/answer?t=` | Antwort für dieses Token: 1 erlaubt, -1 abgelehnt/abgelaufen, 0 offen |
 | POST | `/api/update?t=&size=` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), nur nach Erlauben, danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
+| GET | `/api/mic` | Mikrofon: `ok` (liefert Daten), `lvl` (Pegel 0–255), `b` (8 Bänder 63 Hz…6 kHz, je 0–255); nur aktiv, solange der Effekt „Musik“ läuft |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
 | GET | `/json`, `/json/si`, `/json/info`, `/json/state`, `/json/eff`, `/json/pal`, `/presets.json` | WLED-kompatible Abfrage |
 | POST | `/json/state` | WLED-kompatibel setzen: `on`, `bri`, `ps`, `udpn.recv`, `seg` mit `col`, `fx`, `sx`, `ix`, `pal` |
@@ -317,7 +318,7 @@ Der Ständer lässt sich in Blender als 3D-Modell anzeigen, mit jeder der 144 LE
 | `src/realtime.cpp` | PC-Sync: Empfang von DDP, E1.31 und WLED-UDP, Adalight über USB, Textbefehle über USB |
 | `src/wled_api.cpp` | WLED-kompatible JSON-Schnittstelle für Home Assistant und WLED-App |
 | `src/matter_dev.cpp` | Matter-Lampe für Apple Home & Co., Koppel-Code und QR-Inhalt |
-| `src/sensors.cpp` | Platine v2: Kopfhörer-Erkennung (FSR an GPIO0) und I2S-Mikrofon für den Effekt „Musik“ |
+| `src/sensors.cpp` | Platine v2: Kopfhörer-Erkennung (FSR an GPIO0) und I2S-Mikrofon für den Effekt „Musik“ mit Spektrum für die Weboberfläche |
 | `src/argb_in.cpp` | ARGB-Eingang: liest das Mainboard-Signal per RMT an GPIO23 mit |
 | `web/index.html` | Weboberfläche (Quelle) |
 | `src/webui_index.h` | daraus erzeugt mit `python tools/web2h.py`, nicht von Hand ändern |

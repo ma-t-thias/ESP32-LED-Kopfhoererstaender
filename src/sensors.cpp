@@ -5,6 +5,7 @@
 #ifdef HP_SENSE_PIN
 #include <ESP_I2S.h>
 #include <math.h>
+#include <string.h>
 
 namespace sensors {
 namespace {
@@ -28,6 +29,14 @@ float floorDb = -1;     // Grundrauschen, passt sich an (-1 = noch unbekannt)
 uint8_t level = 0;
 uint32_t lastData = 0;  // letzter Block mit Signal
 
+// Spektrum: je Band ein Goertzel-Filter ueber die 256 Werte eines Blocks (Mitte bei f Hz).
+// Einfacher und schneller als eine FFT; fuer eine Anzeige reicht das.
+const float BAND_HZ[MIC_BANDS] = {63, 125, 250, 500, 1000, 2000, 4000, 6300};
+float coef[MIC_BANDS];
+float g1[MIC_BANDS], g2[MIC_BANDS];
+float bandFloor[MIC_BANDS];
+uint8_t bands[MIC_BANDS];
+
 void readHeadphone(uint32_t now) {
   if (now - lastRead < 50) return;
   lastRead = now;
@@ -49,17 +58,41 @@ void micStart() {
   }
   micStartAt = millis();
   floorDb = -1;
+  for (uint8_t b = 0; b < MIC_BANDS; b++) {
+    coef[b] = 2.0f * cosf(2.0f * float(M_PI) * roundf(BAND_HZ[b] * 256 / 16000) / 256);
+    g1[b] = g2[b] = 0;
+    bandFloor[b] = -1;
+    bands[b] = 0;
+  }
   count = 0;
   acc = 0;
 }
 
 // 256 Werte (16 ms) zu einem Pegel zusammenfassen: dB ueber dem Grundrauschen, 0..255 fuer ca. 36 dB
+// Spektrum eines Blocks: Leistung je Band in dB, wie der Pegel ueber dem eigenen Grundrauschen (0..255 fuer 40 dB)
+void spectrum() {
+  for (uint8_t b = 0; b < MIC_BANDS; b++) {
+    float p = g1[b] * g1[b] + g2[b] * g2[b] - coef[b] * g1[b] * g2[b];
+    g1[b] = g2[b] = 0;
+    float db = 10.0f * log10f(p + 1.0f);
+    if (bandFloor[b] < 0 || db < bandFloor[b]) bandFloor[b] = db;
+    else bandFloor[b] += 0.005f;
+    float x = (db - bandFloor[b] - 6.0f) * (255.0f / 40.0f);
+    uint8_t l = x <= 0 ? 0 : x >= 255 ? 255 : uint8_t(x);
+    bands[b] = l > bands[b] ? l : (bands[b] > 12 ? bands[b] - 12 : 0);  // schnell hoch, langsam runter
+  }
+}
+
 void block() {
   float env = acc / count;
   acc = 0;
   count = 0;
   float db = 20.0f * log10f(env + 1.0f);
-  if (env <= 0 || millis() - micStartAt < 300) return;  // Anlaufphase: nur Nullen
+  if (env <= 0 || millis() - micStartAt < 300) {  // Anlaufphase: nur Nullen
+    for (uint8_t b = 0; b < MIC_BANDS; b++) g1[b] = g2[b] = 0;
+    return;
+  }
+  spectrum();
   lastData = millis();
   if (floorDb < 0 || db < floorDb) floorDb = db;  // leiser geworden: Grundrauschen sofort nachziehen
   else floorDb += 0.005f;                         // sonst langsam hochlaufen (ca. 0,3 dB/s)
@@ -77,7 +110,13 @@ void readMic() {
     for (size_t i = 0; i < n; i++) {
       float x = float(buf[i] >> 8);  // 24 Bit Nutzdaten oben im 32-Bit-Wort
       dc += (x - dc) * 0.001f;       // Gleichanteil entfernen
-      acc += fabsf(x - dc);
+      float y = x - dc;
+      acc += fabsf(y);
+      for (uint8_t b = 0; b < MIC_BANDS; b++) {  // Goertzel-Schritt je Band
+        float g0 = y + coef[b] * g1[b] - g2[b];
+        g2[b] = g1[b];
+        g1[b] = g0;
+      }
       if (++count >= 256) block();
     }
     if (got < sizeof(buf)) break;
@@ -98,6 +137,7 @@ void loop(bool mic) {
     i2s.end();
     micRunning = false;
     level = 0;
+    memset(bands, 0, sizeof(bands));
   }
   if (micRunning) readMic();
 }
@@ -109,6 +149,7 @@ uint16_t hpRawMilliVolts() { return mv; }
 uint16_t setHpZero(uint16_t z) { return zero = z > HP_ZERO_MAX_MV ? HP_ZERO_MAX_MV : z; }
 uint8_t micLevel() { return level; }
 bool micOk() { return micRunning && millis() - lastData < 1000; }
+const uint8_t *micBands() { return bands; }
 }  // namespace sensors
 
 #else  // altes Board ohne Sensoren
@@ -123,6 +164,10 @@ uint16_t hpRawMilliVolts() { return 0; }
 uint16_t setHpZero(uint16_t) { return 0; }
 uint8_t micLevel() { return 0; }
 bool micOk() { return false; }
+const uint8_t *micBands() {
+  static const uint8_t none[MIC_BANDS] = {};
+  return none;
+}
 }  // namespace sensors
 
 #endif
