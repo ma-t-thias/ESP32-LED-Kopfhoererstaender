@@ -29,10 +29,13 @@ float floorDb = -1;     // Grundrauschen, passt sich an (-1 = noch unbekannt)
 uint8_t level = 0;
 uint32_t lastData = 0;  // letzter Block mit Signal
 
-// Spektrum: je Band ein Goertzel-Filter ueber die 256 Werte eines Blocks, also ein schmaler
+// Abtastrate 32 kHz: so reicht das Spektrum bis 15 kHz (Grenze des INMP441). Ein Block hat 512 Werte = 16 ms.
+constexpr uint32_t MIC_RATE = 32000;
+constexpr uint16_t BLOCK = 512;
+// Spektrum: je Band ein Goertzel-Filter ueber die Werte eines Blocks, also ein schmaler
 // Frequenzpunkt (+-31 Hz) bei f Hz, keine Oktavbaender. Fuer eine Kontrollanzeige reicht das.
-// Gerechnet wird nur, solange Display oder Weboberflaeche es abfragen (kostet ohne FPU ca. 10 % CPU).
-const float BAND_HZ[MIC_BANDS] = {63, 125, 250, 500, 1000, 2000, 4000, 6300};
+// Gerechnet wird nur, solange Display oder Weboberflaeche es abfragen (kostet ohne FPU ca. 20 % CPU).
+const float BAND_HZ[MIC_BANDS] = {63, 160, 400, 1000, 2500, 6300, 10000, 15000};
 float coef[MIC_BANDS];
 float g1[MIC_BANDS], g2[MIC_BANDS];
 float ps[MIC_BANDS];         // geglaettete Leistung je Band
@@ -56,7 +59,7 @@ void readHeadphone(uint32_t now) {
 
 void micStart() {
   i2s.setPins(MIC_SCK, MIC_WS, -1, MIC_SD);
-  micRunning = i2s.begin(I2S_MODE_STD, 16000, I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO, I2S_STD_SLOT_LEFT);
+  micRunning = i2s.begin(I2S_MODE_STD, MIC_RATE, I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO, I2S_STD_SLOT_LEFT);
   if (!micRunning) {
     Serial.println("Mikrofon: I2S startet nicht");
     micRetryAt = millis() + 5000;
@@ -64,7 +67,7 @@ void micStart() {
   micStartAt = millis();
   floorDb = -1;
   for (uint8_t b = 0; b < MIC_BANDS; b++) {
-    coef[b] = 2.0f * cosf(2.0f * float(M_PI) * roundf(BAND_HZ[b] * 256 / 16000) / 256);
+    coef[b] = 2.0f * cosf(2.0f * float(M_PI) * roundf(BAND_HZ[b] * BLOCK / MIC_RATE) / BLOCK);
     g1[b] = g2[b] = ps[b] = 0;
     bandFloor[b] = -1;
     bands[b] = 0;
@@ -91,7 +94,7 @@ void spectrum() {
   }
 }
 
-// 256 Werte (16 ms) zu einem Pegel zusammenfassen: dB ueber dem Grundrauschen, 0..255 fuer ca. 36 dB
+// Einen Block (16 ms) zu einem Pegel zusammenfassen: dB ueber dem Grundrauschen, 0..255 fuer ca. 36 dB
 void block() {
   float env = acc / count;
   acc = 0;
@@ -113,7 +116,7 @@ void block() {
 
 // Liest, was im DMA-Puffer liegt, ohne zu warten (auch Teilbloecke)
 void readMic() {
-  for (int k = 0; k < 8; k++) {
+  for (int k = 0; k < 16; k++) {  // bis 1024 Werte (32 ms) je Aufruf
     size_t got = 0;
     i2s_channel_read(i2s.rxChan(), buf, sizeof(buf), &got, 0);
     size_t n = got / sizeof(int32_t);
@@ -128,7 +131,7 @@ void readMic() {
         g2[b] = g1[b];
         g1[b] = g0;
       }
-      if (++count >= 256) block();
+      if (++count >= BLOCK) block();
     }
     if (got < sizeof(buf)) break;
   }

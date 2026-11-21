@@ -151,7 +151,7 @@ Alle Einstellungen werden etwa 3 Sekunden nach der letzten Änderung gespeichert
 
 Tempo 0 hält bewegte Effekte an. Die Palette „Eigene Farben“ nutzt Farbe 1 und 2.
 
-**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft. Dann zeigt das Display unten statt der LED-Vorschau das Spektrum als 8 farbige Balken (Bass links, Höhen rechts), und die Weboberfläche auf der Seite **Licht** unter „Mikrofon“ ebenfalls ein Spektrum mit 8 Frequenzpunkten (63 Hz bis 6 kHz) und den Pegel, damit man sieht, ob die Musik ankommt. Die Firmware rechnet dafür je Frequenz einen Goertzel-Filter, aber nur, solange das Display oder die Weboberfläche das Spektrum zeigt. Die Punkte sind schmal, hohe Töne erscheinen deshalb oft nur kurz.
+**Musik** braucht das I2S-Mikrofon INMP441 der [Platine v2](docs/hardware/platine-v2/) (GPIO19/20/21). Der Pegel läuft als Balken von der Mitte nach außen, mit einer fallenden Spitze. Die Empfindlichkeit passt sich dem Grundrauschen im Raum an. Das Mikrofon ist nur eingeschaltet, solange dieser Effekt läuft. Dann zeigt das Display unten statt der LED-Vorschau das Spektrum als 8 farbige Balken (Bass links, Höhen rechts), und die Weboberfläche auf der Seite **Licht** unter „Mikrofon“ ebenfalls ein Spektrum mit 8 Frequenzpunkten (63, 160, 400 Hz, 1, 2,5, 6,3, 10 und 15 kHz; das Mikrofon wird dafür mit 32 kHz abgetastet) und den Pegel, damit man sieht, ob die Musik ankommt. Die Firmware rechnet dafür je Frequenz einen Goertzel-Filter, aber nur, solange das Display oder die Weboberfläche das Spektrum zeigt. Die Punkte sind schmal, hohe Töne erscheinen deshalb oft nur kurz.
 
 ## ASUS Aura über das Mainboard-Kabel
 
@@ -295,7 +295,7 @@ Alle Anfragen, die etwas ändern (POST), brauchen das Gerätepasswort im Kopf `X
 | GET | `/api/update/answer?t=` | Antwort für dieses Token: 1 erlaubt, -1 abgelehnt/abgelaufen, 0 offen |
 | POST | `/api/update?t=&size=` | Firmware-Update: Formular-Upload einer `.bin` (Name mit `_LCD19_`/`_LCD13_`), nur nach Erlauben, danach Neustart |
 | GET | `/api/live` | aktuelle LED-Farben als Hex-Text, 6 Zeichen je LED |
-| GET | `/api/mic` | Mikrofon: `ok` (liefert Daten), `lvl` (Pegel 0–255), `b` (8 Bänder 63 Hz…6 kHz, je 0–255); nur aktiv, solange der Effekt „Musik“ läuft |
+| GET | `/api/mic` | Mikrofon: `ok` (liefert Daten), `lvl` (Pegel 0–255), `b` (8 Bänder 63 Hz…15 kHz, je 0–255); nur aktiv, solange der Effekt „Musik“ läuft |
 | GET/POST | `/api/presets` | Presets als JSON (POST-Feld `data`) |
 | GET | `/json`, `/json/si`, `/json/info`, `/json/state`, `/json/eff`, `/json/pal`, `/presets.json` | WLED-kompatible Abfrage |
 | POST | `/json/state` | WLED-kompatibel setzen: `on`, `bri`, `ps`, `udpn.recv`, `seg` mit `col`, `fx`, `sx`, `ix`, `pal` |
