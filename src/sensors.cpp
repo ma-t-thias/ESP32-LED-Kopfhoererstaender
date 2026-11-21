@@ -38,7 +38,7 @@ float g1[MIC_BANDS], g2[MIC_BANDS];
 float ps[MIC_BANDS];         // geglaettete Leistung je Band
 float bandFloor[MIC_BANDS];  // Grundrauschen je Band in dB
 uint8_t bands[MIC_BANDS];
-uint32_t bandsWantedAt = 0;  // letzte Abfrage der Weboberflaeche
+uint32_t bandsWantedAt = 0;  // letzte Abfrage (Display oder Weboberflaeche)
 
 bool bandsWanted() { return bandsWantedAt && millis() - bandsWantedAt < 2000; }
 

@@ -466,7 +466,7 @@ void drawSpectrum() {
     uint8_t h = (uint32_t)b[i] * previewH / 255;
     if (h == 0) h = 2;  // Grundlinie bleibt sichtbar
     int x = 8 + i * (bw + gap), base = previewY + previewH;
-    if (h > lastBarH[i]) gfx->fillRect(x, base - h, bw, h - lastBarH[i], logo::hue565(i * 20));
+    if (h > lastBarH[i]) gfx->fillRect(x, base - h, bw, h - lastBarH[i], logo::hue565(i * 32));
     else if (h < lastBarH[i]) gfx->fillRect(x, base - lastBarH[i], bw, lastBarH[i] - h, BG);
     lastBarH[i] = h;
   }
@@ -542,7 +542,8 @@ void loop(const LedState &s, const NetInfo &net, const CRGB *leds, uint16_t n) {
   if (now - lastPreviewMs < 100) return;
   lastPreviewMs = now;
   // Effekt "Musik" mit Mikrofon: unten das Spektrum statt der LED-Vorschau
-  bool spectrum = s.on && s.effect == effects::MUSIC && sensors::hpAvailable();
+  bool spectrum = s.on && s.effect == effects::MUSIC && sensors::hpAvailable() &&
+                  !(s.argbEnabled && argb::active()) && !(s.syncEnabled && realtime::active());
   if (spectrum != lastSpectrum) {
     lastSpectrum = spectrum;
     gfx->fillRect(0, previewY, W, previewH, BG);
