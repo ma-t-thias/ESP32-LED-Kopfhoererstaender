@@ -35,7 +35,6 @@ float gValue = 0;
 uint16_t hpMax = 0;  // hoechster Druck-Messwert (mV, nach Nullpunkt) im Schritt HPMIC
 uint8_t micMax = 0;  // hoechste Lautstaerke 0..255
 bool micSeen = false;  // Mikrofon hat Daten geliefert
-uint32_t lastScope = 0;
 bool done = false, passed = false;
 
 const char *stepName() {
@@ -166,6 +165,7 @@ void loop(CRGB *leds, uint16_t n, bool buttonDown, bool touched) {
 #ifdef HP_SENSE_PIN  // nur Boards mit Drucksensor und Mikrofon
     case HPMIC: {
       // 10 s lang Druck und Lautstaerke messen und wie auf einem Oszilloskop zeigen
+      static uint32_t lastScope = 0;
       fill_solid(leds, n, CRGB::Black);
       uint16_t mv = sensors::hpMilliVolts();
       uint8_t lvl = sensors::micLevel();

@@ -655,30 +655,34 @@ void testScreen(const char *title, const String &body, uint8_t status, const Str
   gfx->drawFastHLine(8, 38, w - 16, MUTED);
   gfx->setTextColor(FG);
   int y = 50;
-  // Zeilen ohne Umbruch, zu lange werden abgeschnitten (Textgroesse 2 = 12 px je Zeichen, 1 = 6 px)
-  auto lines = [&](const String &text, int maxLines, int step, int charW) {
-    int from = 0;
+  // Zeilen ohne Umbruch, zu lange werden abgeschnitten (Textgroesse 2 = 12 px je Zeichen, 1 = 6 px).
+  // perCol: so viele Zeilen je Spalte, danach geht es in einer zweiten Spalte rechts weiter.
+  auto lines = [&](const String &text, int maxLines, int step, int charW, int perCol) {
+    int from = 0, y0 = y, colW = perCol < maxLines ? w / 2 : w;
     for (int i = 0; i < maxLines && from < (int)text.length(); i++) {
       int nl = text.indexOf('\n', from);
       if (nl < 0) nl = text.length();
-      gfx->setCursor(8, y);
-      gfx->print(text.substring(from, min(nl, from + (w - 16) / charW)));
+      int yy = y0 + (i % perCol) * step;
+      gfx->setCursor(8 + (i / perCol) * colW, yy);
+      gfx->print(text.substring(from, min(nl, from + (colW - 16) / charW)));
       from = nl + 1;
-      y += step;
+      y = max(y, yy + step);
     }
   };
-  lines(body, 5, 24, 12);
+  // Querformat (170 px hoch): ab der 4. grossen Zeile rechts daneben, damit der Fusstext Platz hat
+  lines(body, 5, 24, 12, gfx->height() < 200 ? 3 : 5);
   gfx->setTextSize(1);
   gfx->setTextColor(MUTED);
   y += 4;
-  lines(foot, 4, 12, 6);
+  lines(foot, 4, 12, 6, 4);
 }
 
 void testScope(uint16_t hpMv, uint8_t micLvl, uint8_t percent) {
   if (!ok || updating || !testing) return;
   int w = gfx->width(), h = gfx->height();
   constexpr uint16_t HP_C = WARN, MIC_C = ACCENT;
-  const int top = 130, bottom = h - 6, ph = bottom - top;
+  bool wide = w > h;  // Querformat: Zahlen nebeneinander, damit die Kurve hoeher wird
+  const int top = wide ? 106 : 130, bottom = h - 6, ph = bottom - top;
   auto yHp = [&](uint16_t mv) { return bottom - (int)min<uint32_t>(mv, 3300) * ph / 3300; };
   auto yMic = [&](uint8_t l) { return bottom - (int)l * ph / 255; };
   if (scopeX < 0) {  // erster Aufruf: Rahmen und Schaltschwelle
@@ -696,7 +700,7 @@ void testScope(uint16_t hpMv, uint8_t micLvl, uint8_t percent) {
   snprintf(t, sizeof(t), "Druck%4umV", hpMv > 9999 ? 9999 : hpMv);
   gfx->print(t);
   gfx->setTextColor(MIC_C, BG);
-  gfx->setCursor(8, 106);
+  gfx->setCursor(wide ? w / 2 + 8 : 8, wide ? 82 : 106);
   snprintf(t, sizeof(t), "Mikro%4u", micLvl);
   gfx->print(t);
   // Kurven laufen einmal von links nach rechts (wie ein Oszilloskop mit 10 s Zeitbasis)
