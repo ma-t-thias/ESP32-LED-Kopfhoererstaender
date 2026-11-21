@@ -29,13 +29,16 @@ float floorDb = -1;     // Grundrauschen, passt sich an (-1 = noch unbekannt)
 uint8_t level = 0;
 uint32_t lastData = 0;  // letzter Block mit Signal
 
-// Abtastrate 32 kHz: so reicht das Spektrum bis 15 kHz (Grenze des INMP441). Ein Block hat 512 Werte = 16 ms.
-constexpr uint32_t MIC_RATE = 32000;
-constexpr uint16_t BLOCK = 512;
+// Abtastrate 40 kHz: Der Filter im INMP441 laesst bis 0,42 x Abtastrate durch, also bis ca. 17 kHz.
+// So reicht das Spektrum bis 15 kHz. Ein Block hat 640 Werte = 16 ms, Raster 62,5 Hz.
+constexpr uint32_t MIC_RATE = 40000;
+constexpr uint16_t BLOCK = 640;
 // Spektrum: je Band ein Goertzel-Filter ueber die Werte eines Blocks, also ein schmaler
 // Frequenzpunkt (+-31 Hz) bei f Hz, keine Oktavbaender. Fuer eine Kontrollanzeige reicht das.
-// Gerechnet wird nur, solange Display oder Weboberflaeche es abfragen (kostet ohne FPU ca. 20 % CPU).
-const float BAND_HZ[MIC_BANDS] = {63, 160, 400, 1000, 2500, 6300, 10000, 15000};
+// Gerechnet wird nur, solange Display oder Weboberflaeche es abfragen, und nur in jedem zweiten
+// Block (ca. 30 Bilder/s), weil Gleitkomma ohne FPU teuer ist.
+const float BAND_HZ[MIC_BANDS] = {62.5f, 125, 250, 500, 1000, 2500, 6250, 15000};
+bool specTurn = false;  // dieser Block rechnet das Spektrum
 float coef[MIC_BANDS];
 float g1[MIC_BANDS], g2[MIC_BANDS];
 float ps[MIC_BANDS];         // geglaettete Leistung je Band
@@ -102,10 +105,12 @@ void block() {
   float db = 20.0f * log10f(env + 1.0f);
   if (env <= 0 || millis() - micStartAt < 300) {  // Anlaufphase: nur Nullen
     for (uint8_t b = 0; b < MIC_BANDS; b++) g1[b] = g2[b] = 0;
+    specTurn = true;
     return;
   }
-  if (bandsWanted()) spectrum();
-  else memset(bands, 0, sizeof(bands));
+  if (!bandsWanted()) memset(bands, 0, sizeof(bands));
+  else if (specTurn) spectrum();
+  specTurn = !specTurn;
   lastData = millis();
   if (floorDb < 0 || db < floorDb) floorDb = db;  // leiser geworden: Grundrauschen sofort nachziehen
   else floorDb += 0.005f;                         // sonst langsam hochlaufen (ca. 0,3 dB/s)
@@ -116,11 +121,11 @@ void block() {
 
 // Liest, was im DMA-Puffer liegt, ohne zu warten (auch Teilbloecke)
 void readMic() {
-  for (int k = 0; k < 16; k++) {  // bis 1024 Werte (32 ms) je Aufruf
+  bool spec = bandsWanted() && specTurn;
+  for (int k = 0; k < 24; k++) {  // bis 1536 Werte (38 ms, so viel fasst der DMA-Puffer) je Aufruf
     size_t got = 0;
     i2s_channel_read(i2s.rxChan(), buf, sizeof(buf), &got, 0);
     size_t n = got / sizeof(int32_t);
-    bool spec = bandsWanted();
     for (size_t i = 0; i < n; i++) {
       float x = float(buf[i] >> 8);  // 24 Bit Nutzdaten oben im 32-Bit-Wort
       dc += (x - dc) * 0.001f;       // Gleichanteil entfernen
@@ -131,7 +136,10 @@ void readMic() {
         g2[b] = g1[b];
         g1[b] = g0;
       }
-      if (++count >= BLOCK) block();
+      if (++count >= BLOCK) {
+        block();
+        spec = bandsWanted() && specTurn;
+      }
     }
     if (got < sizeof(buf)) break;
   }
