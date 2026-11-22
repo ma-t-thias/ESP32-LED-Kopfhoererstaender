@@ -59,7 +59,7 @@ Teile bestellst du selbst. Preise und Bezugsquellen stehen bewusst nicht hier.
 - Tragende Teile (Schale, Säule, Boden, Auflage, Druckplatte): PLA, 0,2 mm, 3 Wände, 20 % Füllung.
 - Inlays (Diffusoren): Fluor-PLA, 100 % konzentrisch gefüllt. Nie für tragende Teile.
 - TPU-Füße: TPU, 100 % Füllung.
-- Lage und Stützen pro Teil: [`stl/README.md`](stl/README.md). Die Auflage liegt auf dem Rücken, ohne Stützen. Die Druckplatte liegt flach, Nasen nach oben.
+- Lage und Stützen pro Teil: [`stl/README.md`](stl/README.md). Die Auflage liegt auf dem Rücken, ohne Stützen. Die Druckplatte liegt flach, der Dreh-Schlitz zeigt nach oben.
 
 ## 4. Zusammenbau (Vorbereitung plus 8 Schritte)
 
@@ -99,7 +99,7 @@ Schale auf den Boden setzen und mit 4 × M3 × 10 verschrauben. Kabel dabei nich
 ### Schritt 7: Auflage und FSR
 ![Schritt 7](bilder/schritt_6_auflage_fsr.png)
 
-Zapfen der Auflage in die Säule stecken und mit 2 × M3 × 12 von hinten sichern. FSR in die Tasche (Ø 19,4 × 5,25 mm) legen, das schon hochgeführte Kabel durch den Kabeltunnel (8 × 1,25 mm) und den Schacht im Zapfen führen. Druckplatte mit den Nasen in die Einführschlitze setzen und etwa 90° im Uhrzeigersinn drehen, bis sie klickt .
+Zapfen der Auflage in die Säule stecken und mit 2 × M3 × 12 von hinten sichern. FSR in die Tasche (Ø 19,4 × 5,25 mm) legen, das schon hochgeführte Kabel durch den Kabeltunnel (8 × 1,25 mm) und den Schacht im Zapfen führen. Der Tunnel läuft unten in einem Bogen (innen R 4, außen R 7) in den Schacht, damit die Folie mit den Kontakten nicht an einer Kante hängt. Druckplatte **quer** einsetzen (die Nasen in die Einführschlitze), dann mit einer Münze oder einem Schraubendreher im Schlitz oben etwa 90° im Uhrzeigersinn drehen, bis sie klickt. Danach liegt die Wölbung der Platte genau auf der Kontur der Auflage.
 
 ### Schritt 8: Füße
 ![Schritt 8](bilder/schritt_7_fuesse.png)
@@ -114,7 +114,7 @@ Vier TPU-Füße mit dem Pilzkopf in die Löcher im Boden drücken.
 
 ![Schnitt Mikrofon](bilder/schnitt_mikro_kragen.png)
 
-**Bajonett der Druckplatte:** Nut Ø 21 × 0,8 mm, zwei Einführschlitze 3,4 × 1,4 mm, zwei Endanschläge (90°), zwei Rastnoppen mit 0,15 mm Überstand. Fühlt sich der Klick zu lasch oder zu hart an, ändert man `Rast_Ueberstand` (0,1 bis 0,25 mm) in der Konstruktion.
+**Bajonett der Druckplatte:** Nut Ø 21 × 0,8 mm, zwei Einführschlitze 3,4 × 1,4 mm, zwei Endanschläge (90°), zwei Rastnoppen mit 0,15 mm Überstand. Die Nasen sitzen 90° versetzt zur Wölbung der Platte, deshalb wird sie quer eingesetzt und beim Drehen richtig ausgerichtet. Der Dreh-Schlitz oben misst 12 × 2 × 1 mm. Fühlt sich der Klick zu lasch oder zu hart an, ändert man `Rast_Ueberstand` (0,1 bis 0,25 mm) in der Konstruktion.
 
 ![Schnitt Bajonett](bilder/schnitt_bajonett_auflage.png)
 
@@ -138,6 +138,6 @@ Koordinaten: z nach oben, vorne (Displayseite) = +Y, USB-C hinten.
 ## 7. Offene Punkte
 
 - Es gibt auch Variante A (glatt, `Saeule_v2_A_Glatt.stl` mit `Inlay_Seite_A_*`). Diese Anleitung beschreibt Variante B (Rauten).
-- Probedruck von Sockel v9, Säule A/B und Auflage v4 steht noch aus.
+- Probedruck von Sockel v9, Säule A/B und Auflage v7 und Druckplatte v2 steht noch aus.
 - Höhe des eingelöteten INMP441 messen, danach ggf. Mikro-Kragen anpassen.
 - Der Deckel enthält in der alten `entwurf-1/DRUCKLISTE.txt` noch den Vermerk „ICS-43434-Halter“. Das ist überholt: Das Mikrofon ist der INMP441 auf der Platine v2.
