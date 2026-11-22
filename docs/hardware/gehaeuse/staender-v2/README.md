@@ -15,8 +15,8 @@ Weitere Unterlagen:
 
 | Nr | Teil | Datei bzw. Herkunft |
 |---|---|---|
-| 1 | Druckplatte FSR | `Druckplatte_FSR.stl` |
-| 2 | Kopfhörer-Auflage v4 | `Auflage_v4.stl` |
+| 1 | Druckplatte FSR v2 | `Druckplatte_FSR_v2.stl` |
+| 2 | Kopfhörer-Auflage v7 | `Auflage_v7.stl` |
 | 3 | Seiten-Inlay links (Rauten) | `Inlay_Seite_B_links.stl` |
 | 4 | Seiten-Inlay rechts (Rauten) | `Inlay_Seite_B_rechts.stl` |
 | 5 | Säulen-Streifen vorne | `Inlay_Saeule_v3.stl` |

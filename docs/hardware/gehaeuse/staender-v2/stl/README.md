@@ -1,6 +1,6 @@
 # Ständer v2 – Druckdateien (Stand v10, 22.11.2026)
 
-Aktuelle Druck-STLs des Ständers v2, in Druckausrichtung. Sie stammen aus der Baugruppe `Staender_v10_Gesamt_B` (Sockel v9, Auflage v4). Die SolidCraft-Quellen (`.sc`) und die ausführliche `DRUCKLISTE.txt` liegen auf Matthias' PC unter `ESP32-Umbau\Passprobe\Sensoren\`. Der Stand ist noch nicht komplett probegedruckt.
+Aktuelle Druck-STLs des Ständers v2, in Druckausrichtung. Sie stammen aus der Baugruppe `Staender_v10_Gesamt_B` (Sockel v9, Auflage v7, Druckplatte v2). Die SolidCraft-Quellen (`.sc`) und die ausführliche `DRUCKLISTE.txt` liegen auf Matthias' PC unter `ESP32-Umbau\Passprobe\Sensoren\`. Der Stand ist noch nicht komplett probegedruckt.
 
 **Druckeinstellungen:** PLA 0,2 mm Schicht, 3 Wände, 20 % Füllung · Fluor-PLA 100 % konzentrisch, 0,4-mm-Düse · TPU (Shore 95A) 100 %
 
@@ -10,8 +10,8 @@ Aktuelle Druck-STLs des Ständers v2, in Druckausrichtung. Sie stammen aus der B
 |---|---|---|---|---|
 | `Sockel_oval_v9.stl` | Sockel-Schale | PLA schwarz | 1 | Oberseite nach unten aufs Bett. v9: 4 Mikro-Schalllöcher Ø2,0, Mikro-Kragen Ø10/Ø7 |
 | `Boden_v5.stl` | Bodenplatte | PLA schwarz | 1 | flach; 4 Dome für Platine v2 (M2,5 selbstschneidend) |
-| `Auflage_v4.stl` | Kopfhörer-Auflage | PLA schwarz | 1 | auf der Rückseite liegend. Bajonett mit Endanschlag und Rastung, Außenkanten R 2 |
-| `Druckplatte_FSR.stl` | Druckplatte für den FSR | PLA schwarz | 1 | flach, Noppe nach oben. Einsetzen, im Uhrzeigersinn drehen bis es klickt |
+| `Auflage_v7.stl` | Kopfhörer-Auflage | PLA schwarz | 1 | auf der Rückseite liegend, ohne Stützen. Bajonett mit Endanschlag und Rastung, Außenkanten R 2, Sattel innen R 2, FSR-Kanal mit Bogen (R 4 / R 7) statt 90°-Knick |
+| `Druckplatte_FSR_v2.stl` | Druckplatte für den FSR | PLA schwarz | 1 | flach, Noppe nach oben. Dreh-Schlitz 12 × 2 × 1 mm oben. Quer einsetzen (Nasen in die Schlitze vorn/hinten), mit Münze im Uhrzeigersinn bis zum Klick drehen, dann passt die Wölbung zur Auflage |
 | `ESP32_Lid_Mikro_hochkant.stl` | Deckel Display-Gehäuse | PLA schwarz | 1 | hochkant-Variante |
 | `Inlay_Saeule_v3.stl` | Säulen-Streifen vorne | Fluor-PLA | 1 | Flansch + 8 Klemmnoppen, von unten in die Nut schieben |
 | `Inlay_Turm_hinten.stl` | Lichtschlitz hinter dem Display-Turm | Fluor-PLA | 1 | Flansch aufs Bett, von innen einsetzen |
