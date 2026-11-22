@@ -2,7 +2,7 @@
 
 Stand v10 (22.11.2026). Eigene Neukonstruktion (CC BY-NC-SA 4.0, © 2026 Matthias Steis), ohne Teile aus dem Thingiverse-Original.
 
-> **Hinweis:** Der Ständer ist noch nicht komplett probegedruckt. Maße wie die Schraublöcher der USB-C-Platine sind teils Annahmen und müssen beim ersten Aufbau nachgemessen werden. Fertige Druckdateien: [`stl/`](stl/README.md).
+> **Hinweis:** Der Ständer ist noch nicht komplett probegedruckt. Maße wie die Schraublöcher der USB-C-Platine sind teils Annahmen und müssen beim ersten Aufbau nachgemessen werden. Aktuelle Druckdateien: [`stl/`](stl/README.md).
 
 Weitere Unterlagen:
 
@@ -22,8 +22,8 @@ Weitere Unterlagen:
 | 5 | Säulen-Streifen vorne | `Inlay_Saeule_v3.stl` |
 | 6 | Säule B (Rauten) | `Saeule_v2_B_Rauten.stl` |
 | 7 | Deckel Display-Gehäuse (hochkant) | `ESP32_Lid_Mikro_hochkant.stl` |
-| 8 | Display ESP32-C6-Touch-LCD-1.9 | Kaufteil Waveshare |
-| 9 | ESP32-C6-Board | Teil des Displaymoduls |
+| 8 | Display ESP32-C6-Touch-LCD-1.9 (Display mit ESP) | Kaufteil Waveshare |
+| 9 | ESP32-C6-Board | steckt im Displaymodul (Nr. 8) |
 | 10 | Inlay Lichtschlitz hinter dem Display-Turm | `Inlay_Turm_hinten.stl` |
 | 11 | Sockel-Schale v9 | `Sockel_oval_v9.stl` |
 | 12 / 13 | Augen-Inlay links / rechts | `Inlay_Augen_links_v3.stl`, `Inlay_Augen_rechts_v3.stl` |
@@ -59,9 +59,9 @@ Teile bestellst du selbst. Preise und Bezugsquellen stehen bewusst nicht hier.
 - Tragende Teile (Schale, Säule, Boden, Auflage, Druckplatte): PLA, 0,2 mm, 3 Wände, 20 % Füllung.
 - Inlays (Diffusoren): Fluor-PLA, 100 % konzentrisch gefüllt. Nie für tragende Teile.
 - TPU-Füße: TPU, 100 % Füllung.
-- Lage und Stützen pro Teil: [`stl/README.md`](stl/README.md). Die Auflage liegt auf dem Rücken, ohne Stützen. Die Druckplatte liegt flach, Nase nach oben.
+- Lage und Stützen pro Teil: [`stl/README.md`](stl/README.md). Die Auflage liegt auf dem Rücken, ohne Stützen. Die Druckplatte liegt flach, Nasen nach oben.
 
-## 4. Zusammenbau in 8 Schritten
+## 4. Zusammenbau (Vorbereitung plus 8 Schritte)
 
 Die Reihenfolge ist wichtig: **Die Säule wird verschraubt, solange der Boden noch offen ist**, weil die Schrauben von innen kommen.
 
@@ -71,19 +71,19 @@ Je 4 Muttern M3 in den Sockel für den Boden und 2 Muttern für den Säulenfuß 
 ### Schritt 1: Boden und Platine
 ![Schritt 1](bilder/schritt_1_boden_platine.png)
 
-Platine v2 mit 4 × M2,5 × 6 auf die vier Dome im Boden schrauben. Das Mikrofon INMP441 sitzt mit dem Moosgummi-Ring über dem Kragen, Schallloch nach oben. LED-Streifen auf die LED-Rippe kleben oder klemmen, LEDs nach außen.
+Platine v2 mit 4 × M2,5 × 6 auf die vier Dome im Boden schrauben. Das Mikrofon INMP441 kommt auf die Platine (Schallloch nach oben), der Moosgummi-Ring wird auf das Mikrofon gelegt. Der Kragen der Schale greift in Schritt 6 in den Ring. Der LED-Streifen klebt selbst auf der LED-Rippe, LEDs nach außen.
 
 ### Schritt 2: ESP/Display und USB-C
 ![Schritt 2](bilder/schritt_2_esp_usb.png)
 
-Display mit ESP in den Turm setzen, den Deckel hochkant einrasten. Die USB-C-Platine von unten bis zu den Rastarmen schieben, bis sie klickt (Lochabstand 2,8/15 mm ist eine Annahme, nachmessen).
+Display mit ESP in den Turm setzen, den Deckel hochkant einrasten. Die USB-C-Platine von unten bis zu den Rastarmen schieben, bis sie klickt (die Lochmaße der USB-C-Platine sind eine Annahme, nachmessen).
 
 ### Schritt 3: Sockel-Inlays
 ![Schritt 3](bilder/schritt_3_sockel_boden.png)
 
 ![Inlays](bilder/schritt_5_inlays.png)
 
-Augen-Inlays von innen einsetzen, ebenso das Turm-Inlay (hinten) und den Leuchtring. Alles klemmt, nichts wird geklebt.
+Augen-Inlays von innen einsetzen, ebenso das Turm-Inlay (hinten) und den Leuchtring. Die Inlays klemmen und werden nicht geklebt.
 
 ### Schritt 4: Säule
 ![Schritt 4](bilder/schritt_4_saeule.png)
@@ -91,15 +91,15 @@ Augen-Inlays von innen einsetzen, ebenso das Turm-Inlay (hinten) und den Leuchtr
 Front-Streifen von unten in die Nut schieben (8 Klemmnoppen). Seiten-Inlays von innen einsetzen. Säule mit 2 × M3 × 8 **von innen** durch das Sockeldeck am Säulenfuß verschrauben.
 
 ### Schritt 5: Verkabeln
-10er-Dupont durch den Turm-Durchgang (32 × 10 mm) zum ESP. Das ARGB-Kabel geht durch den Schlitz 9 × 4,5 mm hinten rechts. Die FSR-Verlängerung (ca. 30 cm) wird hochgeführt und später an J5 gesteckt. Verdrahtung: [Schaltplan](../../schaltung.html).
+10er-Dupont durch den Turm-Durchgang (32 × 10 mm) zum ESP. Das ARGB-Kabel geht durch den Schlitz 9 × 4,5 mm hinten rechts. Die FSR-Verlängerung (ca. 30 cm) wird jetzt an J5 auf der Platine gesteckt und durch die Säule nach oben geführt. Danach ist J5 nicht mehr erreichbar, also vorher testen. Verdrahtung: [Schaltplan](../../schaltung.html).
 
 ### Schritt 6: Schale auf den Boden
-Schale auf den Boden setzen und mit 4 × M3 × 10 verschrauben. Kabel dabei nicht einklemmen.
+Schale auf den Boden setzen und mit 4 × M3 × 10 verschrauben. Kabel dabei nicht einklemmen, der Mikrofon-Kragen muss in den Moosgummi-Ring greifen.
 
 ### Schritt 7: Auflage und FSR
 ![Schritt 7](bilder/schritt_6_auflage_fsr.png)
 
-Zapfen der Auflage in die Säule stecken und mit 2 × M3 × 12 von hinten sichern. FSR in die Tasche (Ø 19,4 × 5,25 mm) legen, Kabel durch den Kabeltunnel (8 × 1,25 mm) und den Schacht im Zapfen führen. Druckplatte mit den Nasen in die Einführschlitze setzen und etwa 90° im Uhrzeigersinn drehen, bis sie klickt (Weg 0,35 mm).
+Zapfen der Auflage in die Säule stecken und mit 2 × M3 × 12 von hinten sichern. FSR in die Tasche (Ø 19,4 × 5,25 mm) legen, das schon hochgeführte Kabel durch den Kabeltunnel (8 × 1,25 mm) und den Schacht im Zapfen führen. Druckplatte mit den Nasen in die Einführschlitze setzen und etwa 90° im Uhrzeigersinn drehen, bis sie klickt .
 
 ### Schritt 8: Füße
 ![Schritt 8](bilder/schritt_7_fuesse.png)
@@ -137,6 +137,7 @@ Koordinaten: z nach oben, vorne (Displayseite) = +Y, USB-C hinten.
 
 ## 7. Offene Punkte
 
+- Es gibt auch Variante A (glatt, `Saeule_v2_A_Glatt.stl` mit `Inlay_Seite_A_*`). Diese Anleitung beschreibt Variante B (Rauten).
 - Probedruck von Sockel v9, Säule A/B und Auflage v4 steht noch aus.
 - Höhe des eingelöteten INMP441 messen, danach ggf. Mikro-Kragen anpassen.
-- Der Deckel enthält in alten Druck-Listen noch den Vermerk „ICS-43434-Halter“. Das ist überholt: Das Mikrofon ist der INMP441 auf der Platine v2.
+- Der Deckel enthält in der alten `entwurf-1/DRUCKLISTE.txt` noch den Vermerk „ICS-43434-Halter“. Das ist überholt: Das Mikrofon ist der INMP441 auf der Platine v2.

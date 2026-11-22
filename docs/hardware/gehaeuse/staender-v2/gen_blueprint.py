@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Erzeugt blueprint.html: Massszeichnung des Staenders v2 im Blueprint-Stil.
+"""Erzeugt blueprint.html: Maßzeichnung des Staenders v2 im Blueprint-Stil.
 
 Die Ansichten (bilder/ansicht_*.png) sind exakt orthografisch, 4,0 px/mm, Bildmitte = Welt (0, 12, 137,5).
 Das Skript legt Masslinien darueber. Aufruf (im Repo-Hauptordner): python3 docs/hardware/gehaeuse/staender-v2/gen_blueprint.py

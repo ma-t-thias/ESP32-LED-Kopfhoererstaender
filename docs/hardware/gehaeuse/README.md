@@ -174,7 +174,7 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 
 ## Ständer v2 (neu konstruiert, in Arbeit)
 
-**Aufbau- und Zusammenbauanleitung** mit Explosionszeichnung, Teileliste, 8 Montageschritten und Maßen: [`staender-v2/README.md`](staender-v2/README.md). Maßzeichnung (Blueprint): [`staender-v2/blueprint.html`](staender-v2/blueprint.html).
+**Aufbau- und Zusammenbauanleitung** mit Explosionszeichnung, Teileliste, Vorbereitung und 8 Montageschritten und Maßen: [`staender-v2/README.md`](staender-v2/README.md). Maßzeichnung (Blueprint): [`staender-v2/blueprint.html`](staender-v2/blueprint.html).
 
 Ein komplett neu gezeichneter Ständer mit ovalem Sockel, gebogener Säule, Inlays aus fluoreszierendem PLA, Leuchtring von unten und TPU-Füßen. Er ist eine eigene Konstruktion (CC BY-NC-SA 4.0) ohne Teile aus dem Thingiverse-Original. Der erste, noch ungetestete Stand liegt in [`staender-v2/entwurf-1/`](staender-v2/entwurf-1/). Die aktuellen Druckdateien (Stand v10 vom 22.11.2026: Sockel v9, Auflage v4) liegen in [`staender-v2/stl/`](staender-v2/stl/).
 
