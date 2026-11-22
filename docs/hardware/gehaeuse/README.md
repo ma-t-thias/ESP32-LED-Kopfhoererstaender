@@ -10,7 +10,7 @@ Für das C6-Touch-LCD-1.9 gibt es zwei Varianten, **hochkant** und **quer**. Wel
   <img src="../../images/explosion/staender_explosion.png" alt="Explosionszeichnung des ganzen Ständers, Variante hochkant" width="600">
 </p>
 
-Explosionszeichnung des ganzen Ständers (Variante hochkant), die Legende steht im Bild.
+Explosionszeichnung des **älteren** Ständers (Variante hochkant, Stand FaisLeFr-Remix), die Legende steht im Bild. Die aktuelle Konstruktion mit Anleitung ist der [Ständer v2](staender-v2/README.md).
 
 | Hochkant | Quer |
 |---|---|
@@ -173,6 +173,8 @@ Aus dem Original gebraucht werden: 1_Base, Diffuser_base, Diffuser_box, 2 × Sid
 - Der Grundkörper ist aus der Original-STL nachgebaut. Die Mulde für den alten Controller entfällt, die Wände sind leicht facettiert (ca. 0,05 mm).
 
 ## Ständer v2 (neu konstruiert, in Arbeit)
+
+**Aufbau- und Zusammenbauanleitung** mit Explosionszeichnung, Teileliste, 8 Montageschritten und Maßen: [`staender-v2/README.md`](staender-v2/README.md). Maßzeichnung (Blueprint): [`staender-v2/blueprint.html`](staender-v2/blueprint.html).
 
 Ein komplett neu gezeichneter Ständer mit ovalem Sockel, gebogener Säule, Inlays aus fluoreszierendem PLA, Leuchtring von unten und TPU-Füßen. Er ist eine eigene Konstruktion (CC BY-NC-SA 4.0) ohne Teile aus dem Thingiverse-Original. Der erste, noch ungetestete Stand liegt in [`staender-v2/entwurf-1/`](staender-v2/entwurf-1/). Die aktuellen Druckdateien (Stand v10 vom 22.11.2026: Sockel v9, Auflage v4) liegen in [`staender-v2/stl/`](staender-v2/stl/).
 

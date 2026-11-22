@@ -38,10 +38,10 @@ Schaltplan, Breadboard-Belegung und Bauteilliste: [`docs/hardware/schaltung.html
 ### Aufbau (Explosionszeichnungen)
 
 <p align="center">
-  <img src="docs/images/explosion/staender_explosion.png" alt="Explosionszeichnung des ganzen Ständers mit 12 nummerierten Teilen von der Kopfhörer-Auflage bis zum Sockel mit Display-Gehäuse" width="700">
+  <img src="docs/hardware/gehaeuse/staender-v2/bilder/explosion_gesamt.png" alt="Explosionszeichnung des Ständers v2 mit 18 nummerierten Teilen" width="700">
 </p>
 
-Der ganze Ständer, Variante ESP32-C6-Touch-LCD-1.9 mit Display hochkant: oben die Kopfhörer-Auflage (1), dann die Seitenteile (2), die transparenten Seitendiffusoren (3) und die Abdeckungen vorne über dem LED-Streifen (4) und hinten (5). Darunter Sockel-Oberteil (6), Diffusorscheibe (7), Deckel des Display-Gehäuses (8), Sockel-Platine mit USB-C-Buchse (9), Sockel mit Display-Gehäuse (10), das ESP32-Board (11) und die drei Diffusor-Einlagen im Sockelboden (12). Der Grundkörper stammt aus dem „RGB Headphone Stand“ von FaisLeFr, einem Remix des Ständers von NoycePrints (CC BY-NC, nicht kommerziell); der Sockel ist angepasst, Display-Gehäuse und Platine sind neu. Druckdateien und weitere Ansichten: [`docs/hardware/gehaeuse/`](docs/hardware/gehaeuse/).
+Der Ständer v2 (eigene Neukonstruktion) mit allen 18 Teilen: Kopfhörer-Auflage mit FSR-Druckplatte, Säule mit Inlays, Sockel mit Display-Turm, USB-C-Platine, Platine v2, Boden und TPU-Füße. Ausführliche Anleitung mit Teileliste, Schrauben, 8 Montageschritten und Maßen: [`docs/hardware/gehaeuse/staender-v2/`](docs/hardware/gehaeuse/staender-v2/README.md). Maßzeichnung im Browser: [`blueprint.html`](docs/hardware/gehaeuse/staender-v2/blueprint.html). Der ältere Ständer nach FaisLeFr (CC BY-NC) ist in [`docs/hardware/gehaeuse/`](docs/hardware/gehaeuse/) beschrieben.
 
 <p align="center">
   <img src="docs/images/explosion/platine_explosion.png" alt="Explosionszeichnung der Sockel-Platine mit 16 nummerierten Bauteilen, Stiftleisten und Steckern" width="800">
