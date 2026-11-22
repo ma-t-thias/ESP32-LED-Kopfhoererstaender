@@ -34,6 +34,7 @@ void begin(LedState &s) {
   s.on = prefs.getBool("on", s.on);
   s.brightness = prefs.getUChar("bri", s.brightness);
   s.effect = prefs.getUChar("fx", s.effect);
+  s.fxOff = prefs.getUInt("fxOff", s.fxOff);
   s.palette = prefs.getUChar("pal", s.palette);
   s.speed = prefs.getUChar("spd", s.speed);
   s.intensity = prefs.getUChar("int", s.intensity);
@@ -148,6 +149,7 @@ void loop(const LedState &s) {
   prefs.putBool("on", s.on);
   prefs.putUChar("bri", s.brightness);
   prefs.putUChar("fx", s.effect);
+  prefs.putUInt("fxOff", s.fxOff);
   prefs.putUChar("pal", s.palette);
   prefs.putUChar("spd", s.speed);
   prefs.putUChar("int", s.intensity);

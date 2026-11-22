@@ -275,6 +275,10 @@ input[type=number]{width:90px;min-height:44px;text-align:right;border:0;backgrou
     </section>
     <p class="foot" id="maHint"></p>
    </div>
+   <div class="group"><h2>Effekte beim Wischen</h2>
+    <section class="glass list" id="fxm"></section>
+    <p class="foot">Am Display des Ständers (Wischen, Tippen oben, Taste) kommen nur die eingeschalteten Effekte dran. Hier in der Weboberfläche bleiben immer alle wählbar. Mindestens ein Effekt bleibt an.</p>
+   </div>
    <div class="group"><h2>Nachtmodus</h2>
     <section class="glass list">
      <div class="li"><span>Nachts dimmen</span><button class="switch" id="night" type="button" role="switch" aria-checked="false" aria-label="Nachtmodus"></button><small id="nightHint"></small></div>
@@ -521,7 +525,7 @@ const LICENSE = {
 };
 
 // ---------- Schnittstelle ----------
-const demoState = {on:true,wled:false,night:true,nFrom:1320,nTo:420,nBri:13,nActive:false,hpAvail:true,hp:true,hpBri:26,hpOn:true,hpMv:1830,hpZero:0,micOk:true,time:'21:47',bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
+const demoState = {fxm:33554431,on:true,wled:false,night:true,nFrom:1320,nTo:420,nBri:13,nActive:false,hpAvail:true,hp:true,hpBri:26,hpOn:true,hpMv:1830,hpZero:0,micOk:true,time:'21:47',bri:200,fx:17,pal:0,spd:120,int:110,c1:'#ff7800',c2:'#0050ff',ma:2400,sync:true,argb:true,rot:1,matterAvail:true,matter:true,matterPaired:false,matterCode:'34970112332',argbBlocked:false,live:false,liveSrc:''};
 const demoInfo = {effects:['Einfarbig','Regenbogen','Farbverlauf','Palette','Atmen','Farbwischer','Theater-Jagd','Komet','Scanner','Funkeln','Konfetti','Feuer','Jonglieren','Wellen','Sinus','Farbwechsel','Nordlicht','Plasma','Meteorregen','Regentropfen','Herzschlag','Kerze','Lichtwelle','Ozean','Musik'],
  palettes:['Regenbogen','Party','Ozean','Lava','Wald','Wolken','Hitze','Eigene Farben'],leds:100,fw:'Prototyp_001-3 (1a2b3c4)',board:'LCD19',sn:'KS-2026-0001',stLast:1,stTime:1794550000,fwMax:3932160,maMax:9000,host:'led-kopfhoerer',ssid:'MST',ip:'192.168.178.57',rssi:-58,reset:'Einschalten',drops:0,dropReason:''};
 // Nach 4 s abbrechen, damit „Keine Verbindung“ schnell erscheint (z. B. während der Ständer neu startet)
@@ -589,6 +593,11 @@ function build(){
  info.palettes.forEach((name,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='pal';
   b.innerHTML=`<i></i><span>${name}</span>`; b.onclick=()=>send({pal:i}); $('pals').appendChild(b); });
  ['0°','90°','180°','270°','Auto'].forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({rot:i}); $('rot').appendChild(b); });
+ const fxmBox=$('fxm');
+ [['Alle einschalten',1],['Alle aus bis auf den aktuellen',0]].forEach(([t,all])=>{ const b=document.createElement('button'); b.type='button'; b.className='li btn'+(all?' tint':''); b.textContent=t;
+  b.onclick=()=>send({fxm:all?(2**info.effects.length-1):(2**st.fx)}); fxmBox.appendChild(b); });
+ info.effects.forEach((name,i)=>{ const r=document.createElement('div'); r.className='li'; r.innerHTML=`<span>${name}</span><button class="switch" type="button" role="switch" aria-checked="true" aria-label="${name} beim Wischen"></button>`;
+  r.querySelector('button').onclick=()=>{ const all=2**info.effects.length-1, cur=st.fxm??all, nxt=cur^(2**i); if(nxt&all) send({fxm:nxt}); }; fxmBox.appendChild(r); });
  [['Aus',0],['5 %',13],['15 %',38],['30 %',77]].forEach(([t,v])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({nBri:v}); $('nBri').appendChild(b); });
  [['Aus',0],['10 %',26],['30 %',77],['50 %',128]].forEach(([t,v])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t; b.onclick=()=>send({hpBri:v}); $('hpBri').appendChild(b); });
  $('ma').max=info.maMax;
@@ -616,6 +625,7 @@ function render(){
  tiles.forEach((t,i)=>t.el.setAttribute('aria-pressed',i===st.fx));
  [...$('pals').children].forEach((b,i)=>{ b.setAttribute('aria-pressed',i===st.pal); b.firstChild.style.background=palCss(i,st); });
  [...$('rot').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===st.rot));
+ { const all=2**info.effects.length-1, cur=st.fxm??all; [...$('fxm').querySelectorAll('.switch')].forEach((b,i)=>{ const on=!!(Math.floor(cur/2**i)%2); b.setAttribute('aria-checked',on); b.setAttribute('aria-disabled',on&&cur===2**i); }); }
  $('night').setAttribute('aria-checked',!!st.night);
  [...$('nBri').children].forEach((b,i)=>b.setAttribute('aria-pressed',[0,13,38,77][i]===st.nBri));
  const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');

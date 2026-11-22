@@ -47,7 +47,12 @@ void onWebChange(bool effectChanged) {
 // Naechster Effekt (und einschalten): kurzer Tastendruck oder Tippen aufs Display
 void nextEffect(int step = 1) {
   state.on = true;
-  state.effect = (state.effect + effects::COUNT + step) % effects::COUNT;
+  // Abgewaehlte Effekte (Web: Einstellungen) ueberspringen; sind alle abgewaehlt, gilt jeder
+  bool any = (~state.fxOff & effects::validMask()) != 0;
+  for (uint8_t i = 0; i < effects::COUNT; i++) {
+    state.effect = (state.effect + effects::COUNT + step) % effects::COUNT;
+    if (!any || !((state.fxOff >> state.effect) & 1)) break;
+  }
   effects::reset();
   settings::markDirty();
 }
