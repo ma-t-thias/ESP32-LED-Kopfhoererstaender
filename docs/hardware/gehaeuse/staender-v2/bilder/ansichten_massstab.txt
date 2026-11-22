@@ -1,0 +1,7 @@
+Orthografische Ansichten, Stand v10. Massstab: 1600 px = 400 mm -> 4,0 px/mm (0,25 mm/px).
+Baugruppe (Bounding Box, mm): x -92.0..92.0, y -66.0..90.0, z -4.0..279.0
+Bildmitte = Mitte der Bounding Box. Vorne = +Y (Display-Seite).
+ansicht_vorne.png (1600 x 1300 px): Blick von vorne (Kamera bei +Y); Bild nach rechts = Welt -x, Bild nach oben = Welt +z; Bildmitte = Welt (0.00, 12.00, 137.50)
+ansicht_seite.png (1600 x 1300 px): Blick von rechts (Kamera bei +X); Bild nach rechts = Welt +y, Bild nach oben = Welt +z; Bildmitte = Welt (0.00, 12.00, 137.50)
+ansicht_oben.png (1600 x 1000 px): Blick von oben; Bild nach rechts = Welt +x, Bild nach oben = Welt +y; Bildmitte = Welt (0.00, 12.00, 137.50)
+ansicht_unten.png (1600 x 1000 px): Blick von unten; Bild nach rechts = Welt +x, Bild nach oben = Welt -y; Bildmitte = Welt (0.00, 12.00, 137.50)
