@@ -1,6 +1,6 @@
 # ESP32-LED-Kopfhoererstaender
 
-WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau. Tippen in die obere Hälfte oder Wischen nach rechts schaltet zum nächsten Effekt, Wischen nach links zum vorherigen. Tippen in die untere Hälfte wechselt die Farbe (bei Farbeffekten wie Einfarbig) oder sonst die Palette.
+WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare ESP32-C6-Touch-LCD-1.9 steuert einen WS2812B-Streifen (5 V, 144 LEDs, 1 m). Über eine Weboberfläche im Heimnetz wählst du Farben, Paletten und bewegte Effekte, ähnlich wie bei WLED. Das eingebaute Display zeigt IP-Adresse, Effekt, Helligkeit und eine LED-Vorschau. Tippen in die obere Hälfte oder Wischen nach rechts schaltet zum nächsten Effekt, Wischen nach links zum vorherigen (nur die Effekte, die du in der Weboberfläche unter „Effekte beim Wischen“ angewählt hast). Tippen in die untere Hälfte wechselt die Farbe (bei Farbeffekten wie Einfarbig) oder sonst die Palette.
 
 <p align="center">
   <img src="docs/images/weboberflaeche-handy-licht.jpg" alt="Seite Licht mit Presets, Tempo und Effekten, heller Modus" width="250">
@@ -17,7 +17,7 @@ WLAN-Steuerung für die LED-Beleuchtung eines Kopfhörerständers. Ein Waveshare
   <img src="docs/images/weboberflaeche-pc-dunkel.jpg" alt="Weboberfläche am PC, Seite Licht im dunklen Modus" width="800">
 </p>
 
-Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Nachtmodus, Kopfhörer-Erkennung, Zugang, Wartung mit Firmware-Update, Selbsttest, WLAN und Werkseinstellungen) und **Info** (Gerätedaten mit Firmware-Version, Seriennummer und letztem Selbsttest, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
+Die Weboberfläche hat vier Seiten, zwischen denen die Leiste unten umschaltet: **Licht** (Presets, Effekte, Tempo), **Farben** (Farbrad, Paletten), **Einstellungen** (ASUS Aura, PC-Sync, Matter, Stromgrenze, Display-Drehung mit „Auto“ über den Lagesensor, Nachtmodus, Effekte beim Wischen, Kopfhörer-Erkennung, Zugang, Wartung mit Firmware-Update, Selbsttest, WLAN und Werkseinstellungen) und **Info** (Gerätedaten mit Firmware-Version, Seriennummer und letztem Selbsttest, Über dieses Projekt: Copyright, Lizenz, Herkunft, Quelltext). Kopfzeile mit Ein/Aus, Live-Streifen und Helligkeit bleiben auf jeder Seite oben. Jede Seite hat eine eigene Adresse (`#licht`, `#farben`, `#einst`, `#info`), und der Browser merkt sich die zuletzt offene.
 
 Die Bilder zeigen die Weboberfläche mit Beispieldaten. Eine klickbare Vorschau ohne Gerät ist `web/index.html` mit `window.LED_DEMO = true`.
 
@@ -106,9 +106,9 @@ Beim ersten Start erzeugt der Ständer ein eigenes, zufälliges Passwort aus 8 Z
 
 ## Bedienung
 
-- **Weboberfläche:** Live-Vorschau des Streifens, Ein/Aus, Helligkeit, Presets, Farbrad für zwei Farben, Paletten, Effekte mit animierter Vorschau, Tempo, Intensität, Aura und PC-Sync, Stromgrenze, Anzeige drehen, Zugang (Gerätepasswort, Home Assistant/WLED-App), Wartung (Firmware-Update, Selbsttest, WLAN neu einrichten, Werkseinstellungen). Hell- und Dunkelmodus folgen dem Gerät. Auf dem iPhone lässt sich die Seite über *Teilen → Zum Home-Bildschirm* wie eine App ablegen.
+- **Weboberfläche:** Live-Vorschau des Streifens, Ein/Aus, Helligkeit, Presets, Farbrad für zwei Farben, Paletten, Effekte mit animierter Vorschau, Tempo, Intensität, Aura und PC-Sync, Stromgrenze, Anzeige drehen, Auswahl der Effekte für das Wischen am Gerät, Zugang (Gerätepasswort, Home Assistant/WLED-App), Wartung (Firmware-Update, Selbsttest, WLAN neu einrichten, Werkseinstellungen). Hell- und Dunkelmodus folgen dem Gerät. Auf dem iPhone lässt sich die Seite über *Teilen → Zum Home-Bildschirm* wie eine App ablegen.
 - **Presets:** Tippen lädt ein Preset, „Speichern“ legt die aktuelle Einstellung als neues an (bis zu 12). Gedrückt halten bzw. Rechtsklick löscht eins. Presets liegen im Flash des Controllers und gelten für alle Geräte im Heimnetz.
-- **BOOT-Taster kurz drücken, in die obere Displayhälfte tippen oder nach rechts wischen:** nächster Effekt. **Nach links wischen:** vorheriger Effekt. **In die untere Hälfte tippen:** nächste Farbe bei Farbeffekten (Einfarbig, Atmen, Komet, Kerze ...), sonst nächste Palette. Oben, unten, links und rechts gelten im angezeigten Bild, also passend zur Drehung.
+- **BOOT-Taster kurz drücken, in die obere Displayhälfte tippen oder nach rechts wischen:** nächster Effekt. **Nach links wischen:** vorheriger Effekt. Es kommen nur die Effekte dran, die in der Weboberfläche (Einstellungen → Effekte beim Wischen) angeschaltet sind, ab Werk alle. Weboberfläche, WLED-App und Matter können weiter jeden Effekt direkt wählen. **In die untere Hälfte tippen:** nächste Farbe bei Farbeffekten (Einfarbig, Atmen, Komet, Kerze ...), sonst nächste Palette. Oben, unten, links und rechts gelten im angezeigten Bild, also passend zur Drehung.
 - **Zahnrad oben rechts** (nur 1,9-Zoll-Board mit Touch) öffnet die Seite **Einrichten**: Schieberegler für Helligkeit, Tempo und die Effekt-Stärke (Beschriftung je Effekt, z. B. „Anzahl Punkte“ bei Jonglieren; ausgegraut, wenn der Effekt sie nicht nutzt), dazu IP-Adresse, Hostname, WLAN, das Passwort für die Weboberfläche und die Firmware-Version. Das X an derselben Stelle schließt sie, nach 20 s ohne Berührung geht es von selbst zurück. Mit verbundenem WLAN ist die Startseite dafür aufgeräumt: nur Effekt, Helligkeit/Tempo und LED-Vorschau. Ohne WLAN oder bei der Einrichtung stehen die Netzhinweise weiter auf der Startseite.
 - **Ausgeschaltet** (über Weboberfläche, Matter oder Apple Home) zeigt das Display das Logo statt der Statusseite. Die erste Berührung oder ein kurzer Druck auf den BOOT-Taster schaltet nur wieder ein, Effekt und Farbe bleiben wie zuvor, und die Statusseite erscheint wieder. Ausnahme: Während der WLAN-Einrichtung oder des Koppelns bleiben deren Hinweise zu sehen.
 - **BOOT-Taster 5 s halten:** Das Display zeigt „Loslassen: WLAN-Reset“. Jetzt loslassen löscht die WLAN-Daten, Neustart ins Einrichtungs-WLAN.
@@ -181,7 +181,7 @@ Zum Steuern vorher in der Weboberfläche unter **Einstellungen → Zugang** den 
 | In Home Assistant | Am Ständer |
 |---|---|
 | Licht ein/aus, Helligkeit, Farbe | Ein/Aus, Helligkeit, Farbe 1 |
-| Effekt | alle 24 Effekte mit ihren Namen |
+| Effekt | alle 25 Effekte mit ihren Namen |
 | Auswahl „Farbpalette“ | Palette |
 | Zahlen „Geschwindigkeit“ und „Intensität“ | Tempo und Intensität |
 | Auswahl „Preset“ | Presets aus der Weboberfläche |

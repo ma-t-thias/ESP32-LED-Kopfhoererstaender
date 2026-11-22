@@ -182,6 +182,7 @@ String stateJson() {
   j += "\"on\":" + String(s.on ? "true" : "false");
   j += ",\"bri\":" + String(s.brightness);
   j += ",\"fx\":" + String(s.effect);
+  j += ",\"fxm\":" + String(~s.fxOff & effects::validMask());
   j += ",\"pal\":" + String(s.palette);
   j += ",\"spd\":" + String(s.speed);
   j += ",\"int\":" + String(s.intensity);
@@ -416,6 +417,10 @@ void handleSetState() {
   v = argInt("bri", 1, 255, p);        if (p) s.brightness = v;
   v = argInt("fx", 0, effects::COUNT - 1, p);
   if (p && v != s.effect) { s.effect = v; effectChanged = true; }
+  if (server.hasArg("fxm")) {  // Effekte, die beim Wischen drankommen; mindestens einer, sonst ignoriert
+    uint32_t m = (uint32_t)server.arg("fxm").toInt() & effects::validMask();
+    if (m) s.fxOff = ~m & effects::validMask();
+  }
   v = argInt("pal", 0, effects::PALETTE_COUNT - 1, p); if (p) s.palette = v;
   v = argInt("spd", 0, 255, p);        if (p) s.speed = v;
   v = argInt("int", 0, 255, p);        if (p) s.intensity = v;

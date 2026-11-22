@@ -10,6 +10,7 @@ struct LedState {
   bool on = true;
   uint8_t brightness = 128;  // 0..255
   uint8_t effect = 1;        // Index in die Effektliste (effects.h)
+  uint32_t fxOff = 0;        // Bit je Effekt: 1 = beim Wischen/Tippen am Geraet uebersprungen (Web und API waehlen immer alle; neue Effekte sind automatisch an)
   uint8_t palette = 0;       // Index in die Palettenliste (effects.h)
   uint8_t speed = 128;       // 0..255
   uint8_t intensity = 128;   // 0..255, Bedeutung je Effekt (Dichte, Schweiflaenge ...)
