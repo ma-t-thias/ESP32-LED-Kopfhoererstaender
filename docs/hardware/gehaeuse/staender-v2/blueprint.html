@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blueprint Ständer v2</title>
+<!-- Erzeugt mit python3 docs/hardware/gehaeuse/staender-v2/gen_blueprint.py, nicht von Hand ändern. -->
+<style>
+:root{--bg:#0d3b7a;--grid:rgba(255,255,255,.07);--ink:#eaf3ff;--dim:#ffe27a;--hid:#9fd0ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+ background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:1.6rem;margin:0 0 4px;letter-spacing:.02em}
+.sub{margin:0 0 20px;opacity:.85}
+.sheet{border:2px solid var(--ink);margin:0 0 22px;background:rgba(5,30,70,.35)}
+.sheet h2{margin:0;padding:8px 14px;font-size:.95rem;font-weight:600;border-bottom:1px solid var(--ink);display:flex;justify-content:space-between;gap:12px}
+.sheet h2 span{opacity:.8;font-weight:400}
+svg{display:block;width:100%;height:auto}
+.img{filter:invert(1);mix-blend-mode:screen;opacity:.92}
+.dim{stroke:var(--dim);stroke-width:2}
+.ext{stroke:var(--dim);stroke-width:1.2;opacity:.85}
+.t{fill:var(--dim);font:600 26px ui-monospace,Menlo,Consolas,monospace;paint-order:stroke;stroke:#0d3b7a;stroke-width:6px}
+.n{fill:var(--ink);font:22px ui-monospace,Menlo,Consolas,monospace;paint-order:stroke;stroke:#0d3b7a;stroke-width:5px}
+.hid{fill:none;stroke:var(--hid);stroke-width:2;stroke-dasharray:10 7}
+.dome{fill:none;stroke:var(--hid);stroke-width:2}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+td,th{border:1px solid rgba(255,255,255,.45);padding:6px 10px;text-align:left}
+th{background:rgba(255,255,255,.1)}
+.block{border:2px solid var(--ink);padding:14px;margin:0 0 22px;background:rgba(5,30,70,.35)}
+.block h2{margin:0 0 10px;font-size:1rem}
+.foot{font-size:.85rem;opacity:.8}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><marker id="a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#ffe27a"/></marker></defs></svg>
+<main>
+<h1>Blueprint · Kopfhörerständer v2</h1>
+<p class="sub">Maßzeichnung der Baugruppe Staender_v10_Gesamt_B, Stand 22.11.2026 (Sockel v9, Auflage v4, Säule B „Rauten“). Alle Maße in mm. Gelb = Maße, gestrichelt = verdeckte Teile. Anleitung zum Aufbau: <a style="color:#ffe27a" href="README.md">README.md</a>.</p>
+<section class="sheet">
+  <h2>Vorderansicht (Blick auf das Display)<span>Maßstab im Bild 4,0 px/mm</span></h2>
+  <svg viewBox="-150 -150 1900 1600" role="img" aria-label="Ansicht von vorn">
+    <image href="bilder/ansicht_vorne.png" width="1600" height="1300" class="img"/>
+    <line x1="1168.0" y1="1222.0" x2="1168.0" y2="1300.0" class="ext"/>
+    <line x1="432.0" y1="1222.0" x2="432.0" y2="1300.0" class="ext"/>
+    <line x1="1168.0" y1="1286.0" x2="432.0" y2="1286.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="1276.0" class="t" text-anchor="middle">184</text>
+    <line x1="1162.0" y1="1216.0" x2="1064.0" y2="1216.0" class="ext"/>
+    <line x1="1162.0" y1="84.0" x2="1064.0" y2="84.0" class="ext"/>
+    <line x1="1078.0" y1="1216.0" x2="1078.0" y2="84.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="1066.0" y="650.0" class="t" transform="rotate(-90 1066.0 650.0)" text-anchor="middle">283</text>
+    <line x1="900.0" y1="78.0" x2="900.0" y2="20.0" class="ext"/>
+    <line x1="700.0" y1="78.0" x2="700.0" y2="20.0" class="ext"/>
+    <line x1="900.0" y1="34.0" x2="700.0" y2="34.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="24.0" class="t" text-anchor="middle">50</text>
+    <line x1="892.0" y1="600.0" x2="892.0" y2="600.0" class="ext"/>
+    <line x1="708.0" y1="600.0" x2="708.0" y2="600.0" class="ext"/>
+    <line x1="892.0" y1="600.0" x2="708.0" y2="600.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="590.0" class="t" text-anchor="middle">46</text>
+    <line x1="702.0" y1="1088.0" x2="614.0" y2="1088.0" class="ext"/>
+    <line x1="702.0" y1="268.0" x2="614.0" y2="268.0" class="ext"/>
+    <line x1="628.0" y1="1088.0" x2="628.0" y2="268.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="616.0" y="678.0" class="t" transform="rotate(-90 616.0 678.0)" text-anchor="middle">205 (Säule)</text>
+    <line x1="906.0" y1="348.0" x2="1004.0" y2="348.0" class="ext"/>
+    <line x1="906.0" y1="84.0" x2="1004.0" y2="84.0" class="ext"/>
+    <line x1="990.0" y1="348.0" x2="990.0" y2="84.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="978.0" y="216.0" class="t" transform="rotate(-90 978.0 216.0)" text-anchor="middle">66 (Auflage)</text>
+    <line x1="438.0" y1="1200.0" x2="516.0" y2="1200.0" class="ext"/>
+    <line x1="438.0" y1="932.4" x2="516.0" y2="932.4" class="ext"/>
+    <line x1="502.0" y1="1200.0" x2="502.0" y2="932.4" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="490.0" y="1066.2" class="t" transform="rotate(-90 490.0 1066.2)" text-anchor="middle">66,9 (Turm)</text>
+    <line x1="1020.0" y1="1144.0" x2="1140.0" y2="1254.0" class="ext"/>
+    <text x="1148.0" y="1260.0" class="n" text-anchor="start">Augen-Fenster (3 je Seite)</text>
+    <line x1="800.0" y1="1020.0" x2="470.0" y2="860.0" class="ext"/>
+    <text x="462.0" y="866.0" class="n" text-anchor="end">Display-Turm</text>
+  </svg>
+</section>
+<section class="sheet">
+  <h2>Seitenansicht (von rechts)<span>Maßstab im Bild 4,0 px/mm</span></h2>
+  <svg viewBox="-150 -150 1900 1600" role="img" aria-label="Ansicht von der Seite">
+    <image href="bilder/ansicht_seite.png" width="1600" height="1300" class="img"/>
+    <line x1="488.0" y1="1222.0" x2="488.0" y2="1300.0" class="ext"/>
+    <line x1="1112.0" y1="1222.0" x2="1112.0" y2="1300.0" class="ext"/>
+    <line x1="488.0" y1="1286.0" x2="1112.0" y2="1286.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="1276.0" class="t" text-anchor="middle">156</text>
+    <line x1="482.0" y1="1216.0" x2="384.0" y2="1216.0" class="ext"/>
+    <line x1="482.0" y1="84.0" x2="384.0" y2="84.0" class="ext"/>
+    <line x1="398.0" y1="1216.0" x2="398.0" y2="84.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="386.0" y="650.0" class="t" transform="rotate(-90 386.0 650.0)" text-anchor="middle">283</text>
+    <line x1="826.0" y1="78.0" x2="826.0" y2="20.0" class="ext"/>
+    <line x1="1078.0" y1="78.0" x2="1078.0" y2="20.0" class="ext"/>
+    <line x1="826.0" y1="34.0" x2="1078.0" y2="34.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="952.0" y="24.0" class="t" text-anchor="middle">63 (Auflage)</text>
+    <line x1="555.6" y1="274.0" x2="555.6" y2="342.0" class="ext"/>
+    <line x1="886.0" y1="274.0" x2="886.0" y2="342.0" class="ext"/>
+    <line x1="555.6" y1="328.0" x2="886.0" y2="328.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="720.8" y="318.0" class="t" text-anchor="middle">82,6 (Säule unten)</text>
+    <line x1="1118.0" y1="1200.0" x2="1186.0" y2="1200.0" class="ext"/>
+    <line x1="1118.0" y1="1088.0" x2="1186.0" y2="1088.0" class="ext"/>
+    <line x1="1172.0" y1="1200.0" x2="1172.0" y2="1088.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="1160.0" y="1144.0" class="t" transform="rotate(-90 1160.0 1144.0)" text-anchor="middle">28 (Deck)</text>
+    <line x1="1084.0" y1="348.0" x2="1142.0" y2="348.0" class="ext"/>
+    <line x1="1084.0" y1="84.0" x2="1142.0" y2="84.0" class="ext"/>
+    <line x1="1128.0" y1="348.0" x2="1128.0" y2="84.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="1116.0" y="216.0" class="t" transform="rotate(-90 1116.0 216.0)" text-anchor="middle">66</text>
+    <line x1="520.0" y1="1160.0" x2="460.0" y2="1280.0" class="ext"/>
+    <text x="452.0" y="1286.0" class="n" text-anchor="end">USB-C (hinten)</text>
+    <line x1="1056.0" y1="992.0" x2="1206.0" y2="902.0" class="ext"/>
+    <text x="1214.0" y="908.0" class="n" text-anchor="start">Display, 20° nach hinten</text>
+  </svg>
+</section>
+<section class="sheet">
+  <h2>Draufsicht<span>Maßstab im Bild 4,0 px/mm</span></h2>
+  <svg viewBox="-150 -150 1900 1300" role="img" aria-label="Ansicht von oben">
+    <image href="bilder/ansicht_oben.png" width="1600" height="1000" class="img"/>
+    <line x1="432.0" y1="818.0" x2="432.0" y2="886.0" class="ext"/>
+    <line x1="1168.0" y1="818.0" x2="1168.0" y2="886.0" class="ext"/>
+    <line x1="432.0" y1="872.0" x2="1168.0" y2="872.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="862.0" class="t" text-anchor="middle">184</text>
+    <line x1="426.0" y1="812.0" x2="358.0" y2="812.0" class="ext"/>
+    <line x1="426.0" y1="188.0" x2="358.0" y2="188.0" class="ext"/>
+    <line x1="372.0" y1="812.0" x2="372.0" y2="188.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="360.0" y="500.0" class="t" transform="rotate(-90 360.0 500.0)" text-anchor="middle">156</text>
+    <line x1="700.0" y1="216.0" x2="700.0" y2="163.0" class="ext"/>
+    <line x1="900.0" y1="216.0" x2="900.0" y2="163.0" class="ext"/>
+    <line x1="700.0" y1="177.0" x2="900.0" y2="177.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="167.0" class="t" text-anchor="middle">50 (Auflage)</text>
+    <line x1="906.0" y1="474.0" x2="1004.0" y2="474.0" class="ext"/>
+    <line x1="906.0" y1="222.0" x2="1004.0" y2="222.0" class="ext"/>
+    <line x1="990.0" y1="474.0" x2="990.0" y2="222.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="978.0" y="348.0" class="t" transform="rotate(-90 978.0 348.0)" text-anchor="middle">63</text>
+    <rect x="672.0" y="428.0" width="256.0" height="208.0" class="hid"/>
+    <text x="800.0" y="656.0" class="n" text-anchor="middle">Platine v2 64 × 52 (verdeckt)</text>
+    <circle cx="868.2" cy="457.2" r="20.0" class="hid"/>
+    <line x1="868.2" y1="457.2" x2="1018.2" y2="367.2" class="ext"/>
+    <text x="1026.2" y="373.2" class="n" text-anchor="start">Mikrofon INMP441 (x 17,04 / y 22,69)</text>
+    <rect x="742.4" y="220.0" width="115.2" height="84.0" class="hid"/>
+    <line x1="857.6" y1="236.0" x2="1007.6" y2="176.0" class="ext"/>
+    <text x="1015.6" y="182.0" class="n" text-anchor="start">Display-Fenster 28,8 × 21</text>
+  </svg>
+</section>
+<section class="sheet">
+  <h2>Untersicht (Blick auf den Boden)<span>Maßstab im Bild 4,0 px/mm</span></h2>
+  <svg viewBox="-150 -150 1900 1300" role="img" aria-label="Ansicht von unten">
+    <image href="bilder/ansicht_unten.png" width="1600" height="1000" class="img"/>
+    <line x1="434.0" y1="816.0" x2="434.0" y2="869.0" class="ext"/>
+    <line x1="1166.0" y1="816.0" x2="1166.0" y2="869.0" class="ext"/>
+    <line x1="434.0" y1="855.0" x2="1166.0" y2="855.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="845.0" class="t" text-anchor="middle">183 (Boden)</text>
+    <line x1="428.0" y1="190.0" x2="360.0" y2="190.0" class="ext"/>
+    <line x1="428.0" y1="810.0" x2="360.0" y2="810.0" class="ext"/>
+    <line x1="374.0" y1="190.0" x2="374.0" y2="810.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="362.0" y="500.0" class="t" transform="rotate(-90 362.0 500.0)" text-anchor="middle">155</text>
+    <circle cx="684.0" cy="376.0" r="12.8" class="dome"/>
+    <circle cx="684.0" cy="536.0" r="12.8" class="dome"/>
+    <circle cx="916.0" cy="376.0" r="12.8" class="dome"/>
+    <circle cx="916.0" cy="536.0" r="12.8" class="dome"/>
+    <line x1="684.0" y1="370.0" x2="684.0" y2="302.0" class="ext"/>
+    <line x1="916.0" y1="370.0" x2="916.0" y2="302.0" class="ext"/>
+    <line x1="684.0" y1="316.0" x2="916.0" y2="316.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="800.0" y="306.0" class="t" text-anchor="middle">58</text>
+    <line x1="922.0" y1="376.0" x2="990.0" y2="376.0" class="ext"/>
+    <line x1="922.0" y1="536.0" x2="990.0" y2="536.0" class="ext"/>
+    <line x1="976.0" y1="376.0" x2="976.0" y2="536.0" class="dim" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text x="964.0" y="456.0" class="t" transform="rotate(-90 964.0 456.0)" text-anchor="middle">40</text>
+    <line x1="916.0" y1="536.0" x2="1036.0" y2="596.0" class="ext"/>
+    <text x="1044.0" y="602.0" class="n" text-anchor="start">4 Dome M2,5, Kernloch Ø2,2</text>
+    <rect x="782.0" y="206.4" width="36.0" height="29.6" class="hid"/>
+    <line x1="800.0" y1="220.0" x2="650.0" y2="150.0" class="ext"/>
+    <text x="642.0" y="156.0" class="n" text-anchor="end">USB-C-Buchse</text>
+  </svg>
+</section>
+<section class="block">
+<h2>Wichtige Maße</h2>
+<table>
+<tr><th>Teil</th><th>B × T × H (mm)</th><th>Hinweis</th></tr>
+<tr><td>Baugruppe</td><td>184 × 156 × 283</td><td>x −92…92, y −66…90, z −4…279 (z −4 = Unterkante TPU-Fuß, 0 = Unterseite Boden)</td></tr>
+<tr><td>Sockel-Schale v9</td><td>180 × 152 × 63,9</td><td>z 3…66,9, Deckoberseite z 28, Display-Turm bis z 66,9</td></tr>
+<tr><td>Boden v5</td><td>183 × 155 × 11,5</td><td>4 Dome M2,5 für die Platine v2</td></tr>
+<tr><td>Leuchtring v3</td><td>184 × 156 × 6</td><td>rundum, von unten sichtbar</td></tr>
+<tr><td>Säule B „Rauten“</td><td>46 × 82,6 × 205</td><td>gebogen, z 28…233, Front-Streifen 19 breit</td></tr>
+<tr><td>Auflage v4</td><td>50 × 63 × 66</td><td>z 213…279, Außenkanten R 2</td></tr>
+<tr><td>Druckplatte FSR</td><td>Ø19 × 4</td><td>plus 2 Nasen 3 × 0,9 × 0,4</td></tr>
+<tr><td>Platine v2</td><td>64 × 52 × 1,6</td><td>Oberseite z 8,5, Lochabstand 58 × 40</td></tr>
+<tr><td>ESP32-C6-Touch-LCD-1.9</td><td>x −15…14,5, y 48,6…76, z 10…62</td><td>hochkant im Turm, Display-Glas x ±14,4, y 61…82, z 14…63</td></tr>
+<tr><td>Mikrofon INMP441</td><td>Ø14 (Modul)</td><td>Mitte x 17,04 / y 22,69, Oberkante z 12,2, 4 Schalllöcher Ø2,0 auf Lochkreis R 2,4</td></tr>
+<tr><td>USB-C-Buchse</td><td>x ±4,5, y −61,4…−54, z 10,25…13,45</td><td>Durchbruch in der Schale 13 × 7,2</td></tr>
+<tr><td>FSR-Tasche (Auflage)</td><td>Ø19,4 × 5,25 tief</td><td>Mitte x 0 / y 49,0, Boden z 245,85</td></tr>
+</table>
+<p class="foot">Die Ansichten sind aus den STL-Teilen in Montagelage berechnet (Kanten, ohne Schatten). Die Maße gelten für die Konstruktion, nicht für Druck-Toleranzen.</p>
+</section>
+</main>
+</body>
+</html>

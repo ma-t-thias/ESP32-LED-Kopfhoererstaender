@@ -1,0 +1,20 @@
+Explosionsansicht Staender v2, Stand v10 (22.11.2026), Variante B "Rauten"
+Nr | Teil | Druckdatei bzw. Herkunft
+1 | Druckplatte FSR | Druckplatte_FSR.stl
+2 | Kopfhoerer-Auflage v4 | Auflage_v4.stl
+3 | Seiten-Inlay links (B Rauten) | Inlay_Seite_B_links.stl
+4 | Seiten-Inlay rechts (B Rauten) | Inlay_Seite_B_rechts.stl
+5 | Saeulen-Streifen vorne (Inlay_Saeule_v3) | Inlay_Saeule_v3.stl
+6 | Saeule v2 B Rauten | Saeule_v2_B_Rauten.stl
+7 | Deckel Display-Gehaeuse (hochkant) | ESP32_Lid_Mikro_hochkant.stl
+8 | Display ESP32-C6-Touch-LCD-1.9 (Rahmen) | Kaufteil Waveshare ESP32-C6-Touch-LCD-1.9 (Display)
+9 | ESP32-C6-Board | Kaufteil ESP32-C6-Board (Teil des Displaymoduls)
+10 | Inlay Lichtschlitz hinter Display-Turm | Inlay_Turm_hinten.stl
+11 | Sockel-Schale v9 | Sockel_oval_v9.stl
+12 | Augen-Inlay links | Inlay_Augen_links_v3.stl
+13 | Augen-Inlay rechts | Inlay_Augen_rechts_v3.stl
+14 | Leuchtring v3 | Inlay_Leuchtring_v3.stl
+15 | USB-C-Platine | Kaufteil USB-C-Buchsenplatine 20 x 14
+16 | Platine v2 (64 x 52) | Platine v2 (64 x 52, mit Bauteilen, Elko, INMP441, ARGB-Stecker)
+17 | Bodenplatte v5 | Boden_v5.stl
+18 | TPU-Fuss (4x) | TPU_Fuss_4x.stl (4 Stueck, Bild zeigt 1)
