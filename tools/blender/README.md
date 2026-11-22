@@ -6,7 +6,7 @@ Der Ständer als 3D-Szene in Blender. Jede der 144 LEDs ist ein eigenes Leuchtob
 
 ## Szene bauen
 
-Die Teile werden in SolidCraft in Montageposition als STL exportiert, mit festen Dateinamen (siehe `PARTS` in `build_staender_blend.py`), in einen Ordner `stl/`. Die STL-Dateien (Stand Sockel v9 / Auflage v4, 23 Teile, ca. 20 MB) liegen im Repo unter `tools/blender/stl/`, damit die Szene auf jedem PC ohne SolidCraft gebaut werden kann. Die `.blend` wird lokal erzeugt und nicht eingecheckt.
+Die Teile werden in SolidCraft in Montageposition als STL exportiert, mit festen Dateinamen (siehe `PARTS` in `build_staender_blend.py`), in einen Ordner `stl/`. Die STL-Dateien (Stand Sockel v9 / Auflage v7, 23 Teile, ca. 20 MB) liegen im Repo unter `tools/blender/stl/`, damit die Szene auf jedem PC ohne SolidCraft gebaut werden kann. Die `.blend` wird lokal erzeugt und nicht eingecheckt.
 
 ```
 blender --background --python tools/blender/build_staender_blend.py -- --stl-dir <Ordner mit STLs> --out Staender_v8.blend [--render Vorschau.png] [--demo]
